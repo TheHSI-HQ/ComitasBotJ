@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.API;
+package cloud.thehsi.ComitasBotJ;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
