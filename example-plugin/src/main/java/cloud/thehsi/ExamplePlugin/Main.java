@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 public class Main implements Plugin {
     @Override
     public void onEnable() {
-        logger.info("The Plugin has Started!");
+        getLogger().info("The Plugin has Started!");
     }
 
     @Override

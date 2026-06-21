@@ -6,7 +6,7 @@
 
     <groupId>cloud.thehsi.ComitasBotJ</groupId>
     <artifactId>example-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>cloud.thehsi.ComitasBotJ</groupId>
             <artifactId>comitas-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.0.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

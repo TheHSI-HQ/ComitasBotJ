@@ -63,10 +63,6 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 plugins.add(plugin);
 
                 plugin.onEnable();
-
-                System.out.println(
-                        "Loaded: " + plugin.getName()
-                );
             } catch (Exception e) {
                 e.printStackTrace();
             }
