@@ -6,11 +6,14 @@ public class Main extends Plugin {
     @Override
     public void onEnable() {
         // Your code Here
-        getLogger().info("The Plugin has Started!");
+
+        getLogger().info("Hello World from Example Plugin");
     }
 
     @Override
     public void onDisable() {
         // Your code here
+
+        getLogger().info("Bye Bye from ExamplePlugin!");
     }
 }

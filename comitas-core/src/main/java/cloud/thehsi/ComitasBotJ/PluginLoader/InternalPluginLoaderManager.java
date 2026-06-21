@@ -19,6 +19,11 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
     }
 
     @Override
+    public List<String> pluginNameList() {
+        return plugins.stream().map(e -> e.name).toList();
+    }
+
+    @Override
     public void loadPlugins() {
         File pluginDir = new File("plugins");
         File pluginDataDir = new File("plugin_data");
@@ -53,6 +58,9 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 String mainClass =
                         props.getProperty("main");
 
+                String name =
+                        props.getProperty("name");
+
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
                                 .asSubclass(Plugin.class);
@@ -60,7 +68,7 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 Plugin plugin = clazz.getDeclaredConstructor()
                         .newInstance();
 
-                plugins.add(new LoadedPlugin(plugin, loader));
+                plugins.add(new LoadedPlugin(plugin, loader, name));
 
                 plugin.onEnable();
             } catch (Exception e) {
@@ -75,17 +83,17 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
             try {
                 loaded.plugin().onDisable();
 
-                //loaded.loader().close();
+                loaded.loader().close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        // plugins.clear();
+        plugins.clear();
 
-        //System.gc();
+        System.gc();
     }
 
-    private record LoadedPlugin(Plugin plugin, URLClassLoader loader) {
+    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, String name) {
     }
 }

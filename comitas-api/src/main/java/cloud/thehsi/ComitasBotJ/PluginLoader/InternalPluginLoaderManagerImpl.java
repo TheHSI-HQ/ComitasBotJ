@@ -1,9 +1,12 @@
 package cloud.thehsi.ComitasBotJ.PluginLoader;
 
+import java.util.List;
+
 public interface InternalPluginLoaderManagerImpl {
     Integer count();
 
-    void loadPlugins();
+    List<String> pluginNameList();
 
+    void loadPlugins();
     void unloadPlugins();
 }
