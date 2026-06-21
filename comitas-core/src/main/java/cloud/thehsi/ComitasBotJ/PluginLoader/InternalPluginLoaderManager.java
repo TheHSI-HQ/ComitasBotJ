@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class InternalPluginLoaderManager implements InternalPluginLoaderManagerImpl {
-    private final List<Plugin> plugins = new ArrayList<>();
+    private final List<LoadedPlugin> plugins = new ArrayList<>();
 
     @Override
     public Integer count() {
@@ -35,12 +35,12 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
             return;
 
         for (File jar : jars) {
-
-            try (URLClassLoader loader =
+            try {
+                URLClassLoader loader =
                          new URLClassLoader(
                                  new URL[]{jar.toURI().toURL()},
                                  getClass().getClassLoader()
-                         )) {
+                         );
 
                 InputStream is =
                         loader.getResourceAsStream(
@@ -53,19 +53,39 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 String mainClass =
                         props.getProperty("main");
 
-                Class<?> clazz =
-                        loader.loadClass(mainClass);
+                Class<? extends Plugin> clazz =
+                        loader.loadClass(mainClass)
+                                .asSubclass(Plugin.class);
 
-                Plugin plugin =
-                        (Plugin) clazz.getDeclaredConstructor()
-                                .newInstance();
+                Plugin plugin = clazz.getDeclaredConstructor()
+                        .newInstance();
 
-                plugins.add(plugin);
+                plugins.add(new LoadedPlugin(plugin, loader));
 
                 plugin.onEnable();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void unloadPlugins() {
+        for (LoadedPlugin loaded : plugins) {
+            try {
+                loaded.plugin().onDisable();
+
+                //loaded.loader().close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // plugins.clear();
+
+        //System.gc();
+    }
+
+    private record LoadedPlugin(Plugin plugin, URLClassLoader loader) {
     }
 }

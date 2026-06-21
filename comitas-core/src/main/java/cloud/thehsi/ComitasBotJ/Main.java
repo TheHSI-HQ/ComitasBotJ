@@ -21,5 +21,10 @@ public class Main {
 
         Bot bot = Bot.getInstance();
         bot.init(new InternalBot());
+
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException ignored) {
+        }
     }
 }

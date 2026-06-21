@@ -3,14 +3,12 @@ package cloud.thehsi.ComitasBotJ.API.Plugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public interface Plugin {
-    default Logger getLogger() {
+public abstract class Plugin {
+    protected Logger getLogger() {
         return LogManager.getLogger(getClass());
     }
 
-    void onEnable();
+    public abstract void onEnable();
 
-    void onDisable();
-
-    String getName();
+    public abstract void onDisable();
 }

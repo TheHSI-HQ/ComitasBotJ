@@ -14,4 +14,8 @@ public class PluginLoaderManager {
     public void loadPlugins() {
         impl.loadPlugins();
     }
+
+    public void unloadPlugins() {
+        impl.unloadPlugins();
+    }
 }

@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.PluginLoader.PluginLoaderManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 
 public class InternalBot implements InternalBotImpl {
@@ -27,9 +28,17 @@ public class InternalBot implements InternalBotImpl {
 
     @Override
     public void init(InternalBotImpl impl) {
-        // Load Configuration from ./server.properties
+        File logsDir = new File("logs");
+
+        if (!logsDir.exists() && !logsDir.mkdir()) {
+            throw new RuntimeException("Couldn't create logs folder");
+        }
+
         logger = LogManager.getLogger(Bot.class);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
+
+        // Load Configuration from ./server.properties
         logger.info("Loading Configuration...");
         try {
             ServerConfig rawServerConfig = new ServerConfig();
@@ -58,5 +67,22 @@ public class InternalBot implements InternalBotImpl {
 
         pluginManager = new PluginManager(pluginLoaderManager);
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
+    }
+
+    private void onShutdown() {
+        logger.info("Shutting down ComitasBotJ");
+
+        // Unload Plugins
+        logger.info("Unloading Plugins...");
+        pluginLoaderManager.unloadPlugins();
+
+        logger.info("Writing Updated Configuration...");
+        try {
+            serverConfig.save();
+        } catch (Exception e) {
+            logger.error(e.getLocalizedMessage());
+        }
+
+        logger.info("Bye!");
     }
 }

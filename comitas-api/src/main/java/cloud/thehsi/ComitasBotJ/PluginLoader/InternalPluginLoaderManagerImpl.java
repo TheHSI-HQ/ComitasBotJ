@@ -4,4 +4,6 @@ public interface InternalPluginLoaderManagerImpl {
     Integer count();
 
     void loadPlugins();
+
+    void unloadPlugins();
 }

@@ -2,19 +2,15 @@ package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
-public class Main implements Plugin {
+public class Main extends Plugin {
     @Override
     public void onEnable() {
+        // Your code Here
         getLogger().info("The Plugin has Started!");
     }
 
     @Override
     public void onDisable() {
-
-    }
-
-    @Override
-    public String getName() {
-        return "Example Plugin";
+        // Your code here
     }
 }
