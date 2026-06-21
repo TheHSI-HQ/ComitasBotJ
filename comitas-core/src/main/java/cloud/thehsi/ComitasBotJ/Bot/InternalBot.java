@@ -9,6 +9,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 
 public class InternalBot implements InternalBotImpl {
     private PluginLoaderManager pluginLoaderManager;
@@ -16,9 +21,37 @@ public class InternalBot implements InternalBotImpl {
     private ServerConfig.ParsedServerConfig serverConfig;
     private Logger logger;
 
-    @Override
-    public String getDiscordToken() {
-        return "123";
+    private String bot_token;
+
+    private void populateSecrets() {
+        Path token_path = Path.of("tokens.secret");
+        File token_file = new File(token_path.toUri());
+
+        try {
+            if (!token_file.exists() && !token_file.createNewFile())
+                throw new IOException("Unknown error when creating token.secret");
+        } catch (IOException e) {
+            logger.error(e.getLocalizedMessage());
+            System.exit(1);
+        }
+
+        Properties token_props = new Properties();
+
+        try (InputStream in = Files.newInputStream(token_path)) {
+            token_props.load(in);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        bot_token = token_props.getProperty("bot", "").strip();
+        token_props.setProperty("bot", bot_token);
+
+        try (OutputStream out = Files.newOutputStream(token_path)) {
+            token_props.store(out, "ComitasBotJ Discord Tokens");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -47,7 +80,14 @@ public class InternalBot implements InternalBotImpl {
 
             serverConfig.save();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
+            System.exit(1);
+        }
+
+        populateSecrets();
+
+        if (bot_token.isBlank()) {
+            logger.error("Missing Discord Bot Token (./tokens.secret)");
             System.exit(1);
         }
 
@@ -70,17 +110,22 @@ public class InternalBot implements InternalBotImpl {
     }
 
     private void onShutdown() {
+        logger.info("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         logger.info("Shutting down ComitasBotJ");
 
         // Unload Plugins
-        logger.info("Unloading Plugins...");
-        pluginLoaderManager.unloadPlugins();
+        if (pluginLoaderManager != null) {
+            logger.info("Unloading Plugins...");
+            pluginLoaderManager.unloadPlugins();
+        }
 
-        logger.info("Writing Updated Configuration...");
-        try {
-            serverConfig.save();
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage());
+        if (serverConfig != null) {
+            logger.info("Writing Updated Configuration...");
+            try {
+                serverConfig.save();
+            } catch (Exception e) {
+                logger.error(e.getLocalizedMessage());
+            }
         }
 
         logger.info("Bye!");
