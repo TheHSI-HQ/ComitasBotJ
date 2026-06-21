@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.API.Plugin;
+package cloud.thehsi.ComitasBotJ;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

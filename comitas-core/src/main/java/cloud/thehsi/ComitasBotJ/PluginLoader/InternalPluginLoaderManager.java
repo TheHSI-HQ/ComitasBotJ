@@ -10,19 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class PluginLoaderManager {
+public class InternalPluginLoaderManager implements InternalPluginLoaderManagerImpl {
     private final List<Plugin> plugins = new ArrayList<>();
 
+    @Override
     public Integer count() {
         return plugins.size();
     }
 
+    @Override
     public void loadPlugins() {
         File pluginDir = new File("plugins");
         File pluginDataDir = new File("plugin_data");
 
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
-        if (!pluginDataDir.exists()) if (!pluginDataDir.mkdir()) throw new RuntimeException("Couldn't create plugin_data folder");
+        if (!pluginDataDir.exists())
+            if (!pluginDataDir.mkdir()) throw new RuntimeException("Couldn't create plugin_data folder");
 
         File[] jars = pluginDir.listFiles(
                 f -> f.getName().endsWith(".jar")
@@ -34,10 +37,10 @@ public class PluginLoaderManager {
         for (File jar : jars) {
 
             try (URLClassLoader loader =
-                    new URLClassLoader(
-                            new URL[]{jar.toURI().toURL()},
-                            getClass().getClassLoader()
-                    )) {
+                         new URLClassLoader(
+                                 new URL[]{jar.toURI().toURL()},
+                                 getClass().getClassLoader()
+                         )) {
 
                 InputStream is =
                         loader.getResourceAsStream(

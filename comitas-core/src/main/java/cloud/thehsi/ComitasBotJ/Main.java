@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ;
 
+import cloud.thehsi.ComitasBotJ.Bot.Bot;
+import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,6 +19,7 @@ public class Main {
 
         logger.info("Starting ComitasBotJ...");
 
-        Bot ignored = Bot.getInstance();
+        Bot bot = Bot.getInstance();
+        bot.init(new InternalBot());
     }
 }

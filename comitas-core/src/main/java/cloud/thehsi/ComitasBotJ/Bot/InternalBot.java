@@ -1,23 +1,32 @@
-package cloud.thehsi.ComitasBotJ;
+package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.PluginLoader.InternalPluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.PluginLoader.PluginLoaderManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
-public class Bot {
-    private static final Bot INSTANCE = new Bot();
-
-    private static Logger logger;
-
-    private final PluginLoaderManager pluginLoaderManager;
-    private final PluginManager pluginManager;
+public class InternalBot implements InternalBotImpl {
+    private PluginLoaderManager pluginLoaderManager;
+    private PluginManager pluginManager;
     private ServerConfig.ParsedServerConfig serverConfig;
+    private Logger logger;
 
-    private Bot() {
+    @Override
+    public String getDiscordToken() {
+        return "123";
+    }
+
+    @Override
+    public PluginManager getPluginManager() {
+        return pluginManager;
+    }
+
+    @Override
+    public void init(InternalBotImpl impl) {
         // Load Configuration from ./server.properties
         logger = LogManager.getLogger(Bot.class);
 
@@ -44,20 +53,10 @@ public class Bot {
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
-        pluginLoaderManager = new PluginLoaderManager();
+        pluginLoaderManager = new PluginLoaderManager(new InternalPluginLoaderManager());
         pluginLoaderManager.loadPlugins();
 
         pluginManager = new PluginManager(pluginLoaderManager);
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
-
-        pluginLoaderManager.loadPlugins();
-    }
-
-    public static Bot getInstance() {
-        return INSTANCE;
-    }
-
-    public static PluginManager getPluginManager() {
-        return INSTANCE.pluginManager;
     }
 }
