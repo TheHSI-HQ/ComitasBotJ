@@ -1,12 +1,12 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import cloud.thehsi.ComitasBotJ.Bot.Bot;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ConsoleCommandParser {
-    private static final Logger logger = LogManager.getLogger("Console");
+    private static final Logger logger = LoggerFactory.getLogger("Console");
 
     public static void parseCommand(String command) {
         switch (command.strip()) {

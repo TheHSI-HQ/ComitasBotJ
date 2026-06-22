@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class Plugin {
     protected Logger getLogger() {
-        return LogManager.getLogger(getClass());
+        return LoggerFactory.getLogger(getClass());
     }
 
     public abstract void onEnable();

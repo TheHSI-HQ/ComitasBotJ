@@ -4,8 +4,8 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.PluginLoader.InternalPluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.PluginLoader.PluginLoaderManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +20,8 @@ public class InternalBot implements InternalBotImpl {
     private PluginManager pluginManager;
     private ServerConfig.ParsedServerConfig serverConfig;
     private Logger logger;
+
+    private DiscordBot discordBot;
 
     private String bot_token;
 
@@ -67,7 +69,7 @@ public class InternalBot implements InternalBotImpl {
             throw new RuntimeException("Couldn't create logs folder");
         }
 
-        logger = LogManager.getLogger(Bot.class);
+        logger = LoggerFactory.getLogger(Bot.class);
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
@@ -107,6 +109,10 @@ public class InternalBot implements InternalBotImpl {
 
         pluginManager = new PluginManager(pluginLoaderManager);
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
+
+        // Start Bot
+        logger.info("Starting Bot...");
+        discordBot = new DiscordBot(bot_token);
     }
 
     private void onShutdown() {

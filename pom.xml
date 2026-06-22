@@ -7,7 +7,7 @@
 
     <groupId>cloud.thehsi.ComitasBotJ</groupId>
     <artifactId>ComitasBotJ</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
 
     <modules>
