@@ -1,6 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
-import cloud.thehsi.ComitasBotJ.Bot.Bot;
+import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

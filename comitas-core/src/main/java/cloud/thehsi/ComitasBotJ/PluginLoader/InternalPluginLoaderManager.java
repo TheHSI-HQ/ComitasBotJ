@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.PluginLoader;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.API.PluginLoader.InternalPluginLoaderManagerImpl;
 
 import java.io.File;
 import java.io.InputStream;

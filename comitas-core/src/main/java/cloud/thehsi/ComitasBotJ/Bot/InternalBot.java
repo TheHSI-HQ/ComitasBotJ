@@ -1,9 +1,14 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
+import cloud.thehsi.ComitasBotJ.API.Bot.InternalBotImpl;
+import cloud.thehsi.ComitasBotJ.API.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.API.PluginLoader.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.Event.InternalEventManager;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.PluginLoader.InternalPluginLoaderManager;
-import cloud.thehsi.ComitasBotJ.PluginLoader.PluginLoaderManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +24,7 @@ public class InternalBot implements InternalBotImpl {
     private PluginLoaderManager pluginLoaderManager;
     private PluginManager pluginManager;
     private ServerConfig.ParsedServerConfig serverConfig;
+    private EventManager eventManager;
     private Logger logger;
 
     private DiscordBot discordBot;
@@ -102,17 +108,26 @@ public class InternalBot implements InternalBotImpl {
             System.exit(0);
         }
 
+        // Prepare EventManager
+        logger.info("Loading EventManager...");
+        eventManager = new EventManager(new InternalEventManager());
+
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
         pluginLoaderManager = new PluginLoaderManager(new InternalPluginLoaderManager());
+
+        pluginManager = new PluginManager(new InternalPluginManager(
+                pluginLoaderManager,
+                eventManager
+        ));
+
         pluginLoaderManager.loadPlugins();
 
-        pluginManager = new PluginManager(pluginLoaderManager);
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
 
         // Start Bot
         logger.info("Starting Bot...");
-        discordBot = new DiscordBot(bot_token);
+        discordBot = new DiscordBot(bot_token, serverConfig, eventManager);
     }
 
     private void onShutdown() {

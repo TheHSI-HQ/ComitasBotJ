@@ -1,0 +1,68 @@
+package cloud.thehsi.ComitasBotJ.Event;
+
+import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
+import cloud.thehsi.ComitasBotJ.API.Event.InternalEventManagerImpl;
+import cloud.thehsi.ComitasBotJ.API.Event.Listener;
+import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class InternalEventManager implements InternalEventManagerImpl {
+    private final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
+
+    @Override
+    public void registerListener(Plugin plugin, Listener listener) {
+        for (Method method : listener.getClass().getDeclaredMethods()) {
+
+            if (!method.isAnnotationPresent(EventHandler.class))
+                continue;
+
+            Class<?>[] params = method.getParameterTypes();
+
+            if (params.length != 1)
+                continue;
+
+            if (!Event.class.isAssignableFrom(params[0]))
+                continue;
+
+            method.setAccessible(true);
+
+            @SuppressWarnings("unchecked")
+            Class<? extends Event> eventClass =
+                    (Class<? extends Event>) params[0];
+
+            listeners
+                    .computeIfAbsent(eventClass, k -> new ArrayList<>())
+                    .add(new RegisteredListener(listener, plugin, method));
+        }
+    }
+
+    @Override
+    public void callEvent(Event event) {
+        List<RegisteredListener> handlers =
+                listeners.get(event.getClass());
+
+        if (handlers == null)
+            return;
+
+        for (RegisteredListener handler : handlers) {
+            try {
+                handler.method().invoke(handler.listener(), event);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private record RegisteredListener(
+            Listener listener,
+            Plugin plugin,
+            Method method
+    ) {
+    }
+}

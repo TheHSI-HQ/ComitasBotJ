@@ -16,12 +16,14 @@ public class ServerConfig {
 
         public final BooleanProperty enabled;
         public final BooleanProperty loadPlugins;
+        public final StringProperty botActivityName;
 
         public ParsedServerConfig(ServerConfig cfg) {
             this.cfg = cfg;
 
             this.enabled = makeProperty("enabled", true);
             this.loadPlugins = makeProperty("load-plugins", true);
+            this.botActivityName = makeProperty("bot-activity-name", "ComitasBotJ");
         }
 
         public Integer count() {return cfg.count();}

@@ -1,26 +1,29 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin;
 
-import cloud.thehsi.ComitasBotJ.PluginLoader.PluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 
 import java.util.List;
 
 public class PluginManager {
-    private final PluginLoaderManager pluginLoaderManager;
+    private final InternalPluginManagerImpl impl;
 
-    public PluginManager(PluginLoaderManager pluginLoaderManager) {
-        this.pluginLoaderManager = pluginLoaderManager;
+    public PluginManager(InternalPluginManagerImpl impl) {
+        this.impl = impl;
     }
 
-    public Integer count() {
-        return pluginLoaderManager.count();
+    public Integer countPlugins() {
+        return impl.countPlugins();
     }
 
     public List<String> getPluginNames() {
-        return pluginLoaderManager.pluginNameList();
+        return impl.getPluginNames();
     }
 
     public void reloadPlugins() {
-        pluginLoaderManager.unloadPlugins();
-        pluginLoaderManager.loadPlugins();
+        impl.reloadPlugins();
+    }
+
+    public void registerEvents(Plugin plugin, Listener listener) {
+        impl.registerEvents(plugin, listener);
     }
 }

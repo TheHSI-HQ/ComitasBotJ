@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.PluginLoader;
+package cloud.thehsi.ComitasBotJ.API.PluginLoader;
 
 import java.util.List;
 
