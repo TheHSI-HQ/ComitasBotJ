@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: comitas-core
-          path: comitas-core/target/*.jar
+          path: comitas-core/target/comitas-core-*.jar
 
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
