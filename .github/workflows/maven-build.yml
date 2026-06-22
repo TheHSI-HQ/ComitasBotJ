@@ -1,0 +1,43 @@
+name: Build ComitasBotJ
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # 1. Install API into local Maven repo first
+      - name: Install comitas-api
+        run: mvn -f comitas-api/pom.xml clean install -DskipTests
+
+      # 2. Build the remaining modules as artifacts
+      - name: Build core + plugin
+        run: |
+          mvn -f comitas-core/pom.xml clean package -DskipTests
+          mvn -f example-plugin/pom.xml clean package -DskipTests
+
+      # 3. Upload artifacts
+      - name: Upload core artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: comitas-core
+          path: comitas-core/target/*.jar
+
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-plugin
+          path: example-plugin/target/*.jar
