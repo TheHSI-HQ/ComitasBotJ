@@ -16,6 +16,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
     public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
+    public static final String VERSION = "v0.0.3";
 
     public static long getRuntimeMS() {
         return System.currentTimeMillis() - STARTUP_TIME;

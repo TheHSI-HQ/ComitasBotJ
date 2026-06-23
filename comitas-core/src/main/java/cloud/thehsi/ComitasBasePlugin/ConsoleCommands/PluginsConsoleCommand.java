@@ -9,6 +9,7 @@ import java.util.List;
 public class PluginsConsoleCommand extends ConsoleCommand {
     public PluginsConsoleCommand(Plugin plugin) {
         plugin.createCommandBuilder(this)
+                .setDescription("Lists all loaded Plugins")
                 .addCommand("plugins")
                 .addCommand("pl")
                 .register();

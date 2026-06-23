@@ -1,9 +1,6 @@
 package cloud.thehsi.ComitasBasePlugin;
 
-import cloud.thehsi.ComitasBasePlugin.ConsoleCommands.HelpConsoleCommand;
-import cloud.thehsi.ComitasBasePlugin.ConsoleCommands.PluginsConsoleCommand;
-import cloud.thehsi.ComitasBasePlugin.ConsoleCommands.ReloadConsoleCommand;
-import cloud.thehsi.ComitasBasePlugin.ConsoleCommands.StopConsoleCommand;
+import cloud.thehsi.ComitasBasePlugin.ConsoleCommands.*;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
 public class Main extends Plugin {
@@ -13,6 +10,7 @@ public class Main extends Plugin {
 
         // Initialize Commands
         new HelpConsoleCommand(this);
+        new VersionConsoleCommand(this);
         new PluginsConsoleCommand(this);
         new StopConsoleCommand(this);
         new ReloadConsoleCommand(this);

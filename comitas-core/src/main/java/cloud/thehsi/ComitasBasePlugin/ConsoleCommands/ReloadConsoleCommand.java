@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 public class ReloadConsoleCommand extends ConsoleCommand {
     public ReloadConsoleCommand(Plugin plugin) {
         plugin.createCommandBuilder(this)
+                .setDescription("Hot-Reload all Plugins")
                 .addCommand("reload")
                 .addCommand("rl")
                 .register();

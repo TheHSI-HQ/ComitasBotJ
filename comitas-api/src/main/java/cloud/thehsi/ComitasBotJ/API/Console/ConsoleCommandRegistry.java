@@ -14,22 +14,40 @@ public class ConsoleCommandRegistry {
         this.impl = impl;
     }
 
-    public static CommandBuilder builder(Plugin plugin, ConsoleCommandExecutor consoleCommandExecutor) {
-        return new CommandBuilder(plugin, consoleCommandExecutor);
-    }
-
+    /**
+     * Registers a Command
+     *
+     * @param command The command that should be registered
+     */
     public void register(ConsoleCommandRegistry.Command command) {
         impl.register(command);
     }
 
+    /**
+     * Runs a command with a list of arguments
+     *
+     * @param command The command to run
+     * @param args    The arguments the command was run with
+     * @return This is false if the command wasn't found.
+     */
     public boolean runCommand(String command, String[] args) {
         return impl.runCommand(command, args);
     }
 
+    /**
+     * Returns a list of every registered Command Alias
+     *
+     * @return A list of all registered CommandAliases
+     */
     public String[] validCommandList() {
         return impl.validCommandList();
     }
 
+    /**
+     * Returns a list of every registered Command
+     *
+     * @return A list of all registered Commands
+     */
     public List<ConsoleCommandRegistry.Command> registeredCommands() {
         return impl.registeredCommands();
     }
@@ -53,17 +71,26 @@ public class ConsoleCommandRegistry {
             this.aliases = new ArrayList<>();
         }
 
+        /**
+         * Register an Alias for this Command
+         */
         public CommandBuilder addCommand(String command) {
             aliases.add(command);
             aliases.add(plugin_prefix + ":" + command);
             return this;
         }
 
+        /**
+         * Set the Description for this Command
+         */
         public CommandBuilder setDescription(String description) {
             this.description = description;
             return this;
         }
 
+        /**
+         * Register this Command
+         */
         public void register() {
             Comitas.getConsoleCommandRegistry().register(new Command(aliases, plugin, description, consoleCommandExecutor));
         }

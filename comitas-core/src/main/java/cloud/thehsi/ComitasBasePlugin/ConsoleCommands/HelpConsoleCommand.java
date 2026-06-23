@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 public class HelpConsoleCommand extends ConsoleCommand {
     public HelpConsoleCommand(Plugin plugin) {
         plugin.createCommandBuilder(this)
+                .setDescription("Shows a Help Screen")
                 .addCommand("help")
                 .addCommand("?")
                 .register();
