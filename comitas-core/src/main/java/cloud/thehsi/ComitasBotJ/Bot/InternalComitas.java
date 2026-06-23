@@ -1,13 +1,14 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
-import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
-import cloud.thehsi.ComitasBotJ.API.Bot.InternalBotImpl;
+import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
-import cloud.thehsi.ComitasBotJ.API.PluginLoader.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
+import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
-import cloud.thehsi.ComitasBotJ.PluginLoader.InternalPluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,16 +20,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-public class InternalBot implements InternalBotImpl {
+public class InternalComitas implements InternalComitasImpl {
     private PluginLoaderManager pluginLoaderManager;
     private PluginManager pluginManager;
     private ServerConfig.ParsedServerConfig serverConfig;
     private EventManager eventManager;
+    private final ConsoleCommandRegistry consoleCommandRegistry;
     private Logger logger;
 
-    private DiscordBot discordBot;
+    private DiscordAPI discordBot;
 
     private String bot_token;
+
+    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry) {
+        this.consoleCommandRegistry = consoleCommandRegistry;
+    }
 
     private void populateSecrets() {
         Path token_path = Path.of("tokens.secret");
@@ -67,14 +73,19 @@ public class InternalBot implements InternalBotImpl {
     }
 
     @Override
-    public void init(InternalBotImpl impl) {
+    public ConsoleCommandRegistry getConsoleCommandRegistry() {
+        return consoleCommandRegistry;
+    }
+
+    @Override
+    public void init(InternalComitasImpl impl) {
         File logsDir = new File("logs");
 
         if (!logsDir.exists() && !logsDir.mkdir()) {
             throw new RuntimeException("Couldn't create logs folder");
         }
 
-        logger = LoggerFactory.getLogger(Bot.class);
+        logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
@@ -113,7 +124,7 @@ public class InternalBot implements InternalBotImpl {
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
-        pluginLoaderManager = new PluginLoaderManager(new InternalPluginLoaderManager());
+        pluginLoaderManager = new PluginLoaderManager();
 
         pluginManager = new PluginManager(new InternalPluginManager(
                 pluginLoaderManager,
@@ -126,7 +137,7 @@ public class InternalBot implements InternalBotImpl {
 
         // Start Bot
         logger.info("Starting Bot...");
-        discordBot = new DiscordBot(bot_token, serverConfig, eventManager);
+        discordBot = new DiscordAPI(bot_token, serverConfig, eventManager);
     }
 
     private void onShutdown() {

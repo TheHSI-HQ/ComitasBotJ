@@ -1,8 +1,9 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.InternalMessageEventImpl;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.InternalImpl.InternalMessageEventImpl;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -10,12 +11,12 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class InternalMessageEvent implements InternalMessageEventImpl {
     private final Message message;
     private final MessageChannelUnion channel;
-    private final net.dv8tion.jda.api.entities.User author;
+    private final Member author;
 
     public InternalMessageEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
         this.channel = event.getChannel();
-        this.author = event.getAuthor();
+        this.author = event.getMember();
     }
 
     private boolean delete = false;

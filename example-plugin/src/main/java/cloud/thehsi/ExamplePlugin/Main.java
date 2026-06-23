@@ -1,6 +1,6 @@
 package cloud.thehsi.ExamplePlugin;
 
-import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
@@ -14,7 +14,7 @@ public class Main extends Plugin implements Listener {
 
         getLogger().info("Hello World from Example Plugin");
 
-        Bot.getPluginManager().registerEvents(this, this);
+        Comitas.getPluginManager().registerEvents(this, this);
     }
 
     @Override
@@ -27,12 +27,14 @@ public class Main extends Plugin implements Listener {
     @SuppressWarnings("unused")
     @EventHandler
     public void onBotConnect(BotConnectEvent event) {
-        getLogger().info("Hello from {}", event.getUsername());
+        getLogger().info("Hello from {}", event.getUserName());
     }
 
     @SuppressWarnings("unused")
     @EventHandler
     public void onMessage(MessageEvent event) {
+        if (event.getAuthor().isMe()) return;
+
         if (event.getRawContent().equals("!hello")) {
             event.replyToMessage("Hello " + event.getAuthor().mention());
         }

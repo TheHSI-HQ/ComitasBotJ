@@ -1,0 +1,16 @@
+services:
+  comitas:
+    image: thehsi/comitasbotj:latest
+    restart: always
+    container_name: "comitas"
+    volumes:
+      - ./plugins:/srv/plugins
+      - ./server.properties:/srv/server.properties
+      - ./tokens.secret:/srv/tokens.secret
+      # - ./logs:/srv/logs
+      - comitas_plugin_data:/srv/plugin_data
+    # The following allow `docker attach comitas` to work
+    stdin_open: true
+    tty: true
+volumes:
+  comitas_plugin_data:

@@ -3,7 +3,6 @@ package cloud.thehsi.ComitasBotJ.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.InternalPluginManagerImpl;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
-import cloud.thehsi.ComitasBotJ.API.PluginLoader.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 
 import java.util.List;
@@ -25,6 +24,11 @@ public class InternalPluginManager implements InternalPluginManagerImpl {
     @Override
     public List<String> getPluginNames() {
         return pluginLoaderManager.pluginNameList();
+    }
+
+    @Override
+    public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
+        return pluginLoaderManager.lookupPlugin(plugin);
     }
 
     @Override

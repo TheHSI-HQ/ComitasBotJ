@@ -1,14 +1,25 @@
 package cloud.thehsi.ComitasBotJ;
 
-import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
-import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
+import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Main {
-    private static final ConsolePrompt consolePrompt = new ConsolePrompt();
-    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final long STARTUP_TIME = System.currentTimeMillis();
+
+    private static final ConsoleCommandRegistry consoleCommandRegistry = new ConsoleCommandRegistry(new InternalConsoleCommandRegistry());
+    private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
+    private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
+
+    public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
+
+    public static long getRuntimeMS() {
+        return System.currentTimeMillis() - STARTUP_TIME;
+    }
 
     public static void main(String[] args) {
         System.out.println("""
@@ -21,8 +32,8 @@ public class Main {
 
         logger.info("Starting ComitasBotJ...");
 
-        Bot bot = Bot.getInstance();
-        bot.init(new InternalBot());
+        Comitas comitas = Comitas.getInstance();
+        comitas.init(new InternalComitas(consoleCommandRegistry));
 
         consolePrompt.run();
 

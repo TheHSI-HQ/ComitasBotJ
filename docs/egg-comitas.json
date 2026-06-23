@@ -1,0 +1,67 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-03-27T14:32:59+01:00",
+  "name": "ComitasBotJ",
+  "author": "comitas@thehsi.cloud",
+  "description": "A Plugin Based Discord Bot. For those Server with 10 Bots all doing only one thing.",
+  "features": [
+    "java_version",
+    "pid_limit"
+  ],
+  "docker_images": {
+    "Java 25": "ghcr.io\/ptero-eggs\/yolks:java_25",
+    "Java 22": "ghcr.io\/ptero-eggs\/yolks:java_22",
+    "Java 21": "ghcr.io\/ptero-eggs\/yolks:java_21"
+  },
+  "file_denylist": [],
+  "startup": "java -Xms128M -XX:MaxRAMPercentage=95.0 -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
+  "config": {
+    "files": "{}",
+    "startup": "{\r\n    \"done\": \")! For help, type \"\r\n}",
+    "logs": "{}",
+    "stop": "stop"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!\/bin\/ash\r\n# ComitasBot Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n\r\nUSER_AGENT=\"Pterodactyl (https:\/\/Pterodactyl.io)\"\r\nGITHUB_REPO=\"TheHSI-HQ\/ComitasBotJ\"\r\n\r\nif [ -n \"${DL_PATH}\" ]; then\r\n    echo -e \"Using supplied download url: ${DL_PATH}\"\r\n    DOWNLOAD_URL=$(eval echo $(echo ${DL_PATH} | sed -e 's\/{{\/${\/g' -e 's\/}}\/}\/g'))\r\n\r\nelse\r\n    if [ \"${COMITAS_VERSION}\" = \"latest\" ] || [ -z \"${COMITAS_VERSION}\" ]; then\r\n        echo -e \"Fetching latest release...\"\r\n\r\n        COMITAS_VERSION=$(curl --user-agent \"${USER_AGENT}\" \\\r\n            -s \"https:\/\/api.github.com\/repos\/${GITHUB_REPO}\/releases\/latest\" \\\r\n            | jq -r '.tag_name')\r\n\r\n        if [ -z \"${COMITAS_VERSION}\" ] || [ \"${COMITAS_VERSION}\" = \"null\" ]; then\r\n            echo \"Failed to determine latest release.\"\r\n            exit 1\r\n        fi\r\n    else\r\n        echo -e \"Using specified version: ${COMITAS_VERSION}\"\r\n\r\n        VERSION_EXISTS=$(curl --user-agent \"${USER_AGENT}\" \\\r\n            -s \"https:\/\/api.github.com\/repos\/${GITHUB_REPO}\/releases\/tags\/${COMITAS_VERSION}\" \\\r\n            | jq -r '.tag_name')\r\n\r\n        if [ \"${VERSION_EXISTS}\" != \"${COMITAS_VERSION}\" ]; then\r\n            echo \"Version ${COMITAS_VERSION} does not exist.\"\r\n            exit 1\r\n        fi\r\n    fi\r\n\r\n    echo -e \"Version being downloaded\"\r\n    echo -e \"Version: ${COMITAS_VERSION}\"\r\n\r\n    DOWNLOAD_URL=\"https:\/\/github.com\/${GITHUB_REPO}\/releases\/download\/${COMITAS_VERSION}\/comitas-core-${COMITAS_VERSION#v}.jar\"\r\nfi\r\n\r\ncd \/mnt\/server\r\n\r\necho -e \"Running curl --user-agent \\\"${USER_AGENT}\\\" -L -o ${SERVER_JARFILE} ${DOWNLOAD_URL}\"\r\n\r\nif [ -f \"${SERVER_JARFILE}\" ]; then\r\n    mv \"${SERVER_JARFILE}\" \"${SERVER_JARFILE}.old\"\r\nfi\r\n\r\ncurl --user-agent \"${USER_AGENT}\" -L -o \"${SERVER_JARFILE}\" \"${DOWNLOAD_URL}\"\r\n\r\nif [ $? -ne 0 ]; then\r\n    echo \"Download failed.\"\r\n    exit 1\r\nfi\r\n\r\necho \"Download complete.\"",
+      "container": "ghcr.io\/ptero-eggs\/installers:alpine",
+      "entrypoint": "ash"
+    }
+  },
+  "variables": [
+    {
+      "name": "ComitasBotJ Version",
+      "description": "The version of ComitasBotJ to download. \r\n\r\nLeave at latest to always get the latest version. Invalid versions will default to latest.",
+      "env_variable": "COMITAS_VERSION",
+      "default_value": "latest",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:20",
+      "field_type": "text"
+    },
+    {
+      "name": "Server Jar File",
+      "description": "The name of the server jarfile to run the server with.",
+      "env_variable": "SERVER_JARFILE",
+      "default_value": "server.jar",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/",
+      "field_type": "text"
+    },
+    {
+      "name": "Download Path",
+      "description": "A URL to use to download a server.jar rather than the ones in the install script. This is not user viewable.",
+      "env_variable": "DL_PATH",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "nullable|string",
+      "field_type": "text"
+    }
+  ]
+}

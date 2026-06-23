@@ -1,10 +1,12 @@
-package cloud.thehsi.ComitasBotJ.Bot;
+package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageEvent;
+import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -16,16 +18,17 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DiscordBot extends ListenerAdapter {
-    JDA api;
-    EventManager eventManager;
-    ServerConfig.ParsedServerConfig config;
-    Logger logger = LoggerFactory.getLogger(DiscordBot.class);
+public class DiscordAPI extends ListenerAdapter {
+    final JDA api;
+    final EventManager eventManager;
+    final ServerConfig.ParsedServerConfig config;
+    final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
 
-    public DiscordBot(String BOT_TOKEN, ServerConfig.ParsedServerConfig config, EventManager eventManager) {
+    public DiscordAPI(String BOT_TOKEN, ServerConfig.ParsedServerConfig config, EventManager eventManager) {
         api = JDABuilder
                 .createDefault(BOT_TOKEN)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .enableIntents(GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(this)
                 .build();
 
@@ -40,17 +43,6 @@ public class DiscordBot extends ListenerAdapter {
         eventManager.callEvent(messageEvent);
 
         if (messageEvent.isDelete()) event.getMessage().delete().queue();
-//
-//        if (event.getAuthor().isBot()) return;
-//        // We don't want to respond to other bot accounts, including ourself
-//        Message message = event.getMessage();
-//        String content = message.getContentRaw();
-//        // getContentRaw() is an atomic getter
-//        // getContentDisplay() is a lazy getter which modifies the content for e.g. console view (strip discord formatting)
-//        if (content.equals("!ping")) {
-//            MessageChannel channel = event.getChannel();
-//            channel.sendMessage("Pong!").queue(); // Important to call .queue() on the RestAction returned by sendMessage(...)
-//        }
     }
 
     @Override
@@ -62,8 +54,11 @@ public class DiscordBot extends ListenerAdapter {
                     Activity.watching(config.botActivityName.get())
             );
 
-        eventManager.callEvent(new BotConnectEvent(api.getSelfUser().getName()));
+        eventManager.callEvent(new BotConnectEvent(
+                new InternalBotConnectEvent(
+                        api.getSelfUser()
+                )));
 
-        logger.info("Done (12.345s)! For help type \"help\"");
+        logger.info("Done ({}s)! For help type \"help\"", Main.getRuntimeMS() / 1000d);
     }
 }

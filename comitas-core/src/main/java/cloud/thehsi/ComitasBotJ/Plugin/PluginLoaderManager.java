@@ -1,7 +1,8 @@
-package cloud.thehsi.ComitasBotJ.PluginLoader;
+package cloud.thehsi.ComitasBotJ.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
-import cloud.thehsi.ComitasBotJ.API.PluginLoader.InternalPluginLoaderManagerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -11,21 +12,57 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class InternalPluginLoaderManager implements InternalPluginLoaderManagerImpl {
+@SuppressWarnings("unused")
+public class PluginLoaderManager {
     private final List<LoadedPlugin> plugins = new ArrayList<>();
 
-    @Override
+    private final Logger logger = LoggerFactory.getLogger("ComitasBotJ.PluginLoader");
+
+    public PluginLoaderManager() {
+    }
+
     public Integer count() {
         return plugins.size();
     }
 
-    @Override
     public List<String> pluginNameList() {
         return plugins.stream().map(e -> e.name).toList();
     }
 
-    @Override
+    public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
+        for (LoadedPlugin p : plugins) {
+            if (p.plugin() == plugin) return new Plugin.PluginMetadata(p.name(), p.version(), p.consoleCommandPrefix());
+        }
+
+        return null;
+    }
+
+    boolean isBasePluginLoaded = false;
+
+    public void loadBasePlugin() {
+        if (isBasePluginLoaded) return;
+        isBasePluginLoaded = true;
+        try {
+            ClassLoader loader = getClass().getClassLoader();
+
+            Class<? extends Plugin> clazz =
+                    Class.forName("cloud.thehsi.ComitasBasePlugin.Main", true, loader)
+                            .asSubclass(Plugin.class);
+
+            Plugin plugin = clazz.getDeclaredConstructor().newInstance();
+
+            plugins.add(new LoadedPlugin(plugin, null, "BasePlugin", "0.1b", "comitas"));
+
+            plugin.onEnable();
+
+        } catch (Exception e) {
+            logger.error(e.getLocalizedMessage());
+        }
+    }
+
     public void loadPlugins() {
+        loadBasePlugin();
+
         File pluginDir = new File("plugins");
         File pluginDataDir = new File("plugin_data");
 
@@ -62,6 +99,13 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 String name =
                         props.getProperty("name");
 
+                String version =
+                        props.getProperty("version");
+
+                String consoleCommandPrefix =
+                        props.getProperty("command-refix", name);
+
+
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
                                 .asSubclass(Plugin.class);
@@ -69,24 +113,26 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
                 Plugin plugin = clazz.getDeclaredConstructor()
                         .newInstance();
 
-                plugins.add(new LoadedPlugin(plugin, loader, name));
+                plugins.add(new LoadedPlugin(plugin, loader, name, version, consoleCommandPrefix));
+
+                logger.info("Loaded Plugin {} {}", name, version);
 
                 plugin.onEnable();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getLocalizedMessage());
             }
         }
     }
 
-    @Override
     public void unloadPlugins() {
         for (LoadedPlugin loaded : plugins) {
             try {
                 loaded.plugin().onDisable();
 
-                loaded.loader().close();
+                if (loaded.loader != null)
+                    loaded.loader().close();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(e.getLocalizedMessage());
             }
         }
 
@@ -95,6 +141,7 @@ public class InternalPluginLoaderManager implements InternalPluginLoaderManagerI
         System.gc();
     }
 
-    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, String name) {
+    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, String name, String version,
+                                String consoleCommandPrefix) {
     }
 }
