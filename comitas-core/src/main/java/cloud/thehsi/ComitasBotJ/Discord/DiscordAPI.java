@@ -59,6 +59,6 @@ public class DiscordAPI extends ListenerAdapter {
                         api.getSelfUser()
                 )));
 
-        logger.info("Done ({}s)! For help type \"help\"", Main.getRuntimeMS() / 1000d);
+        logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
     }
 }
