@@ -9,6 +9,8 @@ public interface InternalPluginManagerImpl {
 
     List<String> getPluginNames();
 
+    Plugin.PluginMetadata lookupPlugin(Plugin plugin);
+
     void reloadPlugins();
 
     void registerEvents(Plugin plugin, Listener listener);

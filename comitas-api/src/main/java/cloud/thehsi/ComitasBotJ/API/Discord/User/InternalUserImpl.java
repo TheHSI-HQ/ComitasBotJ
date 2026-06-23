@@ -1,12 +1,16 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
 public interface InternalUserImpl {
-    String getUsername();
+    String getUserName();
     String getDisplayName();
 
     Long getId();
 
+    boolean isBot();
+
+    boolean isMe();
+
     String mention();
 
-    void sendDirectMessage(String Message);
+    boolean sendDirectMessage(String Message);
 }

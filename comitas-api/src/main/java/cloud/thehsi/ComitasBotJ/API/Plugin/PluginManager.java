@@ -20,6 +20,10 @@ public class PluginManager {
         return impl.getPluginNames();
     }
 
+    public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
+        return impl.lookupPlugin(plugin);
+    }
+
     public void reloadPlugins() {
         impl.reloadPlugins();
     }

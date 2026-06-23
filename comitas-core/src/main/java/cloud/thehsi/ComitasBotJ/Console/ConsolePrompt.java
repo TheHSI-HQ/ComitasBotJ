@@ -1,30 +1,31 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.LoggerContext;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConsolePrompt {
-
-    private static final List<String> COMMANDS = List.of(
-            "stop", "exit", "quit", "die",
-            "plugins", "pl",
-            "reload", "rl"
-    );
+    private static final Logger logger = LoggerFactory.getLogger("Console");
+    private final ConsoleCommandRegistry registry;
 
     private final LineReader lineReader;
 
-    public ConsolePrompt() {
+    public ConsolePrompt(ConsoleCommandRegistry registry) {
+        this.registry = registry;
+
         try {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
             lineReader = LineReaderBuilder.builder()
                     .terminal(terminal)
                     .completer((r, l, c) -> {
-                        for (String cmd : COMMANDS)
+                        for (String cmd : registry.validCommandList())
                             c.add(new Candidate(cmd));
                     })
                     .build();
@@ -44,9 +45,15 @@ public class ConsolePrompt {
         Thread consoleThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    String command = lineReader.readLine("> ");
-                    if (command != null && !command.isBlank()) {
-                        ConsoleCommandParser.parseCommand(command);
+                    String input = lineReader.readLine("> ");
+                    if (input != null && !input.isBlank()) {
+                        List<String> parts = new ArrayList<>(List.of(input.split(" ")));
+
+                        String command = parts.removeFirst();
+                        String[] args = parts.toArray(new String[0]);
+
+                        if (!registry.runCommand(command, args))
+                            logger.error("Unknown command: {}", command);
                     }
                 } catch (UserInterruptException | EndOfFileException ignored) {
                 }
