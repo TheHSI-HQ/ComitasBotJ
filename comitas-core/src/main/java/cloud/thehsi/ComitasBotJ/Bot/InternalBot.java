@@ -2,11 +2,10 @@ package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalBotImpl;
-import cloud.thehsi.ComitasBotJ.API.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.PluginLoader.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
-import cloud.thehsi.ComitasBotJ.Event.InternalEventManager;
+import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.PluginLoader.InternalPluginLoaderManager;
 import org.slf4j.Logger;
@@ -110,7 +109,7 @@ public class InternalBot implements InternalBotImpl {
 
         // Prepare EventManager
         logger.info("Loading EventManager...");
-        eventManager = new EventManager(new InternalEventManager());
+        eventManager = new EventManager();
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");

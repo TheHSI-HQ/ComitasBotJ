@@ -1,10 +1,10 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
-import cloud.thehsi.ComitasBotJ.API.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.InternalPluginManagerImpl;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.PluginLoader.PluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.Event.EventManager;
 
 import java.util.List;
 
@@ -30,6 +30,7 @@ public class InternalPluginManager implements InternalPluginManagerImpl {
     @Override
     public void reloadPlugins() {
         pluginLoaderManager.unloadPlugins();
+        eventManager.clearEvents();
         pluginLoaderManager.loadPlugins();
     }
 

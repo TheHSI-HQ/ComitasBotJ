@@ -32,6 +32,9 @@ public class Main extends Plugin implements Listener {
     @EventHandler
     public void onMessage(MessageEvent event) {
         if (event.getRawContent().equals("!ping")) {
+            event.replyToMessage(
+                    event.getAuthor().getDisplayName() + "\n" + event.getAuthor().getUsername()
+            );
             event.replyToMessage("Pong!");
         }
     }

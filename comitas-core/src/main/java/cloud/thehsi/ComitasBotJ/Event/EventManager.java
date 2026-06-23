@@ -2,7 +2,6 @@ package cloud.thehsi.ComitasBotJ.Event;
 
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
-import cloud.thehsi.ComitasBotJ.API.Event.InternalEventManagerImpl;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
@@ -12,10 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InternalEventManager implements InternalEventManagerImpl {
+public class EventManager {
     private final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
 
-    @Override
     public void registerListener(Plugin plugin, Listener listener) {
         for (Method method : listener.getClass().getDeclaredMethods()) {
 
@@ -42,7 +40,6 @@ public class InternalEventManager implements InternalEventManagerImpl {
         }
     }
 
-    @Override
     public void callEvent(Event event) {
         List<RegisteredListener> handlers =
                 listeners.get(event.getClass());
@@ -57,6 +54,10 @@ public class InternalEventManager implements InternalEventManagerImpl {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void clearEvents() {
+        listeners.clear();
     }
 
     private record RegisteredListener(

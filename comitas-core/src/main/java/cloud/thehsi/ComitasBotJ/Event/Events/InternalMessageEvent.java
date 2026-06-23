@@ -1,15 +1,16 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.InternalMessageEventImpl;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class InternalMessageEvent implements InternalMessageEventImpl {
     private final Message message;
     private final MessageChannelUnion channel;
-    private final User author;
+    private final net.dv8tion.jda.api.entities.User author;
 
     public InternalMessageEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
@@ -37,6 +38,11 @@ public class InternalMessageEvent implements InternalMessageEventImpl {
     @Override
     public String getRawContent() {
         return message.getContentRaw();
+    }
+
+    @Override
+    public User getAuthor() {
+        return new User(new InternalUser(author));
     }
 
     @Override

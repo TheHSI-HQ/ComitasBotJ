@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+
 public class MessageEvent extends Event {
     private final InternalMessageEventImpl impl;
 
@@ -21,6 +23,10 @@ public class MessageEvent extends Event {
 
     public String getRawContent() {
         return impl.getRawContent();
+    }
+
+    public User getAuthor() {
+        return impl.getAuthor();
     }
 
     public void sendInChannel(String message) {

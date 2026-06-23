@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+
 public interface InternalMessageEventImpl {
     boolean isDelete();
 
@@ -8,6 +10,8 @@ public interface InternalMessageEventImpl {
     void deleteMessage();
 
     String getRawContent();
+
+    User getAuthor();
 
     void sendInChannel(String message);
 

@@ -1,9 +1,9 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
-import cloud.thehsi.ComitasBotJ.API.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageEvent;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -13,11 +13,14 @@ import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DiscordBot extends ListenerAdapter {
     JDA api;
     EventManager eventManager;
     ServerConfig.ParsedServerConfig config;
+    Logger logger = LoggerFactory.getLogger(DiscordBot.class);
 
     public DiscordBot(String BOT_TOKEN, ServerConfig.ParsedServerConfig config, EventManager eventManager) {
         api = JDABuilder
@@ -59,9 +62,8 @@ public class DiscordBot extends ListenerAdapter {
                     Activity.watching(config.botActivityName.get())
             );
 
-
         eventManager.callEvent(new BotConnectEvent(api.getSelfUser().getName()));
+
+        logger.info("Done (12.345s)! For help type \"help\"");
     }
-
-
 }
