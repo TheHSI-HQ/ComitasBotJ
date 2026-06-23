@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.PluginLoader;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PluginLoaderManager {
     private final InternalPluginLoaderManagerImpl impl;
 

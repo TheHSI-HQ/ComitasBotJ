@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 
+@SuppressWarnings("unused")
 public class Bot {
     private static final Bot INSTANCE = new Bot();
 

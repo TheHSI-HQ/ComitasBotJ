@@ -21,6 +21,16 @@ public class InternalUser implements InternalUserImpl {
     }
 
     @Override
+    public Long getId() {
+        return user.getIdLong();
+    }
+
+    @Override
+    public String mention() {
+        return "<@" + user.getId() + ">";
+    }
+
+    @Override
     public void sendDirectMessage(String Message) {
 
     }

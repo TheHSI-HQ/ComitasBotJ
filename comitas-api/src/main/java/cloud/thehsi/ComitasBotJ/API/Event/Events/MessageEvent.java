@@ -1,7 +1,9 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.InternalImpl.InternalMessageEventImpl;
 
+@SuppressWarnings("unused")
 public class MessageEvent extends Event {
     private final InternalMessageEventImpl impl;
 

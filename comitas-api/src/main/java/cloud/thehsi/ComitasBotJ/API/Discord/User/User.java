@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
+@SuppressWarnings("unused")
 public class User {
     private final InternalUserImpl impl;
 
@@ -13,6 +14,14 @@ public class User {
 
     public String getDisplayName() {
         return impl.getDisplayName();
+    }
+
+    public Long getId() {
+        return impl.getId();
+    }
+
+    public String mention() {
+        return impl.mention();
     }
 
     public void sendDirectMessage(String message) {

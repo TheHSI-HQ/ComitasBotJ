@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.API.Event.Events;
+package cloud.thehsi.ComitasBotJ.API.Event.Events.InternalImpl;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 

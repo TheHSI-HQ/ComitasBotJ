@@ -1,5 +1,10 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Reaction;
 
-public class Reaction implements InternalReactionImpl {
+@SuppressWarnings("unused")
+public class Reaction {
+    private final InternalReactionImpl impl;
 
+    public Reaction(InternalReactionImpl impl) {
+        this.impl = impl;
+    }
 }

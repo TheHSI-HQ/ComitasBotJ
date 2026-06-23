@@ -24,18 +24,17 @@ public class Main extends Plugin implements Listener {
         getLogger().info("Bye Bye from ExamplePlugin!");
     }
 
+    @SuppressWarnings("unused")
     @EventHandler
     public void onBotConnect(BotConnectEvent event) {
         getLogger().info("Hello from {}", event.getUsername());
     }
 
+    @SuppressWarnings("unused")
     @EventHandler
     public void onMessage(MessageEvent event) {
-        if (event.getRawContent().equals("!ping")) {
-            event.replyToMessage(
-                    event.getAuthor().getDisplayName() + "\n" + event.getAuthor().getUsername()
-            );
-            event.replyToMessage("Pong!");
+        if (event.getRawContent().equals("!hello")) {
+            event.replyToMessage("Hello " + event.getAuthor().mention());
         }
     }
 }

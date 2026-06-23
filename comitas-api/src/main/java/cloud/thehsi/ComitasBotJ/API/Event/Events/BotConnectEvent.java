@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+@SuppressWarnings("unused")
 public class BotConnectEvent extends Event {
     private final String username;
 

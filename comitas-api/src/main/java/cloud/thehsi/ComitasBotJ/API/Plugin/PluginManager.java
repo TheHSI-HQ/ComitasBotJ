@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class PluginManager {
     private final InternalPluginManagerImpl impl;
 
