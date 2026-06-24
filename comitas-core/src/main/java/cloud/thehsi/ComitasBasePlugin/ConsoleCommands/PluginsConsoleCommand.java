@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
@@ -19,12 +20,14 @@ public class PluginsConsoleCommand extends ConsoleCommand {
     public void execute(String[] args) {
         getConsoleLogger().info("Plugins:");
 
-        List<String> plugins = Comitas.getPluginManager().getPluginNames();
+        List<Plugin.PluginMetadata> plugins = Comitas.getPluginManager().getAllPluginMetadata();
 
         for (int i = 0; i < plugins.size(); i += 3) {
-            String buf = " - " + plugins.get(i);
-            if (plugins.size() > i + 1) buf += ", " + plugins.get(i);
-            if (plugins.size() > i + 2) buf += ", " + plugins.get(i);
+            String buf = " - " + plugins.get(i).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i).version() + ")" + ConsoleColor.WHITE;
+            if (plugins.size() > i + 1)
+                buf += ", " + ConsoleColor.WHITE + plugins.get(i + 1).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 1).version() + ")" + ConsoleColor.WHITE;
+            if (plugins.size() > i + 2)
+                buf += ", " + ConsoleColor.WHITE + plugins.get(i + 2).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 2).version() + ")" + ConsoleColor.WHITE;
             if (plugins.size() > i + 3) buf += ",";
             getConsoleLogger().info(buf);
         }

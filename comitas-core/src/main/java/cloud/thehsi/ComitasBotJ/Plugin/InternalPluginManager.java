@@ -22,8 +22,8 @@ public class InternalPluginManager implements InternalPluginManagerImpl {
     }
 
     @Override
-    public List<String> getPluginNames() {
-        return pluginLoaderManager.pluginNameList();
+    public List<Plugin.PluginMetadata> getAllPluginMetadata() {
+        return pluginLoaderManager.pluginMetadataList();
     }
 
     @Override

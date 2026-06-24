@@ -7,7 +7,7 @@ import java.util.List;
 public interface InternalPluginManagerImpl {
     Integer countPlugins();
 
-    List<String> getPluginNames();
+    List<Plugin.PluginMetadata> getAllPluginMetadata();
 
     Plugin.PluginMetadata lookupPlugin(Plugin plugin);
 

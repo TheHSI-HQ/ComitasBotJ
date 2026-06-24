@@ -26,8 +26,8 @@ public class PluginManager {
      *
      * @return A List of every Loaded Plugin's Name
      */
-    public List<String> getPluginNames() {
-        return impl.getPluginNames();
+    public List<Plugin.PluginMetadata> getAllPluginMetadata() {
+        return impl.getAllPluginMetadata();
     }
 
     /**

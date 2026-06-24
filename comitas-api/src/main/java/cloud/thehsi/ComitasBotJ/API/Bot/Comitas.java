@@ -31,6 +31,24 @@ public class Comitas {
     }
 
     /**
+     * Gets the API Version
+     *
+     * @return The Current API Version.
+     */
+    public static String getAPIVersion() {
+        return INSTANCE.impl.getAPIVersion();
+    }
+
+    /**
+     * Gets the Server Version
+     *
+     * @return The Current Server Version.
+     */
+    public static String getServerVersion() {
+        return INSTANCE.impl.getServerVersion();
+    }
+
+    /**
      * Gets the {@link PluginManager}.
      * <p>
      * The {@link PluginManager} is used to register events and interact with the Plugin Loader.

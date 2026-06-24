@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +27,16 @@ public class PluginLoaderManager {
         return plugins.size();
     }
 
-    public List<String> pluginNameList() {
-        return plugins.stream().map(e -> e.name).toList();
+    public List<Plugin.PluginMetadata> pluginMetadataList() {
+        List<Plugin.PluginMetadata> metadataList = new ArrayList<>();
+        for (LoadedPlugin plugin : plugins)
+            metadataList.add(plugin.metadata());
+        return metadataList;
     }
 
     public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
         for (LoadedPlugin p : plugins) {
-            if (p.plugin() == plugin) return new Plugin.PluginMetadata(p.name(), p.version(), p.consoleCommandPrefix());
+            if (p.plugin() == plugin) return p.metadata();
         }
 
         return null;
@@ -51,7 +56,9 @@ public class PluginLoaderManager {
 
             Plugin plugin = clazz.getDeclaredConstructor().newInstance();
 
-            plugins.add(new LoadedPlugin(plugin, null, "BasePlugin", "0.1b", "comitas"));
+            plugins.add(new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
+                    "Base", "0.1b", Comitas.getAPIVersion(), "comitas")
+            ));
 
             plugin.onEnable();
 
@@ -102,9 +109,6 @@ public class PluginLoaderManager {
                 String version =
                         props.getProperty("version");
 
-                String consoleCommandPrefix =
-                        props.getProperty("command-refix", name);
-
 
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
@@ -113,15 +117,76 @@ public class PluginLoaderManager {
                 Plugin plugin = clazz.getDeclaredConstructor()
                         .newInstance();
 
-                plugins.add(new LoadedPlugin(plugin, loader, name, version, consoleCommandPrefix));
+                Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
+                        props
+                );
+
+                if (!isApiTargetCompatible(props.getProperty("api-target")))
+                    throw new RuntimeException(
+                            "API Version Range " +
+                                    props.getProperty("api-target") +
+                                    " is incompatible with " +
+                                    Comitas.getAPIVersion()
+                    );
+
+                plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
                 logger.info("Loaded Plugin {} {}", name, version);
 
                 plugin.onEnable();
             } catch (Exception e) {
-                logger.error(e.getLocalizedMessage());
+                logger.error("Error when loading: \"{}\":", jar.getName());
+                logger.error("{}[{}]{} {}",
+                        ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.WHITE,
+                        e.getLocalizedMessage()
+                );
             }
         }
+    }
+
+    private long versionId(String version) {
+        version = version.trim().toLowerCase();
+
+        int suffix = 2; // release
+        char last = version.charAt(version.length() - 1);
+
+        if (last == 'a') {
+            suffix = 0;
+            version = version.substring(0, version.length() - 1);
+        } else if (last == 'b') {
+            suffix = 1;
+            version = version.substring(0, version.length() - 1);
+        }
+
+        String[] parts = version.split("\\.");
+
+        int major = 0;
+        int minor = 0;
+        int patch = 0;
+
+        if (parts.length > 0) major = Integer.parseInt(parts[0]);
+        if (parts.length > 1) minor = Integer.parseInt(parts[1]);
+        if (parts.length > 2) patch = Integer.parseInt(parts[2]);
+
+        return major * 1_000_000_000L
+                + minor * 1_000_000L
+                + patch * 1_000L
+                + suffix;
+    }
+
+    private boolean isApiTargetCompatible(String target) {
+        long apiVersion = versionId(Comitas.getAPIVersion());
+
+        target = target.trim();
+        String[] parts = target.split("-");
+
+        if (parts.length == 1) {
+            return apiVersion == versionId(parts[0]);
+        }
+
+        return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
     }
 
     public void unloadPlugins() {
@@ -141,7 +206,6 @@ public class PluginLoaderManager {
         System.gc();
     }
 
-    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, String name, String version,
-                                String consoleCommandPrefix) {
+    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, Plugin.PluginMetadata metadata) {
     }
 }

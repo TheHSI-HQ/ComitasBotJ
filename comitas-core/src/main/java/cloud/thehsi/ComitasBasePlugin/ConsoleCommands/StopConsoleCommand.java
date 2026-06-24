@@ -16,6 +16,7 @@ public class StopConsoleCommand extends ConsoleCommand {
 
     @Override
     public void execute(String[] args) {
+        getConsoleLogger().info("Sending shutdown Signal");
         System.exit(0);
     }
 }

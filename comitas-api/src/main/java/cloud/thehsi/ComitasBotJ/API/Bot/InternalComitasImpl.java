@@ -4,8 +4,11 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 
 public interface InternalComitasImpl {
-    PluginManager getPluginManager();
+    String getAPIVersion();
 
+    String getServerVersion();
+
+    PluginManager getPluginManager();
     ConsoleCommandRegistry getConsoleCommandRegistry();
 
     void init(InternalComitasImpl impl);

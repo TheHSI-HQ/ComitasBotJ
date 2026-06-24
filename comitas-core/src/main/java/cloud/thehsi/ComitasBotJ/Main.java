@@ -8,6 +8,10 @@ import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 public class Main {
     private static final long STARTUP_TIME = System.currentTimeMillis();
 
@@ -16,7 +20,6 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
     public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
-    public static final String VERSION = "v0.0.3";
 
     public static long getRuntimeMS() {
         return System.currentTimeMillis() - STARTUP_TIME;
@@ -31,7 +34,7 @@ public class Main {
  """);
 
 
-        logger.info("Starting ComitasBotJ...");
+        logger.info("Starting ComitasBotJ v{}...", getVersion());
 
         Comitas comitas = Comitas.getInstance();
         comitas.init(new InternalComitas(consoleCommandRegistry));
@@ -49,6 +52,16 @@ public class Main {
         try {
             Thread.currentThread().join();
         } catch (InterruptedException ignored) {
+        }
+    }
+
+    public static String getVersion() {
+        try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
+            Properties props = new Properties();
+            props.load(in);
+            return props.getProperty("version");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

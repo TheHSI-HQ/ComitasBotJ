@@ -3,8 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.thehsi.ComitasBotJ</groupId>
   <artifactId>comitas-core</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

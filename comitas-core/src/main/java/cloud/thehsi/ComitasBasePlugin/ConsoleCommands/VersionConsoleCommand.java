@@ -1,8 +1,9 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
-import cloud.thehsi.ComitasBotJ.Main;
 
 public class VersionConsoleCommand extends ConsoleCommand {
     public VersionConsoleCommand(Plugin plugin) {
@@ -17,6 +18,8 @@ public class VersionConsoleCommand extends ConsoleCommand {
 
     @Override
     public void execute(String[] args) {
-        getConsoleLogger().info("Currently running ComitasBotJ {}", Main.VERSION);
+        getConsoleLogger().info("Currently running:");
+        getConsoleLogger().info("  ComitasBotJ {}v{}", "" + ConsoleColor.BLUE + ConsoleColor.BOLD, Comitas.getServerVersion());
+        getConsoleLogger().info("  Comitas API {}v{}", "" + ConsoleColor.BLUE + ConsoleColor.BOLD, Comitas.getAPIVersion());
     }
 }
