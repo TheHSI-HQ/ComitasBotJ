@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 
 @SuppressWarnings("unused")
 public class Comitas {
@@ -68,5 +69,16 @@ public class Comitas {
      */
     public static ConsoleCommandRegistry getConsoleCommandRegistry() {
         return INSTANCE.impl.getConsoleCommandRegistry();
+    }
+
+    /**
+     * Gets the {@link Scheduler}.
+     * <p>
+     * The {@link Scheduler} is used to run Tasks.
+     *
+     * @return The {@link Scheduler} in use by {@link Comitas}
+     */
+    public static Scheduler getScheduler() {
+        return INSTANCE.impl.getScheduler();
     }
 }

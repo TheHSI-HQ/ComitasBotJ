@@ -6,12 +6,8 @@ import cloud.thehsi.ComitasBotJ.API.Scheduler.Task;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class InternalScheduler implements Scheduler {
-    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
     record ScheduledTask(Task task, Runnable runnable) {
     }
@@ -36,16 +32,33 @@ public class InternalScheduler implements Scheduler {
         return task;
     }
 
+
     @Override
     public Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delay, long interval) {
-        Task task = new RepeatingTask(nextTaskId, plugin);
-        exec.scheduleAtFixedRate(() -> {
-            if (task.isCancelled()) {
-                return;
-            }
-            runnable.run();
-        }, delay, interval, TimeUnit.MILLISECONDS);
-
+        Task task = new RepeatingTask(nextTaskId, plugin, runnable, delay, interval);
+        tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
         return task;
+    }
+
+    @Override
+    public Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delay) {
+        Thread thread = new Thread(() -> {
+            try {
+                Thread.sleep(delay);
+                runnable.run();
+            } catch (InterruptedException ignored) {
+            }
+        });
+
+        Task task = new AsyncTask(nextTaskId, plugin, thread);
+        tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
+        thread.start();
+        return task;
+    }
+
+    public void cancelAll() {
+        for (ScheduledTask task : tasks.values()) {
+            task.task().cancel();
+        }
     }
 }

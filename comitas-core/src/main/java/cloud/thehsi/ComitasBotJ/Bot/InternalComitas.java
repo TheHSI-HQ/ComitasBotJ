@@ -3,12 +3,14 @@ package cloud.thehsi.ComitasBotJ.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,8 @@ public class InternalComitas implements InternalComitasImpl {
     private PluginManager pluginManager;
     private ServerConfig.ParsedServerConfig serverConfig;
     private final ConsoleCommandRegistry consoleCommandRegistry;
+    private InternalScheduler scheduler;
+    private EventManager eventManager;
     private Logger logger;
 
     private String bot_token;
@@ -85,6 +89,11 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
+
+    @Override
     public void init() {
         File logsDir = new File("logs");
 
@@ -126,8 +135,9 @@ public class InternalComitas implements InternalComitasImpl {
         }
 
         // Prepare EventManager
-        logger.info("Loading EventManager...");
-        EventManager eventManager = new EventManager();
+        logger.info("Loading API Integrations...");
+        eventManager = new EventManager();
+        scheduler = new InternalScheduler();
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
@@ -135,7 +145,8 @@ public class InternalComitas implements InternalComitasImpl {
 
         pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
-                eventManager
+                eventManager,
+                scheduler
         );
 
         pluginLoaderManager.loadPlugins();
@@ -156,6 +167,12 @@ public class InternalComitas implements InternalComitasImpl {
             logger.info("Unloading Plugins...");
             pluginLoaderManager.unloadPlugins();
         }
+
+        if (scheduler != null)
+            scheduler.cancelAll();
+
+        if (eventManager != null)
+            eventManager.clearEvents();
 
         if (serverConfig != null) {
             logger.info("Writing Updated Configuration...");

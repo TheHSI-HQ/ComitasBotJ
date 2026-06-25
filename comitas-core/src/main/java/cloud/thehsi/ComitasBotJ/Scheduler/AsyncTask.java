@@ -12,6 +12,7 @@ public class AsyncTask implements Task {
     int taskId;
     Plugin owner;
     Thread thread;
+    boolean canceled = false;
 
     public AsyncTask(int taskId, Plugin owner, Thread thread) {
         this.taskId = taskId;
@@ -32,10 +33,11 @@ public class AsyncTask implements Task {
     }
 
     public boolean isCancelled() {
-        return thread.isInterrupted();
+        return canceled;
     }
 
     public void cancel() {
+        canceled = true;
         thread.interrupt();
     }
 }

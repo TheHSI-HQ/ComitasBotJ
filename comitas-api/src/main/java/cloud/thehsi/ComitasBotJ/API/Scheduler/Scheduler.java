@@ -9,4 +9,6 @@ public interface Scheduler {
     Task runTaskAsynchronously(Plugin plugin, Runnable runnable);
 
     Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delay, long interval);
+
+    Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delay);
 }

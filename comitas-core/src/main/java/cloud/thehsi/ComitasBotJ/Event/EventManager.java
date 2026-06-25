@@ -47,8 +47,16 @@ public class EventManager {
     }
 
     public void callEvent(Event event) {
+        Class<? extends Event> eventClass = null;
+        for (Class<?> m : event.getClass().getInterfaces()) {
+            if (!Event.class.isAssignableFrom(m)) continue;
+            eventClass = m.asSubclass(Event.class);
+        }
+
+        if (eventClass == null) throw new RuntimeException("The called Event doesn't implement Event");
+
         List<RegisteredListener> handlers =
-                listeners.get(event.getClass());
+                listeners.get(eventClass);
 
         if (handlers == null)
             return;

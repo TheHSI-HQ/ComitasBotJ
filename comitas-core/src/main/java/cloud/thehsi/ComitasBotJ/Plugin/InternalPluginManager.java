@@ -4,16 +4,19 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
+import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 
 import java.util.List;
 
 public class InternalPluginManager implements PluginManager {
     private final PluginLoaderManager pluginLoaderManager;
     private final EventManager eventManager;
+    private final InternalScheduler scheduler;
 
-    public InternalPluginManager(PluginLoaderManager pluginLoaderManager, EventManager eventManager) {
+    public InternalPluginManager(PluginLoaderManager pluginLoaderManager, EventManager eventManager, InternalScheduler scheduler) {
         this.pluginLoaderManager = pluginLoaderManager;
         this.eventManager = eventManager;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -34,6 +37,7 @@ public class InternalPluginManager implements PluginManager {
     @Override
     public void reloadPlugins() {
         pluginLoaderManager.unloadPlugins();
+        scheduler.cancelAll();
         eventManager.clearEvents();
         pluginLoaderManager.loadPlugins();
     }

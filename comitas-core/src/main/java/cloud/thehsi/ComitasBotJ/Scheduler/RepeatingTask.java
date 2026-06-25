@@ -4,6 +4,11 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Task;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents a task being executed by the scheduler
  */
@@ -11,12 +16,20 @@ import org.jetbrains.annotations.NotNull;
 public class RepeatingTask implements Task {
     int taskId;
     Plugin owner;
-    Thread thread;
     boolean canceled = false;
+    ScheduledFuture<?> scheduledFuture;
+    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
-    public RepeatingTask(int taskId, Plugin owner) {
+
+    public RepeatingTask(int taskId, Plugin owner, Runnable runnable, Long delay, Long interval) {
         this.taskId = taskId;
         this.owner = owner;
+        this.scheduledFuture = exec.scheduleAtFixedRate(() -> {
+            if (this.isCancelled()) {
+                return;
+            }
+            runnable.run();
+        }, delay, interval, TimeUnit.MILLISECONDS);
     }
 
     public int getTaskId() {
@@ -32,10 +45,11 @@ public class RepeatingTask implements Task {
     }
 
     public boolean isCancelled() {
-        return thread.isInterrupted();
+        return canceled;
     }
 
     public void cancel() {
-        thread.interrupt();
+        canceled = true;
+        scheduledFuture.cancel(true);
     }
 }
