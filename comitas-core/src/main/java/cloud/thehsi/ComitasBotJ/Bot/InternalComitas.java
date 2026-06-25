@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
-import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
@@ -67,18 +66,12 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public String getAPIVersion() {
-        try (InputStream in = Comitas.class.getResourceAsStream("/version.properties")) {
-            Properties props = new Properties();
-            props.load(in);
-            return props.getProperty("version");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return Main.getAPIVersion();
     }
 
     @Override
     public String getServerVersion() {
-        return Main.getVersion();
+        return Main.getServerVersion();
     }
 
     @Override

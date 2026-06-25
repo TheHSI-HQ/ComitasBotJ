@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ import java.util.Properties;
 public class PluginLoaderManager {
     private final List<LoadedPlugin> plugins = new ArrayList<>();
 
-    private final Logger logger = LoggerFactory.getLogger("ComitasBotJ.PluginLoader");
+    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
 
     public PluginLoaderManager() {
     }

@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
@@ -26,7 +27,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        System.out.println("""
+        System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
    ___           _ _           ___      _      _\s
   / __|___ _ __ (_) |_ __ _ __| _ ) ___| |_ _ | |
  | (__/ _ \\ '  \\| |  _/ _` (_-< _ \\/ _ \\  _| || |
@@ -34,7 +35,7 @@ public class Main {
  """);
 
 
-        logger.info("Starting ComitasBotJ v{}...", getVersion());
+        logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
         Comitas comitas = Comitas.getInstance();
         comitas.init(new InternalComitas(consoleCommandRegistry));
@@ -47,11 +48,21 @@ public class Main {
         }
     }
 
-    public static String getVersion() {
+    public static String getServerVersion() {
         try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
             Properties props = new Properties();
             props.load(in);
             return props.getProperty("version");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String getAPIVersion() {
+        try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
+            Properties props = new Properties();
+            props.load(in);
+            return props.getProperty("api-version");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
