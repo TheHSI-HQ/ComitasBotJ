@@ -5,30 +5,20 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class PluginManager {
-    private final InternalPluginManagerImpl impl;
-
-    public PluginManager(InternalPluginManagerImpl impl) {
-        this.impl = impl;
-    }
-
+public interface PluginManager {
     /**
      * Count the amount of loaded Plugins
      *
      * @return The amount of loaded Plugins
      */
-    public Integer countPlugins() {
-        return impl.countPlugins();
-    }
+    Integer countPlugins();
 
     /**
      * Get the name of every loaded Plugin
      *
      * @return A List of every Loaded Plugin's Name
      */
-    public List<Plugin.PluginMetadata> getAllPluginMetadata() {
-        return impl.getAllPluginMetadata();
-    }
+    List<Plugin.PluginMetadata> getAllPluginMetadata();
 
     /**
      * Lookup any Plugin's Info, like its Name and Version
@@ -36,16 +26,12 @@ public class PluginManager {
      * @param plugin The plugin to be looked up
      * @return The Plugin's Metadata as a {@link cloud.thehsi.ComitasBotJ.API.Plugin.Plugin.PluginMetadata}
      */
-    public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
-        return impl.lookupPlugin(plugin);
-    }
+    Plugin.PluginMetadata lookupPlugin(Plugin plugin);
 
     /**
      * Reloads all plugins
      */
-    public void reloadPlugins() {
-        impl.reloadPlugins();
-    }
+    void reloadPlugins();
 
     /**
      * Register a new Event Listener
@@ -53,7 +39,5 @@ public class PluginManager {
      * @param plugin   The plugin to which the event belongs
      * @param listener The event listener
      */
-    public void registerEvents(Plugin plugin, Listener listener) {
-        impl.registerEvents(plugin, listener);
-    }
+    void registerEvents(Plugin plugin, Listener listener);
 }

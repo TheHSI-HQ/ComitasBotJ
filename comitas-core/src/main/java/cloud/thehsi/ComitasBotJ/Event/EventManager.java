@@ -1,9 +1,13 @@
 package cloud.thehsi.ComitasBotJ.Event;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EventManager {
+    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".EventManager");
+
     private final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
 
     public void registerListener(Plugin plugin, Listener listener) {
@@ -51,7 +57,7 @@ public class EventManager {
             try {
                 handler.method().invoke(handler.listener(), event);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("[{}] {}", Comitas.getPluginManager().lookupPlugin(handler.plugin).name(), e.getLocalizedMessage());
             }
         }
     }

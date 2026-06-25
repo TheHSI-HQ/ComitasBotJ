@@ -1,0 +1,41 @@
+package cloud.thehsi.ComitasBotJ.Scheduler;
+
+import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.API.Scheduler.Task;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Represents a task being executed by the scheduler
+ */
+@SuppressWarnings("unused")
+public class AsyncTask implements Task {
+    int taskId;
+    Plugin owner;
+    Thread thread;
+
+    public AsyncTask(int taskId, Plugin owner, Thread thread) {
+        this.taskId = taskId;
+        this.owner = owner;
+        this.thread = thread;
+    }
+
+    public int getTaskId() {
+        return taskId;
+    }
+
+    public @NotNull Plugin getOwner() {
+        return owner;
+    }
+
+    public boolean isSync() {
+        return false;
+    }
+
+    public boolean isCancelled() {
+        return thread.isInterrupted();
+    }
+
+    public void cancel() {
+        thread.interrupt();
+    }
+}

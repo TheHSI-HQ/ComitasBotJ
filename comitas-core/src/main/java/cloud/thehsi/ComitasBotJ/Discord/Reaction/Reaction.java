@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Discord.Reaction;
 
-public class Reaction {
+@SuppressWarnings("unused")
+public class Reaction { //TODO: Implement
 
 }

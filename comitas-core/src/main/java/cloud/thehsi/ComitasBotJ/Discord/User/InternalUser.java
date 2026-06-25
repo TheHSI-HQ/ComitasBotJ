@@ -1,13 +1,12 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.User.InternalUserImpl;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class InternalUser implements InternalUserImpl {
-    private final User user;
+public class InternalUser implements User {
+    private final net.dv8tion.jda.api.entities.User user;
     private final Member member;
 
     public InternalUser(Member member) {

@@ -92,7 +92,7 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
-    public void init(InternalComitasImpl impl) {
+    public void init() {
         File logsDir = new File("logs");
 
         if (!logsDir.exists() && !logsDir.mkdir()) {
@@ -140,10 +140,10 @@ public class InternalComitas implements InternalComitasImpl {
         logger.info("Loading Plugins...");
         pluginLoaderManager = new PluginLoaderManager();
 
-        pluginManager = new PluginManager(new InternalPluginManager(
+        pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
                 eventManager
-        ));
+        );
 
         pluginLoaderManager.loadPlugins();
 

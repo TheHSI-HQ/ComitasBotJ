@@ -1,13 +1,13 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
-import cloud.thehsi.ComitasBotJ.API.Plugin.InternalPluginManagerImpl;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 
 import java.util.List;
 
-public class InternalPluginManager implements InternalPluginManagerImpl {
+public class InternalPluginManager implements PluginManager {
     private final PluginLoaderManager pluginLoaderManager;
     private final EventManager eventManager;
 

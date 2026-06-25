@@ -17,7 +17,7 @@ public class Comitas {
 
         INSTANCE.impl = impl;
 
-        INSTANCE.impl.init(impl);
+        INSTANCE.impl.init();
     }
 
     /**

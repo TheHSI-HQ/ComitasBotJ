@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
-import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
@@ -38,7 +37,7 @@ public class DiscordAPI extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        MessageEvent messageEvent = new MessageEvent(new InternalMessageEvent(event));
+        MessageEvent messageEvent = new InternalMessageEvent(event);
 
         eventManager.callEvent(messageEvent);
 
@@ -54,10 +53,9 @@ public class DiscordAPI extends ListenerAdapter {
                     Activity.watching(config.botActivityName.get())
             );
 
-        eventManager.callEvent(new BotConnectEvent(
-                new InternalBotConnectEvent(
+        eventManager.callEvent(new InternalBotConnectEvent(
                         api.getSelfUser()
-                )));
+        ));
 
         logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
     }

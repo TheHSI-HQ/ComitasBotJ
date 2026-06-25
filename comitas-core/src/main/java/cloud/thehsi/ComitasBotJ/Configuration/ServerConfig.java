@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@SuppressWarnings({"SameParameterValue", "unused"})
 public class ServerConfig {
     public static class ParsedServerConfig {
         private final ServerConfig cfg;

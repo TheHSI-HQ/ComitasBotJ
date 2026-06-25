@@ -15,7 +15,7 @@ import java.util.Properties;
 public class Main {
     private static final long STARTUP_TIME = System.currentTimeMillis();
 
-    private static final ConsoleCommandRegistry consoleCommandRegistry = new ConsoleCommandRegistry(new InternalConsoleCommandRegistry());
+    private static final ConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
     private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
@@ -40,14 +40,6 @@ public class Main {
         comitas.init(new InternalComitas(consoleCommandRegistry));
 
         consolePrompt.run();
-
-        /*ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-
-        exec.scheduleAtFixedRate(() -> {
-            logger.info("This is a Test");
-            logger.warn("This is a Test");
-            logger.error("This is a Test");
-        }, 0, 1500, TimeUnit.MILLISECONDS);*/
 
         try {
             Thread.currentThread().join();

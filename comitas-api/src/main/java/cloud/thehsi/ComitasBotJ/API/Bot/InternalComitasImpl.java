@@ -11,5 +11,5 @@ public interface InternalComitasImpl {
     PluginManager getPluginManager();
     ConsoleCommandRegistry getConsoleCommandRegistry();
 
-    void init(InternalComitasImpl impl);
+    void init();
 }

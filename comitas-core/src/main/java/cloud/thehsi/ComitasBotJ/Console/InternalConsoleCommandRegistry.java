@@ -1,12 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
-import cloud.thehsi.ComitasBotJ.API.Console.InternalConsoleCommandRegistryImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InternalConsoleCommandRegistry implements InternalConsoleCommandRegistryImpl {
+public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     private final List<ConsoleCommandRegistry.Command> commands = new ArrayList<>();
 
     private boolean isCommandMeant(String command, ConsoleCommandRegistry.Command consoleCommand) {

@@ -7,57 +7,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class ConsoleCommandRegistry {
-    private final InternalConsoleCommandRegistryImpl impl;
+public interface ConsoleCommandRegistry {
+    void register(ConsoleCommandRegistry.Command command);
 
-    public ConsoleCommandRegistry(InternalConsoleCommandRegistryImpl impl) {
-        this.impl = impl;
-    }
+    boolean runCommand(String command, String[] args);
 
-    /**
-     * Registers a Command
-     *
-     * @param command The command that should be registered
-     */
-    public void register(ConsoleCommandRegistry.Command command) {
-        impl.register(command);
-    }
+    String[] validCommandList();
 
-    /**
-     * Runs a command with a list of arguments
-     *
-     * @param command The command to run
-     * @param args    The arguments the command was run with
-     * @return This is false if the command wasn't found.
-     */
-    public boolean runCommand(String command, String[] args) {
-        return impl.runCommand(command, args);
-    }
+    List<ConsoleCommandRegistry.Command> registeredCommands();
 
-    /**
-     * Returns a list of every registered Command Alias
-     *
-     * @return A list of all registered CommandAliases
-     */
-    public String[] validCommandList() {
-        return impl.validCommandList();
-    }
-
-    /**
-     * Returns a list of every registered Command
-     *
-     * @return A list of all registered Commands
-     */
-    public List<ConsoleCommandRegistry.Command> registeredCommands() {
-        return impl.registeredCommands();
-    }
-
-    public static class CommandBuilder {
-        List<String> aliases;
-        String plugin_prefix;
-        Plugin plugin;
+    class CommandBuilder {
+        final List<String> aliases;
+        final String plugin_prefix;
+        final Plugin plugin;
         String description = "";
-        ConsoleCommandExecutor consoleCommandExecutor;
+        final ConsoleCommandExecutor consoleCommandExecutor;
 
         public CommandBuilder(Plugin plugin, ConsoleCommandExecutor consoleCommandExecutor) {
             this.plugin = plugin;
@@ -92,11 +56,11 @@ public class ConsoleCommandRegistry {
          * Register this Command
          */
         public void register() {
-            Comitas.getConsoleCommandRegistry().register(new Command(aliases, plugin, description, consoleCommandExecutor));
+            Comitas.getConsoleCommandRegistry().register(new ConsoleCommandRegistry.Command(aliases, plugin, description, consoleCommandExecutor));
         }
     }
 
-    public record Command(List<String> aliases, Plugin plugin, String description,
+    record Command(List<String> aliases, Plugin plugin, String description,
                           ConsoleCommandExecutor consoleCommandExecutor) {
     }
 }

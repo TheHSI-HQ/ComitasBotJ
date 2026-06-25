@@ -1,9 +1,9 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
-import cloud.thehsi.ComitasBotJ.API.Event.Events.InternalImpl.InternalBotConnectEventImpl;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import net.dv8tion.jda.api.entities.SelfUser;
 
-public class InternalBotConnectEvent implements InternalBotConnectEventImpl {
+public class InternalBotConnectEvent implements BotConnectEvent {
     private final SelfUser bot;
 
     public InternalBotConnectEvent(SelfUser bot) {
