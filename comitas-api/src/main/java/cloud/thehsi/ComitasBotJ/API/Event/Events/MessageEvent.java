@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 
 @SuppressWarnings("unused")
@@ -38,16 +39,16 @@ public interface MessageEvent extends Event {
     User getAuthor();
 
     /**
-     * Send a new Message in the same channel this message was send in
+     * Get the Channel the Message was sent in
      *
-     * @param message The message to be sent
+     * @return The Message Channel
      */
-    void sendInChannel(String message);
+    TextChannel getChannel();
 
     /**
      * Reply to the message in the same channel this message was send in
      *
      * @param message The message to be sent
      */
-    void replyToMessage(String message);
+    void reply(String message);
 }

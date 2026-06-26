@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Console;
 
+import java.awt.*;
+
 @SuppressWarnings("unused")
 public class ConsoleColor {
     public static final ConsoleColor RESET = new ConsoleColor("\033[0m");
@@ -54,5 +56,9 @@ public class ConsoleColor {
     @Override
     public String toString() {
         return value;
+    }
+
+    public static ConsoleColor fromColor(Color color) {
+        return new ConsoleColor("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
     }
 }

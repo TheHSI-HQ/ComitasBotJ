@@ -36,7 +36,7 @@ public class Main extends Plugin implements Listener {
         if (event.getAuthor().isMe()) return;
 
         if (event.getRawContent().equals("!hello")) {
-            event.replyToMessage("Hello " + event.getAuthor().mention());
+            event.reply("Hello " + event.getAuthor().mention());
         }
     }
 }

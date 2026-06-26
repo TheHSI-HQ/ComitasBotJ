@@ -47,7 +47,6 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
 
         String levelStr = event.getLevel().toString();
 
-        // Abbreviate logger: cloud.thehsi.ComitasBotJ.Main -> c.t.C.Main
         String logger = abbreviateLogger(event.getLoggerName());
 
         String formatted = GREY + "[" + RESET
@@ -57,7 +56,7 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
                 + GREY + "/" + RESET
                 + levelColor + BOLD + levelStr + RESET
                 + GREY + "]: " + RESET
-                + event.getFormattedMessage();
+                + event.getFormattedMessage() + RESET;
 
         instance.appendLog(formatted);
     }
@@ -72,7 +71,7 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
         for (int i = 0; i < parts.length - 1; i++) {
             sb.append(parts[i]).append('.');
         }
-        sb.append(WHITE).append(BOLD).append(parts[parts.length - 1]).append(RESET); // full last segment
+        sb.append(WHITE).append(BOLD).append(parts[parts.length - 1]).append(RESET);
         return sb.toString();
     }
 }

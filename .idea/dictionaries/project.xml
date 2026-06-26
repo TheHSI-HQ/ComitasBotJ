@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>comitasbot</w>
+      <w>slowmode</w>
     </words>
   </dictionary>
 </component>

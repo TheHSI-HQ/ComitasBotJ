@@ -1,21 +1,22 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class InternalMessageEvent implements MessageEvent {
     private final Message message;
-    private final MessageChannelUnion channel;
+    private final net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel;
     private final Member author;
 
     public InternalMessageEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
-        this.channel = event.getChannel();
+        this.channel = event.getChannel().asTextChannel();
         this.author = event.getMember();
     }
 
@@ -47,12 +48,12 @@ public class InternalMessageEvent implements MessageEvent {
     }
 
     @Override
-    public void sendInChannel(String message) {
-        channel.sendMessage(message).queue();
+    public TextChannel getChannel() {
+        return new InternalTextChannel(channel);
     }
 
     @Override
-    public void replyToMessage(String message) {
+    public void reply(String message) {
         this.message.reply(message).queue();
     }
 }
