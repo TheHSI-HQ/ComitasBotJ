@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
 public interface UserRoleRemovedEvent extends Event {
@@ -36,5 +36,5 @@ public interface UserRoleRemovedEvent extends Event {
      *
      * @return The User whose role was revoked
      */
-    User getUser();
+    Member getUser();
 }

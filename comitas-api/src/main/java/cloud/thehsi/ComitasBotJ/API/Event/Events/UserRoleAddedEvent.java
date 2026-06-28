@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
 public interface UserRoleAddedEvent extends Event {
@@ -36,5 +36,5 @@ public interface UserRoleAddedEvent extends Event {
      *
      * @return The User who received the role
      */
-    User getUser();
+    Member getUser();
 }

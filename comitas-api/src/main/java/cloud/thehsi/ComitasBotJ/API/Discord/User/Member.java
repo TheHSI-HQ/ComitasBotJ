@@ -2,12 +2,13 @@ package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface User {
+public interface Member {
     /**
      * Returns the user's Username.
      *
@@ -56,6 +57,7 @@ public interface User {
      *
      * @return The user's primary color
      */
+    @Nullable
     Color getPrimaryColor();
 
     /**
@@ -63,6 +65,7 @@ public interface User {
      *
      * @return The user's secondary color
      */
+    @Nullable
     Color getSecondaryColor();
 
     /**
@@ -70,7 +73,15 @@ public interface User {
      *
      * @return The user's tertiary color
      */
+    @Nullable
     Color getTertiaryColor();
+
+    /**
+     * Returns the user's name in there color.
+     *
+     * @return The user's name with there color
+     */
+    String getLoggableName();
 
     /**
      * Generates a list of all user permissions

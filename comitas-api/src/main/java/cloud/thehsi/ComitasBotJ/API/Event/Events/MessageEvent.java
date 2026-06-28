@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
 public interface MessageEvent extends Event {
@@ -36,7 +36,7 @@ public interface MessageEvent extends Event {
      *
      * @return The Message Author
      */
-    User getAuthor();
+    Member getAuthor();
 
     /**
      * Get the Channel the Message was sent in

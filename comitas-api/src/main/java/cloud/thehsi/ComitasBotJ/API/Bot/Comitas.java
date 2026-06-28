@@ -1,8 +1,11 @@
 package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
+
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class Comitas {
@@ -47,6 +50,15 @@ public class Comitas {
      */
     public static String getServerVersion() {
         return INSTANCE.impl.getServerVersion();
+    }
+
+    /**
+     * Gets a list of Guilds the Bot is a member of.
+     *
+     * @return A List of Guild.
+     */
+    public static List<Guild> getGuilds() {
+        return INSTANCE.impl.getGuilds();
     }
 
     /**

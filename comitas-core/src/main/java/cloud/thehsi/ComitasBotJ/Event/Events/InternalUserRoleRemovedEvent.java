@@ -1,17 +1,17 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
 
 @SuppressWarnings("unused")
 public class InternalUserRoleRemovedEvent implements UserRoleRemovedEvent {
     private final Role role;
-    private final User user;
+    private final Member member;
     private boolean undo = false;
 
-    public InternalUserRoleRemovedEvent(User user, Role role) {
-        this.user = user;
+    public InternalUserRoleRemovedEvent(Member member, Role role) {
+        this.member = member;
         this.role = role;
     }
 
@@ -36,7 +36,7 @@ public class InternalUserRoleRemovedEvent implements UserRoleRemovedEvent {
     }
 
     @Override
-    public User getUser() {
-        return user;
+    public Member getUser() {
+        return member;
     }
 }

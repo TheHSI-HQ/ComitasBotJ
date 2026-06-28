@@ -1,6 +1,8 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
@@ -27,6 +29,11 @@ public class Main extends Plugin implements Listener {
     @SuppressWarnings("unused")
     @EventHandler
     public void onBotConnect(BotConnectEvent event) {
+        for (Guild g : Comitas.getGuilds()) {
+            for (Member m : g.getMembers()) {
+                getLogger().info("Hi {}", m.getLoggableName());
+            }
+        }
         getLogger().info("Hello from {}", event.getUserName());
     }
 

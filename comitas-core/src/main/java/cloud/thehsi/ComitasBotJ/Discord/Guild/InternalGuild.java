@@ -1,0 +1,46 @@
+package cloud.thehsi.ComitasBotJ.Discord.Guild;
+
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class InternalGuild implements Guild {
+    private final net.dv8tion.jda.api.entities.Guild guild;
+
+    public InternalGuild(net.dv8tion.jda.api.entities.Guild guild) {
+        this.guild = guild;
+    }
+
+    @Override
+    public String getName() {
+        return guild.getName();
+    }
+
+    @Override
+    public Long getId() {
+        return guild.getIdLong();
+    }
+
+    @Override
+    public TextChannel getDefaultChannel() {
+        return new InternalTextChannel(
+                (net.dv8tion.jda.api.entities.channel.concrete.TextChannel) guild.getDefaultChannel()
+        );
+    }
+
+    @Override
+    public List<Member> getMembers() {
+        List<Member> members = new ArrayList<>();
+
+        for (net.dv8tion.jda.api.entities.Member member : guild.getMembers()) {
+            members.add(new InternalMember(member));
+        }
+
+        return members;
+    }
+}

@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
 
@@ -58,7 +60,35 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
                 + GREY + "]: " + RESET
                 + event.getFormattedMessage() + RESET;
 
+        IThrowableProxy throwable = event.getThrowableProxy();
+        if (throwable != null) {
+            instance.appendLog(formatThrowable(throwable));
+        }
+
         instance.appendLog(formatted);
+    }
+
+    private String formatThrowable(IThrowableProxy throwable) {
+        StringBuilder sb = new StringBuilder();
+
+        String timestamp = new java.text.SimpleDateFormat("HH:mm:ss")
+                .format(new java.util.Date());
+
+        sb.append(GREY + "[" + RESET + DEBUG).append(timestamp).append(RESET).append(GREY).append("] ").append(ERROR);
+
+        sb.append(throwable.getClassName())
+                .append(": ")
+                .append(throwable.getMessage())
+                .append('\n');
+
+        for (StackTraceElementProxy step : throwable.getStackTraceElementProxyArray()) {
+            sb.append(GREY + "[" + RESET + DEBUG).append(timestamp).append(RESET).append(GREY).append("] ").append(ERROR);
+            sb.append("\t")
+                    .append(step.getSTEAsString())
+                    .append('\n');
+        }
+
+        return sb.toString();
     }
 
     private String abbreviateLogger(String name) {

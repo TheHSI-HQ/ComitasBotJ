@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,8 +65,16 @@ public class EventManager {
         for (RegisteredListener handler : handlers) {
             try {
                 handler.method().invoke(handler.listener(), event);
+            } catch (InvocationTargetException e) {
+                Throwable cause = e.getCause();
+
+                logger.error(
+                        "An error occurred in plugin {}",
+                        Comitas.getPluginManager().lookupPlugin(handler.plugin).name(),
+                        cause
+                );
             } catch (Exception e) {
-                logger.error("[{}] {}", Comitas.getPluginManager().lookupPlugin(handler.plugin).name(), e.getLocalizedMessage());
+                logger.error("Failed to invoke listener in plugin {}", Comitas.getPluginManager().lookupPlugin(handler.plugin).name(), e);
             }
         }
     }

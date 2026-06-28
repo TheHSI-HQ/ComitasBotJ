@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Role;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -42,6 +43,7 @@ public interface Role {
      *
      * @return The role primary color
      */
+    @Nullable
     Color getPrimaryColor();
 
     /**
@@ -49,6 +51,7 @@ public interface Role {
      *
      * @return The role secondary color
      */
+    @Nullable
     Color getSecondaryColor();
 
     /**
@@ -56,7 +59,15 @@ public interface Role {
      *
      * @return The role tertiary color
      */
+    @Nullable
     Color getTertiaryColor();
+
+    /**
+     * Returns the user's name in there color.
+     *
+     * @return The user's name with there color
+     */
+    String getLoggableName();
 
     /**
      * Generates a list of all role permissions

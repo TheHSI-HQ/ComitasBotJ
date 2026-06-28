@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Console;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 
 @SuppressWarnings("unused")
@@ -58,7 +60,7 @@ public class ConsoleColor {
         return value;
     }
 
-    public static ConsoleColor fromColor(Color color) {
+    public static ConsoleColor of(@NotNull Color color) {
         return new ConsoleColor("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
     }
 }

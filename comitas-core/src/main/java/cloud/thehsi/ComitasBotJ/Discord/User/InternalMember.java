@@ -1,19 +1,20 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import net.dv8tion.jda.api.entities.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class InternalUser implements User {
+public class InternalMember implements Member {
     private final net.dv8tion.jda.api.entities.User user;
-    private final Member member;
+    private final net.dv8tion.jda.api.entities.Member member;
 
-    public InternalUser(Member member) {
+    public InternalMember(net.dv8tion.jda.api.entities.Member member) {
         this.user = member.getUser();
         this.member = member;
     }
@@ -50,17 +51,36 @@ public class InternalUser implements User {
 
     @Override
     public Color getPrimaryColor() {
-        return member.getColors().getPrimary();
+        return member.getRoles().stream()
+                .map(role -> role.getColors().getPrimary())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public Color getSecondaryColor() {
-        return member.getColors().getSecondary();
+        return member.getRoles().stream()
+                .map(role -> role.getColors().getSecondary())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public Color getTertiaryColor() {
-        return member.getColors().getTertiary();
+        return member.getRoles().stream()
+                .map(role -> role.getColors().getTertiary())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public String getLoggableName() {
+        Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
+
+        return ConsoleColor.of(color) + getDisplayName() + ConsoleColor.RESET;
     }
 
     @Override

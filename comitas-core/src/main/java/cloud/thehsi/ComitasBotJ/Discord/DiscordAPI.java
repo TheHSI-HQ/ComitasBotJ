@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
-import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageEvent;
@@ -69,6 +69,10 @@ public class DiscordAPI extends ListenerAdapter {
         this.config = config;
     }
 
+    public JDA getAPI() {
+        return api;
+    }
+
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         MessageEvent messageEvent = new InternalMessageEvent(event);
@@ -105,7 +109,7 @@ public class DiscordAPI extends ListenerAdapter {
             }
 
             UserRoleAddedEvent userRoleAddedEvent = new InternalUserRoleAddedEvent(
-                    new InternalUser(event.getMember()),
+                    new InternalMember(event.getMember()),
                     new InternalRole(role)
             );
 
@@ -131,7 +135,7 @@ public class DiscordAPI extends ListenerAdapter {
             }
 
             UserRoleRemovedEvent userRoleRemovedEvent = new InternalUserRoleRemovedEvent(
-                    new InternalUser(event.getMember()),
+                    new InternalMember(event.getMember()),
                     new InternalRole(role)
             );
 

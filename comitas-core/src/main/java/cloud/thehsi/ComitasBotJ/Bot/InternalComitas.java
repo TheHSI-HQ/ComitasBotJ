@@ -2,10 +2,12 @@ package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
+import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
@@ -20,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 
 public class InternalComitas implements InternalComitasImpl {
@@ -29,6 +32,7 @@ public class InternalComitas implements InternalComitasImpl {
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private InternalScheduler scheduler;
     private EventManager eventManager;
+    private DiscordAPI api;
     private Logger logger;
 
     private String bot_token;
@@ -94,6 +98,11 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
+    public List<Guild> getGuilds() {
+        return api.getAPI().getGuilds().stream().map(e -> (Guild) new InternalGuild(e)).toList();
+    }
+
+    @Override
     public void init() {
         File logsDir = new File("logs");
 
@@ -155,7 +164,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Start Bot
         logger.info("Starting Bot...");
-        new DiscordAPI(bot_token, serverConfig, eventManager);
+        api = new DiscordAPI(bot_token, serverConfig, eventManager);
     }
 
     private void onShutdown() {

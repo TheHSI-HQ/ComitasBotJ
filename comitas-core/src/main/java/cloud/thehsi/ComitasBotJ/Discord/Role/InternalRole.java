@@ -1,11 +1,13 @@
 package cloud.thehsi.ComitasBotJ.Discord.Role;
 
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class InternalRole implements Role {
     net.dv8tion.jda.api.entities.Role role;
@@ -47,6 +49,13 @@ public class InternalRole implements Role {
     @Override
     public Color getTertiaryColor() {
         return role.getColors().getTertiary();
+    }
+
+    @Override
+    public String getLoggableName() {
+        Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
+
+        return ConsoleColor.of(color) + getName() + ConsoleColor.RESET;
     }
 
     @Override
