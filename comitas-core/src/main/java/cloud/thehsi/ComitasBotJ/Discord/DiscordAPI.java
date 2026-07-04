@@ -1,6 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
-import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
@@ -8,7 +8,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageEvent;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageSentEvent;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalUserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalUserRoleRemovedEvent;
 import cloud.thehsi.ComitasBotJ.Main;
@@ -75,11 +75,11 @@ public class DiscordAPI extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        MessageEvent messageEvent = new InternalMessageEvent(event);
+        MessageSentEvent messageSentEvent = new InternalMessageSentEvent(event);
 
-        eventManager.callEvent(messageEvent);
+        eventManager.callEvent(messageSentEvent);
 
-        if (messageEvent.isDelete()) event.getMessage().delete().queue();
+        if (messageSentEvent.isDelete()) event.getMessage().delete().queue();
     }
 
     @Override

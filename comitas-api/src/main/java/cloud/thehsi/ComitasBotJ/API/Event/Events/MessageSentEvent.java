@@ -1,10 +1,11 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
-public interface MessageEvent extends Event {
+public interface MessageSentEvent extends Event {
     /**
      * Is this message marked for deletion
      *
@@ -30,6 +31,13 @@ public interface MessageEvent extends Event {
      * @return The raw message content
      */
     String getRawContent();
+
+    /**
+     * Get the Message
+     *
+     * @return The Message
+     */
+    Message getMessage();
 
     /**
      * Get the Message Author

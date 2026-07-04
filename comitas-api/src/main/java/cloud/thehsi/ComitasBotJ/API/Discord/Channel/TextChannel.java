@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+
 @SuppressWarnings("unused")
 public interface TextChannel extends Channel {
     /**
@@ -8,4 +10,11 @@ public interface TextChannel extends Channel {
      * @param message The message to be sent
      */
     void sendMessage(String message);
+
+    /**
+     * Gets the channel's guild
+     *
+     * @return The channel's guild
+     */
+    Guild getGuild();
 }

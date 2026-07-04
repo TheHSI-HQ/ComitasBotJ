@@ -1,8 +1,10 @@
 package cloud.thehsi.ComitasBotJ.Discord.Guild;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 
@@ -42,5 +44,19 @@ public class InternalGuild implements Guild {
         }
 
         return members;
+    }
+
+    @Override
+    public List<Channel> getChannels() {
+        List<Channel> channels = new ArrayList<>();
+
+        for (net.dv8tion.jda.api.entities.channel.Channel channel : guild.getChannels()) {
+            if (channel instanceof net.dv8tion.jda.api.entities.channel.concrete.TextChannel)
+                channels.add(new InternalTextChannel((net.dv8tion.jda.api.entities.channel.concrete.TextChannel) channel));
+            else
+                channels.add(new InternalChannel(channel));
+        }
+
+        return channels;
     }
 }

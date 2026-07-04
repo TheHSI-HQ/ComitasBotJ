@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
@@ -34,4 +35,11 @@ public interface Guild {
      * @return A member list of this guild.
      */
     List<Member> getMembers();
+
+    /**
+     * Returns a list of Channels of the guild.
+     *
+     * @return A channel list of this guild.
+     */
+    List<Channel> getChannels();
 }
