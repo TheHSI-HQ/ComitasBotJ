@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
 public interface Member {
@@ -91,10 +92,57 @@ public interface Member {
     List<Permission> getPermissions();
 
     /**
+     * Kick this user
+     *
+     * @return Was the user successfully kicked
+     */
+    CompletableFuture<Boolean> kick();
+
+    /**
+     * Kick this user
+     *
+     * @param reason The kick reason
+     * @return Was the user successfully kicked
+     */
+    CompletableFuture<Boolean> kick(String reason);
+
+    /**
+     * Ban this user
+     *
+     * @return Was the user successfully banned
+     */
+    CompletableFuture<Boolean> ban();
+
+    /**
+     * Ban this user
+     *
+     * @param reason The ban reason
+     * @return Was the user successfully banned
+     */
+    CompletableFuture<Boolean> ban(String reason);
+
+    /**
+     * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
+     *
+     * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return Was the user successfully banned
+     */
+    CompletableFuture<Boolean> ban(int deletionPeriodHours);
+
+    /**
+     * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
+     *
+     * @param reason The ban reason
+     * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return Was the user successfully banned
+     */
+    CompletableFuture<Boolean> ban(String reason, int deletionPeriodHours);
+
+    /**
      * Messages this User with a Message of your choosing
      *
      * @param message The message you want to send
-     * @return Was the message was successfully send
+     * @return Was the message successfully send
      */
     @ApiStatus.Experimental
     boolean sendDirectMessage(String message);

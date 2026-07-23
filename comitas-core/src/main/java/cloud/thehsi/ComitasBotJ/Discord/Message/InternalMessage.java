@@ -9,13 +9,15 @@ import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.entities.MessageReference;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class InternalMessage implements Message {
-    private net.dv8tion.jda.api.entities.Message message;
+    private final net.dv8tion.jda.api.entities.Message message;
     private boolean deleted = false;
 
     public InternalMessage(net.dv8tion.jda.api.entities.Message message) {
@@ -47,6 +49,21 @@ public class InternalMessage implements Message {
     @Override
     public TextChannel getChannel() {
         return new InternalTextChannel((net.dv8tion.jda.api.entities.channel.concrete.TextChannel) message.getChannel());
+    }
+
+    @Override
+    public boolean isReply() {
+        return getRepliedMessage() != null;
+    }
+
+    @Override
+    public @Nullable Message getRepliedMessage() {
+        MessageReference ref = message.getMessageReference();
+
+        if (ref == null || ref.getMessageIdLong() != 0)
+            return null;
+
+        return new InternalMessage(ref.getMessage());
     }
 
     @Override

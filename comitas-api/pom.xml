@@ -7,7 +7,7 @@
 
     <groupId>cloud.thehsi.ComitasBotJ</groupId>
     <artifactId>comitas-api</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.9</version>
 
     <properties>
         <maven.compiler.release>23</maven.compiler.release>

@@ -1,7 +1,11 @@
 package cloud.thehsi.ComitasBotJ.API.Discord;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @SuppressWarnings("unused")
 public class Permission {
+    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.Permission");
     public static final Permission CREATE_INSTANT_INVITE =
             new Permission(1L, "CREATE_INSTANT_INVITE");
     public static final Permission KICK_MEMBERS =
@@ -10,14 +14,14 @@ public class Permission {
             new Permission(2L << 2, "BAN_MEMBERS");
     public static final Permission ADMINISTRATOR =
             new Permission(2L << 3, "ADMINISTRATOR");
-    public static final Permission MANAGE_CHANNELS =
-            new Permission(2L << 4, "MANAGE_CHANNELS");
+    public static final Permission MANAGE_CHANNEL =
+            new Permission(2L << 4, "MANAGE_CHANNEL");
     public static final Permission MANAGE_GUILD =
             new Permission(2L << 5, "MANAGE_GUILD");
     public static final Permission ADD_REACTIONS =
             new Permission(2L << 6, "ADD_REACTIONS");
-    public static final Permission VIEW_AUDIT_LOG =
-            new Permission(2L << 7, "VIEW_AUDIT_LOG");
+    public static final Permission VIEW_AUDIT_LOGS =
+            new Permission(2L << 7, "VIEW_AUDIT_LOGS");
     public static final Permission PRIORITY_SPEAKER =
             new Permission(2L << 8, "PRIORITY_SPEAKER");
     public static final Permission STREAM =
@@ -110,33 +114,34 @@ public class Permission {
     public static Permission fromValue(String permission) {
         return switch (permission) {
             case "CREATE_INSTANT_INVITE" -> CREATE_INSTANT_INVITE;
+            case "KICK_MEMBERS" -> KICK_MEMBERS;
             case "BAN_MEMBERS" -> BAN_MEMBERS;
             case "ADMINISTRATOR" -> ADMINISTRATOR;
-            case "MANAGE_CHANNELS" -> MANAGE_CHANNELS;
-            case "MANAGE_GUILD" -> MANAGE_GUILD;
-            case "ADD_REACTIONS" -> ADD_REACTIONS;
-            case "VIEW_AUDIT_LOG" -> VIEW_AUDIT_LOG;
+            case "MANAGE_CHANNEL" -> MANAGE_CHANNEL;
+            case "MANAGE_SERVER", "MANAGE_GUILD" -> MANAGE_GUILD;
+            case "ADD_REACTIONS", "MESSAGE_ADD_REACTION" -> ADD_REACTIONS;
+            case "VIEW_AUDIT_LOGS" -> VIEW_AUDIT_LOGS;
             case "PRIORITY_SPEAKER" -> PRIORITY_SPEAKER;
-            case "STREAM" -> STREAM;
+            case "STREAM", "VOICE_STREAM" -> STREAM;
             case "VIEW_CHANNEL" -> VIEW_CHANNEL;
-            case "SEND_MESSAGES" -> SEND_MESSAGES;
-            case "SEND_TTS_MESSAGES" -> SEND_TTS_MESSAGES;
-            case "MANAGE_MESSAGES" -> MANAGE_MESSAGES;
-            case "EMBED_LINKS" -> EMBED_LINKS;
-            case "ATTACH_FILES" -> ATTACH_FILES;
-            case "READ_MESSAGE_HISTORY" -> READ_MESSAGE_HISTORY;
-            case "MENTION_EVERYONE" -> MENTION_EVERYONE;
-            case "USE_EXTERNAL_EMOJIS" -> USE_EXTERNAL_EMOJIS;
+            case "SEND_MESSAGES", "MESSAGE_SEND" -> SEND_MESSAGES;
+            case "SEND_TTS_MESSAGES", "MESSAGE_TTS" -> SEND_TTS_MESSAGES;
+            case "MANAGE_MESSAGES", "MESSAGE_MANAGE" -> MANAGE_MESSAGES;
+            case "EMBED_LINKS", "MESSAGE_EMBED_LINKS" -> EMBED_LINKS;
+            case "ATTACH_FILES", "MESSAGE_ATTACH_FILES" -> ATTACH_FILES;
+            case "READ_MESSAGE_HISTORY", "MESSAGE_HISTORY" -> READ_MESSAGE_HISTORY;
+            case "MENTION_EVERYONE", "MESSAGE_MENTION_EVERYONE" -> MENTION_EVERYONE;
+            case "USE_EXTERNAL_EMOJIS", "MESSAGE_EXT_EMOJI" -> USE_EXTERNAL_EMOJIS;
             case "VIEW_GUILD_INSIGHTS" -> VIEW_GUILD_INSIGHTS;
-            case "CONNECT" -> CONNECT;
-            case "SPEAK" -> SPEAK;
-            case "MUTE_MEMBERS" -> MUTE_MEMBERS;
-            case "DEAFEN_MEMBERS" -> DEAFEN_MEMBERS;
-            case "MOVE_MEMBERS" -> MOVE_MEMBERS;
-            case "USE_VAD" -> USE_VAD;
-            case "CHANGE_NICKNAME" -> CHANGE_NICKNAME;
-            case "MANAGE_NICKNAMES" -> MANAGE_NICKNAMES;
-            case "MANAGE_ROLES" -> MANAGE_ROLES;
+            case "CONNECT", "VOICE_CONNECT" -> CONNECT;
+            case "SPEAK", "VOICE_SPEAK" -> SPEAK;
+            case "MUTE_MEMBERS", "VOICE_MUTE_OTHERS" -> MUTE_MEMBERS;
+            case "DEAFEN_MEMBERS", "VOICE_DEAF_OTHERS" -> DEAFEN_MEMBERS;
+            case "MOVE_MEMBERS", "VOICE_MOVE_OTHERS" -> MOVE_MEMBERS;
+            case "USE_VAD", "VOICE_USE_VAD" -> USE_VAD;
+            case "CHANGE_NICKNAME", "NICKNAME_CHANGE" -> CHANGE_NICKNAME;
+            case "MANAGE_NICKNAMES", "NICKNAME_MANAGE" -> MANAGE_NICKNAMES;
+            case "MANAGE_ROLES", "MANAGE_PERMISSIONS" -> MANAGE_ROLES;
             case "MANAGE_WEBHOOKS" -> MANAGE_WEBHOOKS;
             case "MANAGE_GUILD_EXPRESSIONS" -> MANAGE_GUILD_EXPRESSIONS;
             case "USE_APPLICATION_COMMANDS" -> USE_APPLICATION_COMMANDS;
@@ -145,22 +150,25 @@ public class Permission {
             case "MANAGE_THREADS" -> MANAGE_THREADS;
             case "CREATE_PUBLIC_THREADS" -> CREATE_PUBLIC_THREADS;
             case "CREATE_PRIVATE_THREADS" -> CREATE_PRIVATE_THREADS;
-            case "USE_EXTERNAL_STICKERS" -> USE_EXTERNAL_STICKERS;
-            case "SEND_MESSAGES_IN_THREADS" -> SEND_MESSAGES_IN_THREADS;
+            case "USE_EXTERNAL_STICKERS", "MESSAGE_EXT_STICKER" -> USE_EXTERNAL_STICKERS;
+            case "SEND_MESSAGES_IN_THREADS", "MESSAGE_SEND_IN_THREADS" -> SEND_MESSAGES_IN_THREADS;
             case "USE_EMBEDDED_ACTIVITIES" -> USE_EMBEDDED_ACTIVITIES;
             case "MODERATE_MEMBERS" -> MODERATE_MEMBERS;
             case "VIEW_CREATOR_MONETIZATION_ANALYTICS" -> VIEW_CREATOR_MONETIZATION_ANALYTICS;
-            case "USE_SOUNDBOARD" -> USE_SOUNDBOARD;
+            case "USE_SOUNDBOARD", "VOICE_USE_SOUNDBOARD" -> USE_SOUNDBOARD;
             case "CREATE_GUILD_EXPRESSIONS" -> CREATE_GUILD_EXPRESSIONS;
-            case "CREATE_EVENTS" -> CREATE_EVENTS;
-            case "USE_EXTERNAL_SOUNDS" -> USE_EXTERNAL_SOUNDS;
-            case "SEND_VOICE_MESSAGES" -> SEND_VOICE_MESSAGES;
-            case "SET_VOICE_CHANNEL_STATUS" -> SET_VOICE_CHANNEL_STATUS;
-            case "SEND_POLLS" -> SEND_POLLS;
-            case "USE_EXTERNAL_APPS" -> USE_EXTERNAL_APPS;
+            case "CREATE_EVENTS", "CREATE_SCHEDULED_EVENTS" -> CREATE_EVENTS;
+            case "USE_EXTERNAL_SOUNDS", "VOICE_USE_EXTERNAL_SOUNDS" -> USE_EXTERNAL_SOUNDS;
+            case "SEND_VOICE_MESSAGES", "MESSAGE_ATTACH_VOICE_MESSAGE" -> SEND_VOICE_MESSAGES;
+            case "SET_VOICE_CHANNEL_STATUS", "VOICE_SET_STATUS" -> SET_VOICE_CHANNEL_STATUS;
+            case "SEND_POLLS", "MESSAGE_SEND_POLLS" -> SEND_POLLS;
+            case "USE_EXTERNAL_APPS", "USE_EXTERNAL_APPLICATIONS" -> USE_EXTERNAL_APPS;
             case "PIN_MESSAGES" -> PIN_MESSAGES;
             case "BYPASS_SLOWMODE" -> BYPASS_SLOWMODE;
-            default -> throw new IllegalStateException("Unexpected value: " + permission);
+            default -> {
+                logger.warn("Unexpected value: {}", permission);
+                yield null;
+            }
         };
     }
 

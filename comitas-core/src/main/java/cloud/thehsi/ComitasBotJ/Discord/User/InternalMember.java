@@ -8,6 +8,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalMember implements Member {
@@ -91,6 +93,78 @@ public class InternalMember implements Member {
                     Permission.fromValue(permission.name())
             );
         return permissions;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> kick() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.kick().queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> kick(String reason) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.kick().reason(reason).queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> ban() {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.ban(0, TimeUnit.DAYS).queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> ban(String reason) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.ban(0, TimeUnit.DAYS).reason(reason).queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> ban(int deletionPeriodHours) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.ban(deletionPeriodHours, TimeUnit.HOURS).queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> ban(String reason, int deletionPeriodHours) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).queue(
+                success -> future.complete(true),
+                error -> future.complete(false)
+        );
+
+        return future;
     }
 
     @Override

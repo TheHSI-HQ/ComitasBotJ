@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 
 import java.util.List;
 
@@ -19,6 +20,22 @@ public interface PluginManager {
      * @return A List of every Loaded Plugin's Name
      */
     List<Plugin.PluginMetadata> getAllPluginMetadata();
+
+    /**
+     * Gets the current {@link Plugin}.
+     *
+     * @return The {@link Plugin} who called this function
+     */
+    Plugin getPlugin();
+
+    /**
+     * Gets the plugin's {@link PersistentDataStorage}.
+     * <p>
+     * The {@link PersistentDataStorage} is used to store data across restarts.
+     *
+     * @return The {@link PersistentDataStorage} owned use by the current {@link Plugin}
+     */
+    PersistentDataStorage getPersistentDataStorage();
 
     /**
      * Lookup any Plugin's Info, like its Name and Version

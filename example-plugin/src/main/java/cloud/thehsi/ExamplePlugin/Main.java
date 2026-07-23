@@ -1,18 +1,13 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
-
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class Main extends Plugin implements Listener {
     @Override
@@ -41,21 +36,25 @@ public class Main extends Plugin implements Listener {
             }
         }*/
         getLogger().info("Hello from {}", event.getUserName());
+
+        PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
     }
 
     @SuppressWarnings("unused")
     @EventHandler
-    public void onMessage(MessageSentEvent event) throws ExecutionException, InterruptedException {
+    public void onMessage(MessageSentEvent event) {
         if (event.getAuthor().isMe()) return;
 
-        List<Attachment> attachments = event.getMessage().getAttachments();
+        PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 
-        for (Attachment attachment : attachments) {
-            getLogger().info(attachment.getHash().get());
+        if (event.getRawContent().startsWith("!hello")) {
+            event.reply("Hello " + event.getAuthor().mention());
+            event.reply("Also, last guy said: " + storage.get("message", PersistentDataTypes.STRING));
         }
 
-        if (event.getRawContent().equals("!hello")) {
-            event.reply("Hello " + event.getAuthor().mention());
+        if (event.getRawContent().startsWith("!set")) {
+            event.reply("Ok " + event.getAuthor().mention());
+            storage.set("message", PersistentDataTypes.STRING, event.getRawContent());
         }
     }
 }

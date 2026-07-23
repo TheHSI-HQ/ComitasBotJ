@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -38,6 +39,21 @@ public interface Message {
      * @return The Message Channel
      */
     TextChannel getChannel();
+
+    /**
+     * Is this message a reply to another message
+     *
+     * @return Is this a reply
+     */
+    boolean isReply();
+
+    /**
+     * The message this message is a reply to
+     *
+     * @return The message replied to, may be null
+     */
+    @Nullable
+    Message getRepliedMessage();
 
     /**
      * Get a list of reactions to this message

@@ -8,12 +8,19 @@ import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class Main {
+@CommandLine.Command(
+        name = "comitas",
+        mixinStandardHelpOptions = true,
+        versionProvider = VersionProvider.class,
+        description = "ComitasBotJ"
+)
+public class Main implements Runnable {
     private static final long STARTUP_TIME = System.currentTimeMillis();
 
     private static final ConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
@@ -26,6 +33,12 @@ public class Main {
         return System.currentTimeMillis() - STARTUP_TIME;
     }
 
+    @CommandLine.Option(
+            names = "--no-cmd",
+            description = "Disable command line"
+    )
+    private boolean noCmd;
+
     public static void main(String[] args) {
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
    ___           _ _           ___      _      _\s
@@ -34,13 +47,19 @@ public class Main {
   \\___\\___/_|_|_|_|\\__\\__,_/__/___/\\___/\\__|\\__/\s
  """);
 
+        int exitCode = new CommandLine(new Main()).execute(args);
+        System.exit(exitCode);
+    }
 
+    @Override
+    public void run() {
         logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
         Comitas comitas = Comitas.getInstance();
         comitas.init(new InternalComitas(consoleCommandRegistry));
 
-        consolePrompt.run();
+        if (!noCmd)
+            consolePrompt.run();
 
         try {
             Thread.currentThread().join();

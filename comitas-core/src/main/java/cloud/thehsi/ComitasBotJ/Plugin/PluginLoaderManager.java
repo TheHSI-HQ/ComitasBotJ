@@ -11,17 +11,20 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
     private final List<LoadedPlugin> plugins = new ArrayList<>();
+    public InternalPluginManager pluginManager = null;
 
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
 
     public PluginLoaderManager() {
+    }
+
+    public void initPluginManager(InternalPluginManager pluginManager) {
+        if (this.pluginManager == null) this.pluginManager = pluginManager;
     }
 
     public Integer count() {
@@ -58,7 +61,7 @@ public class PluginLoaderManager {
             Plugin plugin = clazz.getDeclaredConstructor().newInstance();
 
             plugins.add(new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
-                    "Base", "0.1b", Comitas.getAPIVersion(), "comitas")
+                    "Base", "0.1b", Comitas.getAPIVersion(), UUID.fromString("7fe3a14c-69f5-49a9-a6eb-7321311b7864"), "comitas")
             ));
 
             plugin.onEnable();
@@ -110,7 +113,6 @@ public class PluginLoaderManager {
                 String version =
                         props.getProperty("version");
 
-
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
                                 .asSubclass(Plugin.class);
@@ -121,6 +123,9 @@ public class PluginLoaderManager {
                 Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
                         props
                 );
+
+                if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
+                    logger.warn("Plugin {} is not using universal UUID formatting", name);
 
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
                     throw new RuntimeException(
@@ -133,6 +138,8 @@ public class PluginLoaderManager {
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
                 logger.info("Loaded Plugin {} {}", name, version);
+
+                pluginManager.loadDataStore(metadata.uuid());
 
                 plugin.onEnable();
             } catch (Exception e) {
@@ -195,6 +202,8 @@ public class PluginLoaderManager {
             try {
                 loaded.plugin().onDisable();
 
+                pluginManager.saveDataStore(loaded.metadata().uuid());
+
                 if (loaded.loader != null)
                     loaded.loader().close();
             } catch (Exception e) {
@@ -205,6 +214,20 @@ public class PluginLoaderManager {
         plugins.clear();
 
         System.gc();
+    }
+
+    public Plugin getPlugin(ClassLoader classLoader) {
+        for (LoadedPlugin plugin : plugins) {
+            if (plugin.loader == classLoader) return plugin.plugin;
+        }
+        return null;
+    }
+
+    public Plugin getPlugin(UUID uuid) {
+        for (LoadedPlugin plugin : plugins) {
+            if (Objects.equals(plugin.metadata.uuid(), uuid)) return plugin.plugin;
+        }
+        return null;
     }
 
     private record LoadedPlugin(Plugin plugin, URLClassLoader loader, Plugin.PluginMetadata metadata) {
