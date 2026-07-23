@@ -34,16 +34,14 @@ cd ComitasBotJ
 2. Install the API
 
 ```bash
-cd comitas-api
-mvn clean install
+mvn -pl comitas-api -am clean install
 cd ..
 ```
 
 3. Build ComitasBotJ (comitas-core)
 
 ```bash
-cd comitas-core
-mvn clean package
+mvn -pl comitas-core -am clean install
 cd target
 ```
 

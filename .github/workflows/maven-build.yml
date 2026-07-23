@@ -24,13 +24,13 @@ jobs:
 
       # 1. Install API into local Maven repo first
       - name: Install comitas-api
-        run: mvn -f comitas-api/pom.xml clean install -DskipTests
+        run: mvn -pl comitas-api -am clean install -DskipTests
 
       # 2. Build the remaining modules as artifacts
       - name: Build core + plugin
         run: |
-          mvn -f comitas-core/pom.xml clean package -DskipTests
-          mvn -f example-plugin/pom.xml clean package -DskipTests
+          mvn -pl comitas-core -am clean package -DskipTests
+          mvn -pl example-plugin -am clean package -DskipTests
 
       # 3. Upload artifacts
       - name: Upload core artifact
