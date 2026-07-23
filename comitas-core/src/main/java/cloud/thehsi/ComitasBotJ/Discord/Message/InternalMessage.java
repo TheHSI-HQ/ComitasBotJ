@@ -42,8 +42,12 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    @Nullable
     public Member getAuthor() {
-        return new InternalMember(Objects.requireNonNull(message.getMember()));
+        net.dv8tion.jda.api.entities.Member member = message.getMember();
+        if (member == null)
+            return null;
+        return new InternalMember(member);
     }
 
     @Override

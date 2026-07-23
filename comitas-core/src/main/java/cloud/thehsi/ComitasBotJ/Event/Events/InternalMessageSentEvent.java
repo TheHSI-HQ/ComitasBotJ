@@ -8,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class InternalMessageSentEvent implements MessageSentEvent {
     private final Message message;
@@ -50,7 +51,10 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     }
 
     @Override
+    @Nullable
     public Member getAuthor() {
+        if (author == null)
+            return null;
         return new InternalMember(author);
     }
 
