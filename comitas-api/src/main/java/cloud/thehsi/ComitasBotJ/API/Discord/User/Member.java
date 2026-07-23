@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -145,5 +146,5 @@ public interface Member {
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    boolean sendDirectMessage(String message);
+    boolean sendDirectMessage(Component message);
 }

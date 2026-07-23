@@ -1,6 +1,8 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
@@ -48,13 +50,16 @@ public class Main extends Plugin implements Listener {
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 
         if (event.getRawContent().startsWith("!hello")) {
-            event.reply("Hello " + event.getAuthor().mention());
-            event.reply("Also, last guy said: " + storage.get("message", PersistentDataTypes.STRING));
+            event.reply(Component.text("Hello " + event.getAuthor().mention()));
+
+            if (storage.has("message", PersistentDataTypes.STRING))
+                event.reply(Component.text("Also, last guy said: " + storage.get("message", PersistentDataTypes.STRING)));
         }
 
         if (event.getRawContent().startsWith("!set")) {
-            event.reply("Ok " + event.getAuthor().mention());
-            storage.set("message", PersistentDataTypes.STRING, event.getRawContent());
+            Component c = Component.text("Hello World", Style.BOLD).append(Component.text(", its me!!!"));
+            event.reply(c);
+            storage.set("message", PersistentDataTypes.STRING, event.getRawContent().replaceFirst("!set ", ""));
         }
     }
 }

@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
@@ -58,5 +59,5 @@ public interface MessageSentEvent extends Event {
      *
      * @param message The message to be sent
      */
-    void reply(String message);
+    void reply(Component message);
 }

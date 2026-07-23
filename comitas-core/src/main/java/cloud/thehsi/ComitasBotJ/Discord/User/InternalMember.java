@@ -1,8 +1,10 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -168,10 +170,12 @@ public class InternalMember implements Member {
     }
 
     @Override
-    public boolean sendDirectMessage(String message) {
+    public boolean sendDirectMessage(Component message) {
+        String msg = ComponentParser.parseComponent(message);
+
         AtomicBoolean s = new AtomicBoolean(false);
         member.getUser().openPrivateChannel()
-                .flatMap(channel -> channel.sendMessage(message))
+                .flatMap(channel -> channel.sendMessage(msg))
                 .queue(
                         success -> s.set(true),
                         failure -> s.set(false)

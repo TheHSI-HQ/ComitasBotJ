@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
@@ -74,5 +75,5 @@ public interface Message {
      *
      * @param message The message to be sent
      */
-    void reply(String message);
+    void reply(Component message);
 }

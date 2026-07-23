@@ -4,7 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cloud.thehsi.ComitasBotJ</groupId>
+    <parent>
+        <groupId>cloud.thehsi.ComitasBotJ</groupId>
+        <artifactId>ComitasBotJ</artifactId>
+        <version>1.0</version>
+    </parent>
+
     <artifactId>example-plugin</artifactId>
     <version>1.0</version>
 
@@ -18,9 +23,17 @@
         <dependency>
             <groupId>cloud.thehsi.ComitasBotJ</groupId>
             <artifactId>comitas-api</artifactId>
-            <version>0.0.9</version>
+            <version>${api.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

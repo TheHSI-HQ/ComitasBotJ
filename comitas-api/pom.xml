@@ -5,9 +5,15 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cloud.thehsi.ComitasBotJ</groupId>
+    <parent>
+        <groupId>cloud.thehsi.ComitasBotJ</groupId>
+        <artifactId>ComitasBotJ</artifactId>
+        <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>comitas-api</artifactId>
-    <version>0.0.9</version>
+    <version>${api.version}</version>
 
     <properties>
         <maven.compiler.release>23</maven.compiler.release>

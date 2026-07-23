@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class InternalPersistentDataStorage implements PersistentDataStorage {
     private Map<String, Entry> data = new HashMap<>();
@@ -42,6 +43,21 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
         }
 
         return type.deserialize(value.value);
+    }
+
+    @Override
+    public boolean has(String key) {
+        return data.containsKey(key);
+    }
+
+    @Override
+    public <T> boolean has(String key, PersistentDataType<T> type) {
+        Entry value = data.get(key);
+
+        if (value == null)
+            return false;
+
+        return Objects.equals(value.type, type.getName());
     }
 
     public Map<String, Entry> getData() {

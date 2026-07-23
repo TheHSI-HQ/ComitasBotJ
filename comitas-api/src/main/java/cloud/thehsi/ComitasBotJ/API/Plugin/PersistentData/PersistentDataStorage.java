@@ -12,4 +12,13 @@ public interface PersistentDataStorage {
             String key,
             PersistentDataType<T> type
     );
+
+    boolean has(
+            String key
+    );
+
+    <T> boolean has(
+            String key,
+            PersistentDataType<T> type
+    );
 }

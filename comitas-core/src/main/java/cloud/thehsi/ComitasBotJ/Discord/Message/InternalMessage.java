@@ -2,10 +2,12 @@ package cloud.thehsi.ComitasBotJ.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageReaction;
@@ -14,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class InternalMessage implements Message {
     private final net.dv8tion.jda.api.entities.Message message;
@@ -89,7 +90,9 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public void reply(String message) {
+    public void reply(Component message) {
+        String msg = ComponentParser.parseComponent(message);
 
+        this.message.reply(msg).queue();
     }
 }

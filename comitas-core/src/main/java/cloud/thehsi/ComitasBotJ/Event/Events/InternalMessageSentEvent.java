@@ -1,9 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
@@ -64,7 +66,9 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     }
 
     @Override
-    public void reply(String message) {
-        this.message.reply(message).queue();
+    public void reply(Component message) {
+        String msg = ComponentParser.parseComponent(message);
+
+        this.message.reply(msg).queue();
     }
 }
