@@ -23,11 +23,11 @@ public class PluginsConsoleCommand extends ConsoleCommand {
         List<Plugin.PluginMetadata> plugins = Comitas.getPluginManager().getAllPluginMetadata();
 
         for (int i = 0; i < plugins.size(); i += 3) {
-            String buf = " - " + plugins.get(i).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i).version() + ")" + ConsoleColor.WHITE;
+            String buf = " - " + ConsoleColor.BRIGHT_WHITE + plugins.get(i).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i).version() + ")" + ConsoleColor.WHITE;
             if (plugins.size() > i + 1)
-                buf += ", " + ConsoleColor.WHITE + plugins.get(i + 1).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 1).version() + ")" + ConsoleColor.WHITE;
+                buf += ", " + ConsoleColor.BRIGHT_WHITE + plugins.get(i + 1).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 1).version() + ")" + ConsoleColor.WHITE;
             if (plugins.size() > i + 2)
-                buf += ", " + ConsoleColor.WHITE + plugins.get(i + 2).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 2).version() + ")" + ConsoleColor.WHITE;
+                buf += ", " + ConsoleColor.BRIGHT_WHITE + plugins.get(i + 2).name() + " " + ConsoleColor.BRIGHT_BLACK + "(" + plugins.get(i + 2).version() + ")" + ConsoleColor.WHITE;
             if (plugins.size() > i + 3) buf += ",";
             getConsoleLogger().info(buf);
         }
