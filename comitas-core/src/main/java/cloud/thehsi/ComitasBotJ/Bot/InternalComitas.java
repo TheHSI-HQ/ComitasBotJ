@@ -15,7 +15,6 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
-import cloud.thehsi.ComitasBotJ.StartupProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,7 @@ public class InternalComitas implements InternalComitasImpl {
 
     private String bot_token;
 
-    public InternalComitas(StartupProperties props, ConsoleCommandRegistry consoleCommandRegistry) {
+    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry) {
         this.consoleCommandRegistry = consoleCommandRegistry;
     }
 

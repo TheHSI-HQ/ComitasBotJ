@@ -65,6 +65,7 @@ public class ComponentParser {
         List<String> lines = new ArrayList<>();
         String currentLine = "";
         Style lastStyle = Style.RESET;
+        String pendingAppend = "";
 
         Component _component = Component.empty().append(new Component(component));
 
@@ -72,18 +73,37 @@ public class ComponentParser {
             int line_count = c.content().split("\n", -1).length; // -1 is required so "\n" -!> [] but ["", ""]
             for (String line : c.content().split("\n", -1)) {
                 line_count--;
-                currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, c.style()));
-                currentLine += line;
+
+                // Extremely complicated BLACK MAGIC, so this: This is* a *test!!! becomes: This is *a* test!!!
+                int start = 0;
+                while (start < line.length() && Character.isWhitespace(line.charAt(start))) {
+                    start++;
+                }
+
+                int end = line.length();
+                while (end > start && Character.isWhitespace(line.charAt(end - 1))) {
+                    end--;
+                }
+
+                currentLine += line.substring(0, start);
+
+                currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, c.style()), pendingAppend);
+                currentLine += line.substring(start, end);
+
+                pendingAppend = line.substring(end);
 
                 if (line_count > 0) {
-                    lines.add(applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET)));
+                    currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET), pendingAppend);
+                    lines.add(currentLine);
                     currentLine = "";
+                    pendingAppend = "";
                 }
             }
             lastStyle = c.style();
         }
 
-        lines.add(applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET)));
+        currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET), pendingAppend);
+        lines.add(currentLine);
 
         return String.join("\n", lines);
     }
@@ -99,20 +119,22 @@ public class ComponentParser {
         return line;
     }
 
-    private static String applyStyle(String line, StyleDifference styleDifference) {
-        if (styleDifference.bold.isTrue()) line += "**";
-        if (styleDifference.italic.isTrue()) line += "*";
-        if (styleDifference.underline.isTrue()) line += "__";
-        if (styleDifference.strikethrough.isTrue()) line += "~~";
-        if (styleDifference.code.isTrue()) line += "`";
-        if (styleDifference.spoiler.isTrue()) line += "||";
-
+    private static String applyStyle(String line, StyleDifference styleDifference, String pendingAppend) {
         if (styleDifference.spoiler.isFalse()) line += "||";
         if (styleDifference.code.isFalse()) line += "`";
         if (styleDifference.strikethrough.isFalse()) line += "~~";
         if (styleDifference.underline.isFalse()) line += "__";
         if (styleDifference.italic.isFalse()) line += "*";
         if (styleDifference.bold.isFalse()) line += "**";
+
+        line += pendingAppend;
+
+        if (styleDifference.bold.isTrue()) line += "**";
+        if (styleDifference.italic.isTrue()) line += "*";
+        if (styleDifference.underline.isTrue()) line += "__";
+        if (styleDifference.strikethrough.isTrue()) line += "~~";
+        if (styleDifference.code.isTrue()) line += "`";
+        if (styleDifference.spoiler.isTrue()) line += "||";
 
         if (styleDifference.bigHeader.isTrue())
             line = setLineType(line, true, false, false, false, false, false);

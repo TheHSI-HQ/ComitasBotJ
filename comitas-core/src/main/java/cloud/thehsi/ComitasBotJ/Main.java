@@ -84,7 +84,7 @@ public class Main implements Runnable {
                     """, ConsoleColor.YELLOW);
 
         Comitas comitas = Comitas.getInstance();
-        comitas.init(new InternalComitas(props, consoleCommandRegistry));
+        comitas.init(new InternalComitas(consoleCommandRegistry));
 
         if (!noCmd)
             consolePrompt.run();
