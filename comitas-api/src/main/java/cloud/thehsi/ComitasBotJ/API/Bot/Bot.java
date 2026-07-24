@@ -1,9 +1,7 @@
-package cloud.thehsi.ComitasBotJ.API.Event.Events;
-
-import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
+package cloud.thehsi.ComitasBotJ.API.Bot;
 
 @SuppressWarnings("unused")
-public interface BotConnectEvent extends Event {
+public interface Bot {
     /**
      * Returns the bot's Username.
      *
@@ -24,11 +22,4 @@ public interface BotConnectEvent extends Event {
      * @return The bot's ID
      */
     Long getId();
-
-    /**
-     * Returns the bot
-     *
-     * @return The bot
-     */
-    Bot getBot();
 }

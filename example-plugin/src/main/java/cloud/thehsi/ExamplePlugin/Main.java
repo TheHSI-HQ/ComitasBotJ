@@ -3,6 +3,9 @@ package cloud.thehsi.ExamplePlugin;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedBuilder;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
@@ -10,6 +13,8 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+
+import java.awt.*;
 
 public class Main extends Plugin implements Listener {
     @Override
@@ -31,12 +36,6 @@ public class Main extends Plugin implements Listener {
     @SuppressWarnings("unused")
     @EventHandler
     public void onBotConnect(BotConnectEvent event) {
-        /*for (Guild g : Comitas.getGuilds()) {
-            for (Channel c : g.getChannels()) {
-                if (!(c instanceof TextChannel t)) continue;
-                t.sendMessage("Test");
-            }
-        }*/
         getLogger().info("Hello from {}", event.getUserName());
 
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
@@ -50,16 +49,37 @@ public class Main extends Plugin implements Listener {
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 
         if (event.getRawContent().startsWith("!hello")) {
-            event.reply(Component.text("Hello " + event.getAuthor().mention()));
+            Embed embed = new EmbedBuilder()
+                    .setTitle("Hello " + event.getAuthor().mention())
+                    .setDescription(
+                            Component.text("Best Regards from " )
+                                    .append(Component.text("Bot Name", Style.BOLD, Style.UNDERLINE))
+                    )
+                    .setAuthor(new EmbedAuthor("BotName", "https://www.thehsi.cloud/logo.png"))
+                    .setColor(new Color(151, 45, 231))
+                    .build();
+
+            event.reply(Component.empty(), embed);
 
             if (storage.has("message", PersistentDataTypes.STRING))
-                event.reply(Component.text("Also, last guy said: " + storage.get("message", PersistentDataTypes.STRING)));
+                event.reply(
+                        Component.text("Also, ")
+                                .append(Component.text("message", Style.CODE))
+                                .append(Component.text(" is: "))
+                                .append(Component.raw(storage.get("message", PersistentDataTypes.STRING)))
+                );
         }
 
         if (event.getRawContent().startsWith("!set")) {
-            Component c = Component.text("Hello World", Style.BOLD).append(Component.text(", its me!!!"));
+            String value = event.getRawContent().replaceFirst("!set ", "");
+
+            Component c = Component.text("Set ", Style.ITALIC)
+                    .append(Component.text("message", Style.CODE))
+                    .append(Component.text(" to ", Style.ITALIC))
+                    .append(Component.text(event.getRawContent().replaceFirst("!set ", ""), Style.CODE));
+
             event.reply(c);
-            storage.set("message", PersistentDataTypes.STRING, event.getRawContent().replaceFirst("!set ", ""));
+            storage.set("message", PersistentDataTypes.STRING, value);
         }
     }
 }

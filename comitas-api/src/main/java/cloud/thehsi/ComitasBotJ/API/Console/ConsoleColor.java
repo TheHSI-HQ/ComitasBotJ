@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class ConsoleColor {
     public static final ConsoleColor RESET = new ConsoleColor("\033[0m");
     public static final ConsoleColor BOLD = new ConsoleColor("\033[1m");

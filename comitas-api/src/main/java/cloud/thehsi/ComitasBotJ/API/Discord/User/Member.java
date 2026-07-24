@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -147,4 +148,24 @@ public interface Member {
      */
     @ApiStatus.Experimental
     boolean sendDirectMessage(Component message);
+
+    /**
+     * Messages this User with a Message of your choosing
+     *
+     * @param message The message you want to send
+     * @param embed The embed to attach to this message
+     * @return Was the message successfully send
+     */
+    @ApiStatus.Experimental
+    boolean sendDirectMessage(Component message, Embed embed);
+
+    /**
+     * Messages this User with a Message of your choosing
+     *
+     * @param message The message you want to send
+     * @param embeds The embeds to attach to this message
+     * @return Was the message successfully send
+     */
+    @ApiStatus.Experimental
+    boolean sendDirectMessage(Component message, Embed... embeds);
 }

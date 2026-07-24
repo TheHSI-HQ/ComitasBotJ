@@ -24,8 +24,22 @@ public class Comitas {
         INSTANCE.impl.init();
     }
 
+    /* Not supposed to be used by Plugin Developers */
+    public static UtilityBackend getUtilityBackend() {
+        return INSTANCE.impl.getUtilityBackend();
+    }
+
     /**
-     * Gets the instance of the Bot.
+     * Gets the Bot.
+     *
+     * @return The {@link Bot}.
+     */
+    public Bot getBot() {
+        return INSTANCE.impl.getBot();
+    }
+
+    /**
+     * Gets the instance of Comitas.
      * Should not be used
      *
      * @return Instance of {@link Comitas}.

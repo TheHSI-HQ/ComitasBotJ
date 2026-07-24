@@ -28,9 +28,6 @@ public class InternalPluginManager implements PluginManager {
     private final Map<UUID, InternalPersistentDataStorage> pluginDataStores = new HashMap<>();
     private final Logger logger;
 
-    private final ScheduledExecutorService exec =
-            Executors.newSingleThreadScheduledExecutor();
-
     private static final StackWalker STACK_WALKER =
             StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
 
@@ -42,6 +39,7 @@ public class InternalPluginManager implements PluginManager {
         this.pluginLoaderManager.initPluginManager(this);
         this.logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginManager");
 
+        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
             for (Plugin.PluginMetadata metadata : getAllPluginMetadata())
                 saveDataStore(metadata.uuid());
@@ -205,7 +203,7 @@ public class InternalPluginManager implements PluginManager {
         pluginLoaderManager.unloadPlugins();
         scheduler.cancelAll();
         eventManager.clearEvents();
-        pluginLoaderManager.loadPlugins();
+        pluginLoaderManager.loadPlugins(Main.props().ignoreApiTarget());
     }
 
     @Override

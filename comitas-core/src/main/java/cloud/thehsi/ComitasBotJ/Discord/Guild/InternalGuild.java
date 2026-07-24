@@ -11,13 +11,7 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InternalGuild implements Guild {
-    private final net.dv8tion.jda.api.entities.Guild guild;
-
-    public InternalGuild(net.dv8tion.jda.api.entities.Guild guild) {
-        this.guild = guild;
-    }
-
+public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements Guild {
     @Override
     public String getName() {
         return guild.getName();

@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
+import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
@@ -13,6 +15,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
+import cloud.thehsi.ComitasBotJ.StartupProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +37,12 @@ public class InternalComitas implements InternalComitasImpl {
     private EventManager eventManager;
     private DiscordAPI api;
     private Logger logger;
+    private Bot bot;
+    private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
 
     private String bot_token;
 
-    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry) {
+    public InternalComitas(StartupProperties props, ConsoleCommandRegistry consoleCommandRegistry) {
         this.consoleCommandRegistry = consoleCommandRegistry;
     }
 
@@ -103,6 +108,16 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
+    public UtilityBackend getUtilityBackend() {
+        return utilityBackend;
+    }
+
+    @Override
+    public Bot getBot() {
+        return bot;
+    }
+
+    @Override
     public void init() {
         File logsDir = new File("logs");
 
@@ -158,13 +173,15 @@ public class InternalComitas implements InternalComitasImpl {
                 scheduler
         );
 
-        pluginLoaderManager.loadPlugins();
+        pluginLoaderManager.loadPlugins(Main.props().ignoreApiTarget());
 
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
 
         // Start Bot
         logger.info("Starting Bot...");
         api = new DiscordAPI(bot_token, serverConfig, eventManager);
+
+        bot = new InternalBot(api.getAPI().getSelfUser());
     }
 
     private void onShutdown() {

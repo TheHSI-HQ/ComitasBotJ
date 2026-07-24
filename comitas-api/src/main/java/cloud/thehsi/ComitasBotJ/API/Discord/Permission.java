@@ -3,9 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class Permission {
-    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.Permission");
+    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");
     public static final Permission CREATE_INSTANT_INVITE =
             new Permission(1L, "CREATE_INSTANT_INVITE");
     public static final Permission KICK_MEMBERS =
@@ -172,8 +172,8 @@ public class Permission {
         };
     }
 
-    long permission;
-    String name;
+    final long permission;
+    final String name;
 
     private Permission(long permission, String name) {
         this.permission = permission;

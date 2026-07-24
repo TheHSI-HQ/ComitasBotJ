@@ -12,7 +12,7 @@ public class InternalScheduler implements Scheduler {
     record ScheduledTask(Task task, Runnable runnable) {
     }
 
-    Map<Integer, ScheduledTask> tasks = new HashMap<>();
+    final Map<Integer, ScheduledTask> tasks = new HashMap<>();
     int nextTaskId = 0;
 
     @Override

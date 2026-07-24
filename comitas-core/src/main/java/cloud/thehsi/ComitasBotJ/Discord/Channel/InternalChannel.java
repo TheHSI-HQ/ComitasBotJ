@@ -3,7 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 
 public class InternalChannel implements Channel {
-    net.dv8tion.jda.api.entities.channel.Channel channel;
+    final net.dv8tion.jda.api.entities.channel.Channel channel;
 
     public InternalChannel(net.dv8tion.jda.api.entities.channel.Channel channel) {
         this.channel = channel;

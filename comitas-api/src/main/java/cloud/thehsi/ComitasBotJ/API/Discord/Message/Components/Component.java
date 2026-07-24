@@ -11,6 +11,13 @@ public class Component {
 
     private Component() {}
 
+    public Component(Component component) {
+        for (Component child : component.children)
+            children.add(new Component(child));
+        content = component.content;
+        style = component.style;
+    }
+
     public List<Component> children() {
         return new ArrayList<>(children);
     }
@@ -60,16 +67,32 @@ public class Component {
         return new Component();
     }
 
-    public static Component text(String content) {
+    public static Component raw(String content) {
         Component c = new Component();
         c.content = content;
         return c;
     }
 
+    public static Component text(String content) {
+        Component c = new Component();
+        c.content(content);
+        return c;
+    }
+
     public static Component text(String content, Style style) {
         Component c = new Component();
+        c.content(content);
+        c.style(style);
+        return c;
+    }
+
+    public static Component text(String content, Style... styles) {
+        Component c = new Component();
         c.content = content;
-        c.style = style;
+        Style finalStyle = Style.RESET;
+        for (Style style : styles)
+            finalStyle = finalStyle.add(style);
+        c.style = finalStyle;
         return c;
     }
 }

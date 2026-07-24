@@ -9,13 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class InternalRole implements Role {
-    net.dv8tion.jda.api.entities.Role role;
-
-    public InternalRole(net.dv8tion.jda.api.entities.Role role) {
-        this.role = role;
-    }
-
+public record InternalRole(net.dv8tion.jda.api.entities.Role role) implements Role {
     @Override
     public String getName() {
         return role.getName();

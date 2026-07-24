@@ -8,14 +8,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 
-public class InternalAttachment implements Attachment {
-    Message.Attachment attachment;
-
-    public InternalAttachment(Message.Attachment attachment) {
-        this.attachment = attachment;
-    }
-
-
+public record InternalAttachment(Message.Attachment attachment) implements Attachment {
     @Override
     public CompletableFuture<String> getHash() {
         return attachment.getProxy().download().thenApply(input -> {
@@ -37,7 +30,7 @@ public class InternalAttachment implements Attachment {
 
     @Override
     public String getFilename() {
-        return "";
+        return attachment.getFileName();
     }
 
     @Override

@@ -2,9 +2,14 @@ package cloud.thehsi.ComitasBotJ.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -181,5 +186,52 @@ public class InternalMember implements Member {
                         failure -> s.set(false)
                 );
         return s.get();
+    }
+
+    @Override
+    public boolean sendDirectMessage(Component message, Embed embed) {
+        String msg = ComponentParser.parseComponent(message);
+
+        if (!(embed instanceof InternalEmbed internal))
+            throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
+
+        MessageEmbed messageEmbed = internal.embed();
+        AtomicBoolean s = new AtomicBoolean(false);
+
+        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
+            member.getUser().openPrivateChannel()
+                    .flatMap(channel -> channel.sendMessage(data))
+                    .queue(
+                            success -> s.set(true),
+                            failure -> s.set(false)
+                    );
+            return s.get();
+        }
+    }
+
+    @Override
+    public boolean sendDirectMessage(Component message, Embed... embeds) {
+        String msg = ComponentParser.parseComponent(message);
+
+        MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
+
+        for (int i = 0; i < embeds.length; i++) {
+            if (!(embeds[i] instanceof InternalEmbed internal))
+                throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
+
+            messageEmbeds[i] = internal.embed();
+        }
+
+        AtomicBoolean s = new AtomicBoolean(false);
+
+        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
+            member.getUser().openPrivateChannel()
+                    .flatMap(channel -> channel.sendMessage(data))
+                    .queue(
+                            success -> s.set(true),
+                            failure -> s.set(false)
+                    );
+            return s.get();
+        }
     }
 }

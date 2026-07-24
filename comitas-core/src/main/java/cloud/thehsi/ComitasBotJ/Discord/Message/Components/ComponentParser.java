@@ -14,10 +14,6 @@ public class ComponentParser {
         public static final BooleanDifference TRUE = new BooleanDifference(true);
         public static final BooleanDifference FALSE = new BooleanDifference(false);
 
-        public boolean isDifferent() {
-            return value != null;
-        }
-
         public boolean isTrue() {
             return value == Boolean.TRUE;
         }
@@ -34,19 +30,19 @@ public class ComponentParser {
     }
 
     private static class StyleDifference {
-        BooleanDifference bold;
-        BooleanDifference italic;
-        BooleanDifference underline;
-        BooleanDifference strikethrough;
-        BooleanDifference bigHeader;
-        BooleanDifference smallHeader;
-        BooleanDifference smallerHeader;
-        BooleanDifference subtext;
-        BooleanDifference quote;
-        BooleanDifference bulletPoints;
-        BooleanDifference code;
-        BooleanDifference codeBlock;
-        BooleanDifference spoiler;
+        final BooleanDifference bold;
+        final BooleanDifference italic;
+        final BooleanDifference underline;
+        final BooleanDifference strikethrough;
+        final BooleanDifference bigHeader;
+        final BooleanDifference smallHeader;
+        final BooleanDifference smallerHeader;
+        final BooleanDifference subtext;
+        final BooleanDifference quote;
+        final BooleanDifference bulletPoints;
+        final BooleanDifference code;
+        final BooleanDifference codeBlock;
+        final BooleanDifference spoiler;
 
         public StyleDifference(Style old_style, Style new_style) {
             bold = BooleanDifference.fromDiff(old_style.isBold(), new_style.isBold());
@@ -70,7 +66,7 @@ public class ComponentParser {
         String currentLine = "";
         Style lastStyle = Style.RESET;
 
-        Component _component = Component.empty().append(component);
+        Component _component = Component.empty().append(new Component(component));
 
         for (Component c : _component.children()) {
             int line_count = c.content().split("\n", -1).length; // -1 is required so "\n" -!> [] but ["", ""]
@@ -104,10 +100,20 @@ public class ComponentParser {
     }
 
     private static String applyStyle(String line, StyleDifference styleDifference) {
-        if (styleDifference.bold.isDifferent()) line += "**";
-        if (styleDifference.italic.isDifferent()) line += "*";
-        if (styleDifference.underline.isDifferent()) line += "__";
-        if (styleDifference.strikethrough.isDifferent()) line += "~~";
+        if (styleDifference.bold.isTrue()) line += "**";
+        if (styleDifference.italic.isTrue()) line += "*";
+        if (styleDifference.underline.isTrue()) line += "__";
+        if (styleDifference.strikethrough.isTrue()) line += "~~";
+        if (styleDifference.code.isTrue()) line += "`";
+        if (styleDifference.spoiler.isTrue()) line += "||";
+
+        if (styleDifference.spoiler.isFalse()) line += "||";
+        if (styleDifference.code.isFalse()) line += "`";
+        if (styleDifference.strikethrough.isFalse()) line += "~~";
+        if (styleDifference.underline.isFalse()) line += "__";
+        if (styleDifference.italic.isFalse()) line += "*";
+        if (styleDifference.bold.isFalse()) line += "**";
+
         if (styleDifference.bigHeader.isTrue())
             line = setLineType(line, true, false, false, false, false, false);
         if (styleDifference.smallHeader.isTrue())
@@ -120,10 +126,8 @@ public class ComponentParser {
             line = setLineType(line, false, false, false, false, true, false);
         if (styleDifference.bulletPoints.isTrue())
             line = setLineType(line, false, false, false, false, false, true);
-        if (styleDifference.code.isDifferent()) line += "`";
         if (styleDifference.codeBlock.isTrue()) line += "```";
         if (styleDifference.codeBlock.isFalse()) line += "\n```";
-        if (styleDifference.spoiler.isDifferent()) line += "||";
 
         return line;
     }

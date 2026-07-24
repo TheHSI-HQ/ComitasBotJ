@@ -2,10 +2,10 @@ package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
@@ -21,7 +21,8 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     public InternalMessageSentEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
         this.iMessage = new InternalMessage(message);
-        this.channel = event.getChannel().asTextChannel();
+
+        this.channel = event.getChannel().asTextChannel(); // TODO: Fix Cannot convert channel of type ThreadChannel to TextChannel!
         this.author = event.getMember();
     }
 
@@ -67,8 +68,16 @@ public class InternalMessageSentEvent implements MessageSentEvent {
 
     @Override
     public void reply(Component message) {
-        String msg = ComponentParser.parseComponent(message);
+        iMessage.reply(message);
+    }
 
-        this.message.reply(msg).queue();
+    @Override
+    public void reply(Component message, Embed embed) {
+        iMessage.reply(message, embed);
+    }
+
+    @Override
+    public void reply(Component message, Embed... embeds) {
+        iMessage.reply(message, embeds);
     }
 }

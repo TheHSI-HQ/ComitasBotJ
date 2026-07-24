@@ -20,7 +20,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <api.version>0.0.10</api.version>
-        <comitas.version>0.0.5</comitas.version>
+        <api.version>0.0.11</api.version>
+        <comitas.version>0.0.6</comitas.version>
     </properties>
 </project>

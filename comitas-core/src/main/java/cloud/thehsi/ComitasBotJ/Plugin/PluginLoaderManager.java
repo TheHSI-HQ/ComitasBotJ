@@ -71,7 +71,7 @@ public class PluginLoaderManager {
         }
     }
 
-    public void loadPlugins() {
+    public void loadPlugins(boolean ignoreApiTarget) {
         loadBasePlugin();
 
         File pluginDir = new File("plugins");
@@ -128,12 +128,15 @@ public class PluginLoaderManager {
                     logger.warn("Plugin {} is not using universal UUID formatting", name);
 
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
-                    throw new RuntimeException(
-                            "API Version Range " +
-                                    props.getProperty("api-target") +
-                                    " is incompatible with " +
-                                    Comitas.getAPIVersion()
-                    );
+                    if (ignoreApiTarget)
+                        logger.warn("Plugin only supports API {}, current Version is {}", props.getProperty("api-target"), Comitas.getAPIVersion());
+                    else
+                        throw new RuntimeException(
+                                "Plugin only supports API " +
+                                        props.getProperty("api-target") +
+                                        ", current Version is " +
+                                        Comitas.getAPIVersion()
+                        );
 
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
@@ -146,7 +149,7 @@ public class PluginLoaderManager {
                 logger.error("Error when loading: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
-                        ConsoleColor.BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.WHITE,
                         e.getLocalizedMessage()
                 );

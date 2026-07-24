@@ -173,16 +173,7 @@ public class ServerConfig {
         }
     }
 
-    public static class BooleanProperty {
-        private final Supplier<Boolean> getter;
-        private final Consumer<Boolean> setter;
-
-        BooleanProperty(Supplier<Boolean> getter,
-                        Consumer<Boolean> setter) {
-            this.getter = getter;
-            this.setter = setter;
-        }
-
+    public record BooleanProperty(Supplier<Boolean> getter, Consumer<Boolean> setter) {
         public boolean get() {
             return getter.get();
         }
@@ -192,41 +183,23 @@ public class ServerConfig {
         }
     }
 
-    public static class NumberProperty {
-        private final Supplier<Double> getter;
-        private final Consumer<Double> setter;
-
-        NumberProperty(Supplier<Double> getter,
-                       Consumer<Double> setter) {
-            this.getter = getter;
-            this.setter = setter;
-        }
-
+    public record NumberProperty(Supplier<Double> getter, Consumer<Double> setter) {
         public double get() {
-            return getter.get();
-        }
+                return getter.get();
+            }
 
         public void set(double value) {
-            setter.accept(value);
-        }
+                setter.accept(value);
+            }
     }
 
-    public static class StringProperty {
-        private final Supplier<String> getter;
-        private final Consumer<String> setter;
-
-        StringProperty(Supplier<String> getter,
-                       Consumer<String> setter) {
-            this.getter = getter;
-            this.setter = setter;
-        }
-
+    public record StringProperty(Supplier<String> getter, Consumer<String> setter) {
         public String get() {
-            return getter.get();
-        }
+                return getter.get();
+            }
 
         public void set(String value) {
-            setter.accept(value);
-        }
+                setter.accept(value);
+            }
     }
 }

@@ -18,5 +18,9 @@ public interface InternalComitasImpl {
 
     List<Guild> getGuilds();
 
+    UtilityBackend getUtilityBackend();
+
+    Bot getBot();
+
     void init();
 }

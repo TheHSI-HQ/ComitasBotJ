@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressWarnings("unused")
 public class RepeatingTask implements Task {
-    int taskId;
-    Plugin owner;
+    final int taskId;
+    final Plugin owner;
     boolean canceled = false;
-    ScheduledFuture<?> scheduledFuture;
-    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+    final ScheduledFuture<?> scheduledFuture;
+    final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
 
 
     public RepeatingTask(int taskId, Plugin owner, Runnable runnable, Long delay, Long interval) {

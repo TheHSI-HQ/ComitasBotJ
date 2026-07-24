@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
  */
 @SuppressWarnings("unused")
 public class AsyncTask implements Task {
-    int taskId;
-    Plugin owner;
-    Thread thread;
+    final int taskId;
+    final Plugin owner;
+    final Thread thread;
     boolean canceled = false;
 
     public AsyncTask(int taskId, Plugin owner, Thread thread) {

@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
@@ -76,4 +77,20 @@ public interface Message {
      * @param message The message to be sent
      */
     void reply(Component message);
+
+    /**
+     * Reply to the message in the same channel this message was send in with an Embed
+     *
+     * @param message The message to be sent
+     * @param embed The embed to attach to this message
+     */
+    void reply(Component message, Embed embed);
+
+    /**
+     * Reply to the message in the same channel this message was send in with multiple Embeds
+     *
+     * @param message The message to be sent
+     * @param embeds The embeds to attach to this message
+     */
+    void reply(Component message, Embed... embeds);
 }

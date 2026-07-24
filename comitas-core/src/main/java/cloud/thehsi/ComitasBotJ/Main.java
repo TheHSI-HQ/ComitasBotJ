@@ -39,6 +39,18 @@ public class Main implements Runnable {
     )
     private boolean noCmd;
 
+    @CommandLine.Option(
+            names = "--ignore-api-target",
+            description = "Ignore API Version specification in Plugins"
+    )
+    private boolean ignoreApiTarget;
+
+    // Properties
+    private static StartupProperties props;
+    public static StartupProperties props() {
+        return props;
+    }
+
     public static void main(String[] args) {
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
    ___           _ _           ___      _      _\s
@@ -55,8 +67,24 @@ public class Main implements Runnable {
     public void run() {
         logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
+        Main.props = new StartupProperties(
+                noCmd, ignoreApiTarget
+        );
+
+        if (props.ignoreApiTarget())
+            logger.warn("""
+                    {}
+                    Plugin compatibility checks are disabled.
+                    
+                    ComitasBotJ will load plugins regardless of their compatibility
+                    status. This feature is intended for development and testing only
+                    and must not be used in production environments.
+                    
+                    Proceed with caution.
+                    """, ConsoleColor.YELLOW);
+
         Comitas comitas = Comitas.getInstance();
-        comitas.init(new InternalComitas(consoleCommandRegistry));
+        comitas.init(new InternalComitas(props, consoleCommandRegistry));
 
         if (!noCmd)
             consolePrompt.run();
@@ -67,23 +95,23 @@ public class Main implements Runnable {
         }
     }
 
-    public static String getServerVersion() {
-        try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
-            Properties props = new Properties();
-            props.load(in);
-            return props.getProperty("version");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+            public static String getServerVersion() {
+                try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
+                    Properties props = new Properties();
+                    props.load(in);
+                    return props.getProperty("version");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-    public static String getAPIVersion() {
-        try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
-            Properties props = new Properties();
-            props.load(in);
-            return props.getProperty("api-version");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            public static String getAPIVersion() {
+                try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
+                    Properties props = new Properties();
+                    props.load(in);
+                    return props.getProperty("api-version");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
-    }
-}

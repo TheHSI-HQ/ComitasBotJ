@@ -7,10 +7,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a task being executed by the scheduler
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class SyncTask implements Task {
-    int taskId;
-    Plugin owner;
+    final int taskId;
+    final Plugin owner;
 
     public SyncTask(int taskId, Plugin owner) {
         this.taskId = taskId;

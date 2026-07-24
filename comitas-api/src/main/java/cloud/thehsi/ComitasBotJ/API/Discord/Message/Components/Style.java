@@ -104,6 +104,22 @@ public class Style {
         this.spoiler = spoiler;
     }
 
+    public Style(Style style) {
+        this.bold = style.bold;
+        this.italic = style.italic;
+        this.underline = style.underline;
+        this.strikethrough = style.strikethrough;
+        this.bigHeader = style.bigHeader;
+        this.smallHeader = style.smallHeader;
+        this.smallerHeader = style.smallerHeader;
+        this.subtext = style.subtext;
+        this.quote = style.quote;
+        this.bulletPoints = style.bulletPoints;
+        this.code = style.code;
+        this.codeBlock = style.codeBlock;
+        this.spoiler = style.spoiler;
+    }
+
     public static Style fromMask(int mask) {
         return new Style(
                 (mask & 1) != 0,
@@ -123,38 +139,42 @@ public class Style {
     }
 
     public Style add(Style style) {
-        this.bold |= style.bold;
-        this.italic |= style.italic;
-        this.underline |= style.underline;
-        this.strikethrough |= style.strikethrough;
-        this.bigHeader |= style.bigHeader;
-        this.smallHeader |= style.smallHeader;
-        this.smallerHeader |= style.smallerHeader;
-        this.subtext |= style.subtext;
-        this.quote |= style.quote;
-        this.bulletPoints |= style.bulletPoints;
-        this.code |= style.code;
-        this.codeBlock |= style.codeBlock;
-        this.spoiler |= style.spoiler;
+        Style result = new Style(this);
 
-        return this;
+        result.bold |= style.bold;
+        result.italic |= style.italic;
+        result.underline |= style.underline;
+        result.strikethrough |= style.strikethrough;
+        result.bigHeader |= style.bigHeader;
+        result.smallHeader |= style.smallHeader;
+        result.smallerHeader |= style.smallerHeader;
+        result.subtext |= style.subtext;
+        result.quote |= style.quote;
+        result.bulletPoints |= style.bulletPoints;
+        result.code |= style.code;
+        result.codeBlock |= style.codeBlock;
+        result.spoiler |= style.spoiler;
+
+        return result;
     }
 
     public Style remove(Style style) {
-        this.bold = this.bold & !style.bold;
-        this.italic = this.italic & !style.italic;
-        this.underline = this.underline & !style.underline;
-        this.strikethrough = this.strikethrough & !style.strikethrough;
-        this.bigHeader = this.bigHeader & !style.bigHeader;
-        this.smallHeader = this.smallHeader & !style.smallHeader;
-        this.smallerHeader = this.smallerHeader & !style.smallerHeader;
-        this.subtext = this.subtext & !style.subtext;
-        this.quote = this.quote & !style.quote;
-        this.bulletPoints = this.bulletPoints & !style.bulletPoints;
-        this.code = this.code & !style.code;
-        this.codeBlock = this.codeBlock & !style.codeBlock;
-        this.spoiler = this.spoiler & !style.spoiler;
+        Style result = new Style(this);
 
-        return this;
+        result.bold &= !style.bold;
+        result.italic &= !style.italic;
+        result.underline &= !style.underline;
+        result.strikethrough &= !style.strikethrough;
+        result.bigHeader &= !style.bigHeader;
+        result.smallHeader &= !style.smallHeader;
+        result.smallerHeader &= !style.smallerHeader;
+        result.subtext &= !style.subtext;
+        result.quote &= !style.quote;
+        result.bulletPoints &= !style.bulletPoints;
+        result.code &= !style.code;
+        result.codeBlock &= !style.codeBlock;
+        result.spoiler &= !style.spoiler;
+
+        return result;
     }
 }
