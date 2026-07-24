@@ -34,7 +34,7 @@ public class Comitas {
      *
      * @return The {@link Bot}.
      */
-    public Bot getBot() {
+    public static Bot getBot() {
         return INSTANCE.impl.getBot();
     }
 

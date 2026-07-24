@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 
 public class InternalChannel implements Channel {
     final net.dv8tion.jda.api.entities.channel.Channel channel;
@@ -20,7 +21,7 @@ public class InternalChannel implements Channel {
     }
 
     @Override
-    public String mention() {
-        return channel.getAsMention();
+    public Component mention() {
+        return Component.raw(channel.getAsMention());
     }
 }

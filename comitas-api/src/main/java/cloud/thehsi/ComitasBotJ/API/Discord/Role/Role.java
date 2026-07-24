@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Role;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +35,9 @@ public interface Role {
      * <p>
      * Putting this String in any Discord Message, will mention this Role.
      *
-     * @return The generated Mention-String
+     * @return The generated Mention-Component
      */
-    String mention();
+    Component mention();
 
     /**
      * Returns the role primary color.

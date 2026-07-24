@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Role;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 
@@ -26,8 +27,8 @@ public record InternalRole(net.dv8tion.jda.api.entities.Role role) implements Ro
     }
 
     @Override
-    public String mention() {
-        return role.getAsMention();
+    public Component mention() {
+        return Component.raw(role.getAsMention());
     }
 
     @Override

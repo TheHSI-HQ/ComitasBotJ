@@ -54,8 +54,8 @@ public class InternalMember implements Member {
     }
 
     @Override
-    public String mention() {
-        return user.getAsMention();
+    public Component mention() {
+        return Component.raw(user.getAsMention());
     }
 
     @Override

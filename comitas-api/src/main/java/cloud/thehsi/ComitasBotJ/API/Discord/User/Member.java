@@ -51,9 +51,9 @@ public interface Member {
      * Generates a Mention-String ({@code <@USERID>}).
      * <p>
      * Putting this String in any Discord Message, will mention this User.
-     * @return The generated Mention-String
+     * @return The generated Mention-Component
      */
-    String mention();
+    Component mention();
 
     /**
      * Returns the user's primary color.

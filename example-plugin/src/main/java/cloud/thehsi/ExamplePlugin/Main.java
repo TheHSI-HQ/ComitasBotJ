@@ -50,12 +50,12 @@ public class Main extends Plugin implements Listener {
 
         if (event.getRawContent().startsWith("!hello")) {
             Embed embed = new EmbedBuilder()
-                    .setTitle("Hello " + event.getAuthor().mention())
+                    .setTitle("Hello " + event.getAuthor().getDisplayName())
                     .setDescription(
                             Component.text("Best Regards from " )
-                                    .append(Component.text("Bot Name", Style.BOLD, Style.UNDERLINE))
+                                    .append(Component.text(Comitas.getBot().getDisplayName(), Style.BOLD, Style.UNDERLINE))
                     )
-                    .setAuthor(new EmbedAuthor("BotName", "https://www.thehsi.cloud/logo.png"))
+                    .setAuthor(new EmbedAuthor(Comitas.getBot().getDisplayName(), "https://www.thehsi.cloud/", "https://www.thehsi.cloud/logo.png"))
                     .setColor(new Color(151, 45, 231))
                     .build();
 

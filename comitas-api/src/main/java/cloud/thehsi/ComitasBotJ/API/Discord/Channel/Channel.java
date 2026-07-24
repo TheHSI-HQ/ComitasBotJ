@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+
 @SuppressWarnings("unused")
 public interface Channel {
     /**
@@ -21,7 +23,7 @@ public interface Channel {
      * <p>
      * Putting this String in any Discord Message, will mention this Channel.
      *
-     * @return The generated Mention-String
+     * @return The generated Mention-Component
      */
-    String mention();
+    Component mention();
 }
