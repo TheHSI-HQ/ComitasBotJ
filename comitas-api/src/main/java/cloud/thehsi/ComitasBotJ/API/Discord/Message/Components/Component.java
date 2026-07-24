@@ -73,6 +73,18 @@ public class Component {
         return c;
     }
 
+    public static Component link(String link) {
+        Component c = new Component();
+        c.content = link;
+        return c;
+    }
+
+    public static Component link(String link, String label) {
+        Component c = new Component();
+        c.content = "[%s](%s)".formatted(link, label);
+        return c;
+    }
+
     public static Component text(String content) {
         Component c = new Component();
         c.content(content);
