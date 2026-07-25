@@ -8,7 +8,7 @@ import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
-import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.Plugin.PluginLister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -102,9 +102,8 @@ public class Main implements Runnable {
         logger.info("Loading Configuration...");
         try {
             ServerConfig rawServerConfig = new ServerConfig();
-
             conf = rawServerConfig.asParsed();
-
+            conf.load();
             conf.save();
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
@@ -130,7 +129,7 @@ public class Main implements Runnable {
     private void takeConfigActions() {
         if (props().listPlugins()) {
             logger.info("Loadable Plugins:");
-            new PluginLoaderManager().listPlugins();
+            PluginLister.listPlugins();
             logger.info("Exiting...");
             System.exit(0);
         }

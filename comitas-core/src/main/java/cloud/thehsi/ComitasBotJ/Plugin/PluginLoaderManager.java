@@ -137,7 +137,7 @@ public class PluginLoaderManager {
 
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
                     if (ignoreApiTarget)
-                        logger.warn("Plugin only supports API {}, current Version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
+                        logger.warn("Plugin only supports {}, current Version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
                     else
                         throw new RuntimeException(
                                 "Plugin only supports " +
@@ -155,60 +155,6 @@ public class PluginLoaderManager {
                 plugin.onEnable();
             } catch (Exception e) {
                 logger.error("Error when loading: \"{}\":", jar.getName());
-                logger.error("{}[{}]{} {}",
-                        ConsoleColor.BRIGHT_BLACK,
-                        ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
-                        ConsoleColor.WHITE,
-                        e.getLocalizedMessage()
-                );
-            }
-        }
-    }
-
-    public void listPlugins() {
-        File pluginDir = new File("plugins");
-
-        if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
-
-        File[] jars = pluginDir.listFiles(
-                f -> f.getName().endsWith(".jar")
-        );
-
-        if (jars == null)
-            return;
-
-        for (File jar : jars) {
-            try {
-                try (URLClassLoader loader = new URLClassLoader(
-                        new URL[]{jar.toURI().toURL()},
-                        getClass().getClassLoader()
-                )) {
-                    InputStream is = loader.getResourceAsStream(
-                            "plugin.properties"
-                    );
-
-                    Properties props = new Properties();
-                    props.load(is);
-
-                    Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
-                            props
-                    );
-
-                    boolean compatible = isApiTargetCompatible(metadata.targetAPI(), Main.getServerVersion());
-
-                    logger.info("[{}{}{}] {} {} ({}) [{}{}{}]",
-                            compatible ? ConsoleColor.BRIGHT_GREEN : ConsoleColor.BRIGHT_RED,
-                            compatible ? "G" : "B",
-                            ConsoleColor.RESET,
-                            metadata.name(),
-                            metadata.version(),
-                            jar.getName(),
-                            ConsoleColor.BRIGHT_BLACK,
-                            metadata.uuid(),
-                            ConsoleColor.RESET
-                    );
-                }
-            } catch (Exception e) {
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
