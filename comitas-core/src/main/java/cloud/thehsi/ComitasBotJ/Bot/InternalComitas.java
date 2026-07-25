@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
+import ch.qos.logback.classic.LoggerContext;
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
@@ -7,7 +8,8 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
-import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
+import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
@@ -15,6 +17,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
+import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +29,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
     private PluginLoaderManager pluginLoaderManager;
     private PluginManager pluginManager;
-    private ServerConfig.ParsedServerConfig serverConfig;
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private InternalScheduler scheduler;
     private EventManager eventManager;
@@ -38,11 +41,13 @@ public class InternalComitas implements InternalComitasImpl {
     private Logger logger;
     private Bot bot;
     private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
+    private final ConsolePrompt consolePrompt;
 
     private String bot_token;
 
-    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry) {
+    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry, ConsolePrompt consolePrompt) {
         this.consoleCommandRegistry = consoleCommandRegistry;
+        this.consolePrompt = consolePrompt;
     }
 
     private void populateSecrets() {
@@ -128,33 +133,11 @@ public class InternalComitas implements InternalComitasImpl {
 
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
-        // Load Configuration from ./server.properties
-        logger.info("Loading Configuration...");
-        try {
-            ServerConfig rawServerConfig = new ServerConfig();
-
-            serverConfig = rawServerConfig.asParsed();
-
-            serverConfig.save();
-        } catch (IOException e) {
-            logger.error(e.getLocalizedMessage());
-            System.exit(1);
-        }
-
         populateSecrets();
 
         if (bot_token.isBlank()) {
             logger.error("Missing Discord Bot Token (./tokens.secret)");
             System.exit(1);
-        }
-
-        logger.info("Loaded {} configuration value(s).", serverConfig.count());
-
-        if (!serverConfig.enabled.get()) {
-            logger.warn("This Server is disabled!");
-            logger.warn("To change this, go to ./server.properties and set enabled=true");
-            logger.warn("This Server will now shut down");
-            System.exit(0);
         }
 
         // Prepare EventManager
@@ -178,12 +161,38 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Start Bot
         logger.info("Starting Bot...");
-        api = new DiscordAPI(bot_token, serverConfig, eventManager);
+        api = new DiscordAPI(bot_token, eventManager);
 
         bot = new InternalBot(api.getAPI().getSelfUser());
     }
 
+    @Override
+    public void shutdown() {
+        onShutdown();
+        System.exit(0);
+    }
+
+    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+
     private void onShutdown() {
+        if (!shuttingDown.compareAndSet(false, true)) return;
+
+        Terminal terminal = consolePrompt.lineReader() != null
+                ? consolePrompt.lineReader().getTerminal()
+                : null;
+
+        // Bypass printAbove()/Display entirely for shutdown logging.
+        // Write straight to the terminal writer so we don't depend on
+        // JLine's redraw state, which JLine's own shutdown hook may be
+        // concurrently mutating.
+        if (terminal != null) {
+            TuiAppender.setBypassMode(true);
+        }
+
+        if (consolePrompt.lineReader() != null) {
+            consolePrompt.lineReader().getTerminal().writer().flush();
+        }
+
         logger.info("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         logger.info("Shutting down ComitasBotJ");
 
@@ -199,15 +208,24 @@ public class InternalComitas implements InternalComitasImpl {
         if (eventManager != null)
             eventManager.clearEvents();
 
-        if (serverConfig != null) {
+        if (Main.conf() != null) {
             logger.info("Writing Updated Configuration...");
             try {
-                serverConfig.save();
+                Main.conf().save();
             } catch (Exception e) {
                 logger.error(e.getLocalizedMessage());
             }
         }
 
         logger.info("Bye!");
+
+        if (terminal != null) {
+            try {
+                terminal.writer().flush();
+                terminal.close(); // deterministically close BEFORE JLine's hook can race us
+            } catch (Exception ignored) {}
+        }
+
+        ((LoggerContext) LoggerFactory.getILoggerFactory()).stop();
     }
 }

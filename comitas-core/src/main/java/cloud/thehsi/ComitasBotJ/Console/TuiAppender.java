@@ -8,7 +8,6 @@ import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
 
 public class TuiAppender extends AppenderBase<ILoggingEvent> {
-
     private static volatile ConsolePrompt instance;
 
     // ANSI color codes
@@ -31,9 +30,14 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
         instance = prompt;
     }
 
+    private static volatile boolean bypass = false;
+
+    public static void setBypassMode(boolean b) { bypass = b; }
+
     @Override
     protected void append(ILoggingEvent event) {
         if (instance == null) return;
+        if (event.getLoggerName().startsWith("StdIn.")) return; // Log those only to log files
 
         String timestamp = new java.text.SimpleDateFormat("HH:mm:ss")
                 .format(new java.util.Date(event.getTimeStamp()));
@@ -65,7 +69,11 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
             instance.appendLog(formatThrowable(throwable));
         }
 
-        instance.appendLog(formatted);
+        if (bypass) {
+            instance.writeDirect(formatted);
+        } else {
+            instance.appendLog(formatted);
+        }
     }
 
     private String formatThrowable(IThrowableProxy throwable) {

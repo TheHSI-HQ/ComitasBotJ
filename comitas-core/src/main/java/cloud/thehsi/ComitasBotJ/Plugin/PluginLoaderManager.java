@@ -72,7 +72,7 @@ public class PluginLoaderManager {
     }
 
     public void loadPlugins(boolean ignoreApiTarget) {
-        loadBasePlugin();
+        if (!Main.props().strictSafeMode()) loadBasePlugin();
 
         File pluginDir = new File("plugins");
         File pluginDataDir = new File("plugin_data");
@@ -80,6 +80,8 @@ public class PluginLoaderManager {
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
         if (!pluginDataDir.exists())
             if (!pluginDataDir.mkdir()) throw new RuntimeException("Couldn't create plugin_data folder");
+
+        if (Main.props().strictSafeMode() || Main.props().safeMode() || !Main.conf().loadPlugins.get()) return;
 
         File[] jars = pluginDir.listFiles(
                 f -> f.getName().endsWith(".jar")

@@ -23,4 +23,5 @@ public interface InternalComitasImpl {
     Bot getBot();
 
     void init();
+    void shutdown();
 }

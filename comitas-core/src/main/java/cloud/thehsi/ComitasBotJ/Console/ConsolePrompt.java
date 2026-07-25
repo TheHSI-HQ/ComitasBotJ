@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.LoggerContext;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Main;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class ConsolePrompt {
     private static final Logger logger = LoggerFactory.getLogger("Console");
+    private static final Logger stdInLogger = LoggerFactory.getLogger("StdIn.Console");
     private final ConsoleCommandRegistry registry;
 
     private final LineReader lineReader;
@@ -46,6 +48,7 @@ public class ConsolePrompt {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     String input = lineReader.readLine("> ");
+                    stdInLogger.info(input);
                     if (input != null && !input.isBlank()) {
                         List<String> parts = new ArrayList<>(List.of(input.split(" ")));
 
@@ -56,12 +59,18 @@ public class ConsolePrompt {
                             logger.error("Unknown command: {}", command);
                     }
                 } catch (UserInterruptException | EndOfFileException ignored) {
+                    if (Main.props().strictSafeMode())
+                        System.exit(0);
                 }
             }
         }, "console-input");
 
         consoleThread.setDaemon(true);
         consoleThread.start();
+    }
+
+    public void writeDirect(String line) {
+        System.out.println(line);
     }
 
     /**
@@ -71,6 +80,10 @@ public class ConsolePrompt {
         if (lineReader == null) return;
         // printAbove redraws the prompt line beneath automatically
         lineReader.printAbove(line);
+    }
+    
+    public LineReader lineReader() {
+        return lineReader;
     }
 
     private void registerLogAppender() {

@@ -3,7 +3,6 @@ package cloud.thehsi.ComitasBotJ.Discord;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
-import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
@@ -35,7 +34,6 @@ import java.util.Objects;
 public class DiscordAPI extends ListenerAdapter {
     final JDA api;
     final EventManager eventManager;
-    final ServerConfig.ParsedServerConfig config;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
 
     record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
@@ -54,7 +52,7 @@ public class DiscordAPI extends ListenerAdapter {
 
     final List<RoleModificationLoopFix> roleModificationLoopFixList = new ArrayList<>();
 
-    public DiscordAPI(String BOT_TOKEN, ServerConfig.ParsedServerConfig config, EventManager eventManager) {
+    public DiscordAPI(String BOT_TOKEN, EventManager eventManager) {
         api = JDABuilder.createDefault(BOT_TOKEN)
                 .enableIntents(
                         GatewayIntent.GUILD_MEMBERS,
@@ -66,7 +64,6 @@ public class DiscordAPI extends ListenerAdapter {
                 .build();
 
         this.eventManager = eventManager;
-        this.config = config;
     }
 
     public JDA getAPI() {
@@ -86,16 +83,19 @@ public class DiscordAPI extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
         super.onReady(event);
 
-        if (!config.botActivityName.get().isBlank())
+        if (!Main.conf().botActivityName.get().isBlank())
             api.getPresence().setActivity(
-                    Activity.watching(config.botActivityName.get())
+                    Activity.watching(Main.conf().botActivityName.get())
             );
 
         eventManager.callEvent(new InternalBotConnectEvent(
                         api.getSelfUser()
         ));
 
-        logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
+        if (Main.props().noCmd() || Main.props().strictSafeMode())
+            logger.info("Done ({}s)! Press CTRL+C (^C) to quit", Main.getRuntimeMS() / 1000d);
+        else
+            logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
     }
 
     @Override

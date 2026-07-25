@@ -30,6 +30,13 @@ public class Comitas {
     }
 
     /**
+     * Shutdown the Bot.
+     */
+    public static void shutdown() {
+        INSTANCE.impl.shutdown();
+    }
+
+    /**
      * Gets the Bot.
      *
      * @return The {@link Bot}.

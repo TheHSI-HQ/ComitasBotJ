@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
+import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import org.slf4j.Logger;
@@ -45,10 +46,27 @@ public class Main implements Runnable {
     )
     private boolean ignoreApiTarget;
 
+    @CommandLine.Option(
+            names = "--safe-mode",
+            description = "Enable safe mode (No Plugin loading)."
+    )
+    private boolean safeMode;
+
+    @CommandLine.Option(
+            names = "--strict-safe-mode",
+            description = "Same as safe mode but also skips base plugin."
+    )
+    private boolean strictSafeMode;
+
     // Properties
     private static StartupProperties props;
     public static StartupProperties props() {
         return props;
+    }
+
+    private static ServerConfig.ParsedServerConfig conf;
+    public static ServerConfig.ParsedServerConfig conf() {
+        return conf;
     }
 
     public static void main(String[] args) {
@@ -68,8 +86,46 @@ public class Main implements Runnable {
         logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
         Main.props = new StartupProperties(
-                noCmd, ignoreApiTarget
+                noCmd, ignoreApiTarget, safeMode,
+                strictSafeMode
         );
+
+        // Load Configuration from ./server.properties
+        logger.info("Loading Configuration...");
+        try {
+            ServerConfig rawServerConfig = new ServerConfig();
+
+            conf = rawServerConfig.asParsed();
+
+            conf.save();
+        } catch (IOException e) {
+            logger.error(e.getLocalizedMessage());
+            System.exit(1);
+        }
+
+        takeConfigActions();
+
+        logger.info("Loaded {} configuration value(s).", conf.count());
+
+        Comitas comitas = Comitas.getInstance();
+        comitas.init(new InternalComitas(consoleCommandRegistry, consolePrompt));
+
+        if (!noCmd)
+            consolePrompt.run();
+
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    private void takeConfigActions() {
+        if (!conf().enabled.get()) {
+            logger.warn("This Server is disabled!");
+            logger.warn("To change this, go to ./server.properties and set enabled=true");
+            logger.warn("This Server will now shut down");
+            System.exit(0);
+        }
 
         if (props.ignoreApiTarget())
             logger.warn("""
@@ -83,19 +139,30 @@ public class Main implements Runnable {
                     Proceed with caution.
                     """, ConsoleColor.YELLOW);
 
-        Comitas comitas = Comitas.getInstance();
-        comitas.init(new InternalComitas(consoleCommandRegistry));
+        if (props.safeMode() && !props().strictSafeMode())
+            logger.warn("""
+                    {}
+                    Safe Mode is enabled.
+                    
+                    ComitasBotJ will not load any plugins.
+                    This mode is intended only for debugging and testing
+                    and should not be used in production environments.
+                    """, ConsoleColor.YELLOW);
 
-        if (!noCmd)
-            consolePrompt.run();
-
-        try {
-            Thread.currentThread().join();
-        } catch (InterruptedException ignored) {
-        }
+        if (props.strictSafeMode())
+            logger.warn("""
+                    {}
+                    Strict Safe Mode is enabled.
+        
+                    Plugin loading and all built-in commands are disabled.
+                    To quit ComitasBotJ, press Ctrl+C (^C).
+        
+                    This mode is intended only for debugging and testing
+                    and should not be used in production environments.
+                    """, ConsoleColor.YELLOW);
     }
 
-            public static String getServerVersion() {
+    public static String getServerVersion() {
                 try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
                     Properties props = new Properties();
                     props.load(in);
