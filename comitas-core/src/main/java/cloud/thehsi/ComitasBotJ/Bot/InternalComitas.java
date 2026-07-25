@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
     private PluginLoaderManager pluginLoaderManager;
-    private PluginManager pluginManager;
+    private InternalPluginManager pluginManager;
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private InternalScheduler scheduler;
     private EventManager eventManager;
@@ -150,13 +150,15 @@ public class InternalComitas implements InternalComitasImpl {
                 scheduler
         );
 
-        pluginLoaderManager.loadPlugins(Main.props().ignoreApiTarget());
+        pluginLoaderManager.loadPlugins();
 
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
 
         // Start Bot
         logger.info("Starting Bot...");
         api = new DiscordAPI(bot_token, eventManager);
+
+        pluginManager.setDiscordApi(api);
 
         bot = new InternalBot(api.getAPI().getSelfUser());
     }
@@ -188,7 +190,6 @@ public class InternalComitas implements InternalComitasImpl {
             consolePrompt.lineReader().getTerminal().writer().flush();
         }
 
-        logger.info("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         logger.info("Shutting down ComitasBotJ");
 
         // Unload Plugins

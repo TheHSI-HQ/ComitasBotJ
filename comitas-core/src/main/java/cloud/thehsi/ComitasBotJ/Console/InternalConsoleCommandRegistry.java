@@ -1,12 +1,16 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     private final List<ConsoleCommandRegistry.Command> commands = new ArrayList<>();
+    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".CommandRegistry");
 
     private boolean isCommandMeant(String command, ConsoleCommandRegistry.Command consoleCommand) {
         return consoleCommand.aliases().contains(command);
@@ -17,7 +21,11 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
         for (ConsoleCommandRegistry.Command cmd : commands) {
             if (!isCommandMeant(command, cmd)) continue;
 
-            cmd.consoleCommandExecutor().execute(args);
+            try {
+                cmd.consoleCommandExecutor().execute(args);
+            }catch (Exception e) {
+                logger.error("Failed to execute command '{}'", command, e);
+            }
             return true;
         }
 

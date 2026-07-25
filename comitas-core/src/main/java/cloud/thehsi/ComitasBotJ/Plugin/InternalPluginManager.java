@@ -4,7 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
@@ -27,6 +29,7 @@ public class InternalPluginManager implements PluginManager {
     private final InternalScheduler scheduler;
     private final Map<UUID, InternalPersistentDataStorage> pluginDataStores = new HashMap<>();
     private final Logger logger;
+    private DiscordAPI discordAPI;
 
     private static final StackWalker STACK_WALKER =
             StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
@@ -198,17 +201,60 @@ public class InternalPluginManager implements PluginManager {
         return pluginLoaderManager.lookupPlugin(plugin);
     }
 
-    @Override
-    public void reloadPlugins() {
+    private void unloadPlugins() {
         pluginLoaderManager.unloadPlugins();
         scheduler.cancelAll();
         eventManager.clearEvents();
-        pluginLoaderManager.loadPlugins(Main.props().ignoreApiTarget());
+    }
+
+    @Override
+    public void reloadSoft() {
+        long reloadTime = System.currentTimeMillis();
+        unloadPlugins();
+        pluginLoaderManager.loadPlugins();
+
+        // Fake the bot being ready, so plugins listening for it can react
+        if (discordAPI != null)
+            eventManager.callEvent(new InternalBotConnectEvent(discordAPI.getAPI().getSelfUser()));
+        logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
+    }
+
+    @Override
+    public void reloadHard() {
+        long reloadTime = System.currentTimeMillis();
+        unloadPlugins();
+
+        try {
+            Main.conf().load();
+        } catch (IOException e) {
+            logger.warn("Error during config reload: ", e);
+            logger.warn("Old config will be preserved");
+        }
+        try {
+            Main.conf().save();
+        } catch (IOException e) {
+            logger.warn("Error during config save: ", e);
+        }
+
+        pluginLoaderManager.loadPlugins();
+
+        try {
+            if (discordAPI != null)
+                discordAPI.reconnect();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Reload aborted");
+        }
+
+        logger.info("Reloaded (Hard) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
     }
 
     @Override
     public void registerEvents(Plugin plugin, Listener listener) {
         eventManager.registerListener(plugin, listener);
+    }
+
+    public void setDiscordApi(DiscordAPI api) {
+        discordAPI = api;
     }
 }
 

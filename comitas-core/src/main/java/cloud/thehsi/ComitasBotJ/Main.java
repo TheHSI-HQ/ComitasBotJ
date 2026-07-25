@@ -129,7 +129,7 @@ public class Main implements Runnable {
     private void takeConfigActions() {
         if (props().listPlugins()) {
             logger.info("Loadable Plugins:");
-            PluginLister.listPlugins();
+            PluginLister.listAllPlugins();
             logger.info("Exiting...");
             System.exit(0);
         }

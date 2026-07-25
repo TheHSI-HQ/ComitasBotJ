@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.Main;
@@ -18,7 +19,7 @@ import java.util.UUID;
 public class PluginLister {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
-    public static void listPlugins() {
+    public static void listAllPlugins() {
         File pluginDir = new File("plugins");
 
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
@@ -58,7 +59,7 @@ public class PluginLister {
                     props.load(is);
 
                     Plugin.PluginMetadata metadata =
-                            Plugin.PluginMetadata.fromProperties(props);
+                            Plugin.PluginMetadata.fromProperties(props, jar.getName());
 
                     boolean compatible = isApiTargetCompatible(
                             metadata.targetAPI(),
@@ -143,6 +144,80 @@ public class PluginLister {
         logger.info(createBorder(widths, '└', '┴', '┘'));
     }
 
+    public static void listPlugins() {
+        record PluginInfo(
+                String name,
+                String version,
+                String fileName,
+                UUID uuid
+        ) {
+        }
+
+        List<PluginInfo> plugins = new ArrayList<>();
+
+
+        for (Plugin.PluginMetadata metadata : Comitas.getPluginManager().getAllPluginMetadata()) {
+            plugins.add(new PluginInfo(
+                    metadata.name(),
+                    metadata.version(),
+                    metadata.jarName(),
+                    metadata.uuid()
+            ));
+        }
+
+        String[] headers = {
+                "Name",
+                "Version",
+                "File",
+                "UUID"
+        };
+
+        List<String[]> rows = new ArrayList<>();
+
+        for (PluginInfo plugin : plugins) {
+            rows.add(new String[]{
+                    plugin.name(),
+                    plugin.version(),
+                    plugin.fileName(),
+                    plugin.uuid().toString()
+            });
+        }
+
+        int[] widths = new int[headers.length];
+
+        for (int i = 0; i < headers.length; i++) {
+            widths[i] = headers[i].length();
+
+            for (String[] row : rows) {
+                widths[i] = Math.max(widths[i], row[i].length());
+            }
+        }
+
+        logger.info("Plugins:");
+
+        logger.info(createBorder(widths, '┌', '┬', '┐'));
+
+        logger.info(createHeaderRow(headers, widths));
+
+        logger.info(createBorder(widths, '├', '┼', '┤'));
+
+        for (PluginInfo plugin : plugins) {
+            String[] row = {
+                    plugin.name(),
+                    plugin.version(),
+                    plugin.fileName(),
+                    plugin.uuid().toString()
+            };
+
+            logger.info(createRow(
+                    row,
+                    widths
+            ));
+        }
+
+        logger.info(createBorder(widths, '└', '┴', '┘'));
+    }
+
     private static String createBorder(int[] widths, char left, char middle, char right) {
         StringBuilder builder = new StringBuilder();
 
@@ -171,6 +246,45 @@ public class PluginLister {
         }
 
         return builder.toString();
+    }
+
+    private static String createRow(
+            String[] values,
+            int[] widths
+    ) {
+
+        return "│ " + // Name
+                ConsoleColor.WHITE +
+                String.format(
+                        "%-" + widths[0] + "s",
+                        values[0]
+                ) +
+                ConsoleColor.RESET +
+                " │" + // Version
+                " " +
+                ConsoleColor.WHITE +
+                String.format(
+                        "%-" + widths[1] + "s",
+                        values[1]
+                ) +
+                ConsoleColor.RESET +
+                " │" + // File
+                " " +
+                ConsoleColor.WHITE +
+                String.format(
+                        "%-" + widths[2] + "s",
+                        values[2]
+                ) +
+                ConsoleColor.RESET +
+                " │" + // UUID
+                " " +
+                ConsoleColor.WHITE +
+                String.format(
+                        "%-" + widths[3] + "s",
+                        values[3]
+                ) +
+                ConsoleColor.RESET +
+                " │";
     }
 
     private static String createRow(

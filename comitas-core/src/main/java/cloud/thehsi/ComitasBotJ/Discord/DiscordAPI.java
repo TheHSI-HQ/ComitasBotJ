@@ -30,9 +30,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class DiscordAPI extends ListenerAdapter {
-    final JDA api;
+    JDA api;
+    boolean firstStartup = true;
     final EventManager eventManager;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
 
@@ -52,7 +54,17 @@ public class DiscordAPI extends ListenerAdapter {
 
     final List<RoleModificationLoopFix> roleModificationLoopFixList = new ArrayList<>();
 
+    private final String BOT_TOKEN;
+
     public DiscordAPI(String BOT_TOKEN, EventManager eventManager) {
+        this.BOT_TOKEN = BOT_TOKEN;
+
+        connect();
+
+        this.eventManager = eventManager;
+    }
+
+    private void connect() {
         api = JDABuilder.createDefault(BOT_TOKEN)
                 .enableIntents(
                         GatewayIntent.GUILD_MEMBERS,
@@ -62,8 +74,19 @@ public class DiscordAPI extends ListenerAdapter {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .addEventListeners(this)
                 .build();
+    }
 
-        this.eventManager = eventManager;
+    public void reconnect() throws InterruptedException {
+        if (api != null) {
+            api.shutdown();
+
+            if (!api.awaitShutdown(10, TimeUnit.SECONDS)) {
+                api.shutdownNow();
+            }
+        }
+
+        connect();
+        api.awaitReady();
     }
 
     public JDA getAPI() {
@@ -92,10 +115,14 @@ public class DiscordAPI extends ListenerAdapter {
                         api.getSelfUser()
         ));
 
-        if (Main.props().noCmd() || Main.props().strictSafeMode())
-            logger.info("Done ({}s)! Press CTRL+C (^C) to quit", Main.getRuntimeMS() / 1000d);
-        else
-            logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
+        if (firstStartup) {
+            if (Main.props().noCmd() || Main.props().strictSafeMode())
+                logger.info("Done ({}s)! Press CTRL+C (^C) to quit", Main.getRuntimeMS() / 1000d);
+            else
+                logger.info("Done ({}s)! For help, type \"help\"", Main.getRuntimeMS() / 1000d);
+        }
+
+        firstStartup = false;
     }
 
     @Override

@@ -46,32 +46,45 @@ public class PluginLoaderManager {
         return null;
     }
 
-    boolean isBasePluginLoaded = false;
+    LoadedPlugin basePlugin = null;
 
     public void loadBasePlugin() {
-        if (isBasePluginLoaded) return;
-        isBasePluginLoaded = true;
-        try {
-            ClassLoader loader = getClass().getClassLoader();
+        if (basePlugin == null)
+            try {
+                ClassLoader loader = getClass().getClassLoader();
 
-            Class<? extends Plugin> clazz =
-                    Class.forName("cloud.thehsi.ComitasBasePlugin.Main", true, loader)
-                            .asSubclass(Plugin.class);
+                Class<? extends Plugin> clazz =
+                        Class.forName("cloud.thehsi.ComitasBasePlugin.Main", true, loader)
+                                .asSubclass(Plugin.class);
 
-            Plugin plugin = clazz.getDeclaredConstructor().newInstance();
+                Plugin plugin = clazz.getDeclaredConstructor().newInstance();
 
-            plugins.add(new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
-                    "Base", "0.1b", Comitas.getServerVersion(), UUID.fromString("7fe3a14c-69f5-49a9-a6eb-7321311b7864"), "comitas")
-            ));
+                String jarName = new File(
+                        Main.class
+                                .getProtectionDomain()
+                                .getCodeSource()
+                                .getLocation()
+                                .toURI()
+                ).getName();
 
-            plugin.onEnable();
+                basePlugin = new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
+                        "Comitas", Main.getServerVersion(), jarName, Comitas.getServerVersion(), UUID.fromString("0000000-0000-0000-0000-000000000000"), "comitas")
+                );
 
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage());
-        }
+                plugins.add(basePlugin);
+
+                plugin.onEnable();
+
+            } catch (Exception e) {
+                logger.error("Error loading base plugin: ", e);
+                return;
+            }
+
+        if (!plugins.contains(basePlugin))
+            plugins.add(basePlugin);
     }
 
-    public void loadPlugins(boolean ignoreApiTarget) {
+    public void loadPlugins() {
         if (!Main.props().strictSafeMode()) loadBasePlugin();
 
         File pluginDir = new File("plugins");
@@ -122,7 +135,7 @@ public class PluginLoaderManager {
                         .newInstance();
 
                 Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
-                        props
+                        props, jar.getName()
                 );
 
                 if (!allowedPlugins.isEmpty())
@@ -136,13 +149,13 @@ public class PluginLoaderManager {
                     logger.warn("Plugin {} is has an illegal character in its name [,]", metadata.name());
 
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
-                    if (ignoreApiTarget)
-                        logger.warn("Plugin only supports {}, current Version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
+                    if (Main.props().ignoreApiTarget())
+                        logger.warn("Plugin only supports {}, current version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
                     else
                         throw new RuntimeException(
                                 "Plugin only supports " +
                                         props.getProperty("api-target") +
-                                        ", current Version is " +
+                                        ", current version is " +
                                         Comitas.getServerVersion()
                         );
 

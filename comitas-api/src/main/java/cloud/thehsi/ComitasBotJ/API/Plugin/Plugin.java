@@ -12,8 +12,8 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public abstract class Plugin {
-    public record PluginMetadata(String name, String version, String targetAPI, UUID uuid, String consoleCommandPrefix) {
-        public static PluginMetadata fromProperties(Properties props) {
+    public record PluginMetadata(String name, String version, String jarName, String targetAPI, UUID uuid, String consoleCommandPrefix) {
+        public static PluginMetadata fromProperties(Properties props, String jarName) {
             if (!props.containsKey("name")) throw new RuntimeException("Plugin is missing name in plugin.properties");
             if (!props.containsKey("version"))
                 throw new RuntimeException("Plugin is missing version in plugin.properties");
@@ -26,6 +26,7 @@ public abstract class Plugin {
                 return new PluginMetadata(
                         props.getProperty("name"),
                         props.getProperty("version"),
+                        jarName,
                         props.getProperty("api-target"),
                         UUID.fromString(props.getProperty("uuid".toLowerCase())),
                         props.getProperty("command-prefix", props.getProperty("name"))

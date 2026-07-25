@@ -8,7 +8,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 public class VersionConsoleCommand extends ConsoleCommand {
     public VersionConsoleCommand(Plugin plugin) {
         plugin.createCommandBuilder(this)
-                .setDescription("Fetches the current Version of ComitasBotJ")
+                .setDescription("Fetches the current version of ComitasBotJ")
                 .addCommand("version")
                 .addCommand("ver")
                 .addCommand("v")

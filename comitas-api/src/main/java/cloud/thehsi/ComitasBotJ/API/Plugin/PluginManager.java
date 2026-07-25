@@ -46,9 +46,14 @@ public interface PluginManager {
     Plugin.PluginMetadata lookupPlugin(Plugin plugin);
 
     /**
-     * Reloads all plugins
+     * Reloads all plugins and sends a fake bot ready even
      */
-    void reloadPlugins();
+    void reloadSoft();
+
+    /**
+     * Reloads all plugins, the config and the bot itself.
+     */
+    void reloadHard();
 
     /**
      * Register a new Event Listener
