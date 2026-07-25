@@ -36,7 +36,7 @@ java -jar comitas-core-<version>.jar
 
 ### Option 2. Build from Source
 
-0. Prerequirements:
+0. Prerequisites:
 
 - Java 21 or newer
 - Maven
@@ -59,27 +59,28 @@ mvn -pl comitas-api -am clean install
 
 ```bash
 mvn -pl comitas-core -am clean install
+cd comitas-core
 cd target
 ```
 
 4. Start the Server
 
 ```bash
-java -jar comitas-core-<version>.jar`
+java -jar comitas-core-<version>.jar
 ```
 
 ## Configuration
 
 ### server.properties
 
-The server.properties file, is a file that gets automatically created on first startup. It is used to configure the server in a persistent way.
+The `server.properties` file is automatically created on the first startup. It is used to persistently configure ComitasBotJ.
 
-| Property          | Type    | Default     | Description                                                                                               |
-|-------------------|---------|-------------|-----------------------------------------------------------------------------------------------------------|
-| enabled           | boolean | true        | Enables or disables the bot                                                                               |
-| load-plugins      | boolean | true        | Enables or Disables the loading of plugins                                                                |
-| allowed-plugins   | string  | *           | A comma separated list of plugin names or uuids,<br/>plugins not matching any of them, will not be loaded |
-| bot-activity-name | string  | ComitasBotJ | The name of the activity, the bot will be shown as actively doing                                         |
+| Property            | Type     | Default       | Description                                                                                              |
+|---------------------|----------|---------------|----------------------------------------------------------------------------------------------------------|
+| `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                              |
+| `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                               |
+| `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. |
+| `bot-activity-name` | string   | `ComitasBotJ` | The name of the activity, the bot will be shown as actively doing                                        |
 
 ## Project Structure
 ```ansii
@@ -107,7 +108,7 @@ Pull requests and plugin contributions[^1] are welcome.
 
 ## License
 
-See `LICENSE` for details.
+See [LICENSE](LICENSE) for details.
 
 
 [^1]: [Plugin repository](https://github.com/TheHSI-HQ/ComitasBotJPlugins)

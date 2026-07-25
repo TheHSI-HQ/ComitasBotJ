@@ -194,15 +194,19 @@ public class PluginLoaderManager {
                             props
                     );
 
-                    boolean compatible = isApiTargetCompatible(metadata.targetAPI(), Main.getAPIVersion());
+                    boolean compatible = isApiTargetCompatible(metadata.targetAPI(), Main.getServerVersion());
 
-                    logger.info("[{}{}{}] {} {} ({})",
+                    logger.info("[{}{}{}] {} {} ({}) [{}{}{}]",
                             compatible ? ConsoleColor.BRIGHT_GREEN : ConsoleColor.BRIGHT_RED,
                             compatible ? "G" : "B",
                             ConsoleColor.RESET,
                             metadata.name(),
                             metadata.version(),
-                            jar.getName());
+                            jar.getName(),
+                            ConsoleColor.BRIGHT_BLACK,
+                            metadata.uuid(),
+                            ConsoleColor.RESET
+                    );
                 }
             } catch (Exception e) {
                 logger.error("{}[{}]{} {}",

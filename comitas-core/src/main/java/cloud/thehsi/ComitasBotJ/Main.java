@@ -186,14 +186,4 @@ public class Main implements Runnable {
                     throw new RuntimeException(e);
                 }
             }
-
-            public static String getAPIVersion() {
-                try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
-                    Properties props = new Properties();
-                    props.load(in);
-                    return props.getProperty("api-version");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
         }
