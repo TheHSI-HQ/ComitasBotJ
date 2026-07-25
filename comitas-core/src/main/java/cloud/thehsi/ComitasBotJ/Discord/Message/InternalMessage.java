@@ -15,6 +15,7 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.MessageReference;
+import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,16 @@ public class InternalMessage implements Message {
 
     @Override
     public boolean isDeleted() {
-        return deleted;
+        if (deleted) return true;
+
+        // Validate the message still exists
+        try {
+            message.getFlagsRaw();
+        } catch (Exception ignored) {
+            deleted = true;
+            return true;
+        }
+        return false;
     }
 
     @Override
