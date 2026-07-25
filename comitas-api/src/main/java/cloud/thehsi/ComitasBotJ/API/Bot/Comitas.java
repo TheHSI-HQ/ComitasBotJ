@@ -56,15 +56,6 @@ public class Comitas {
     }
 
     /**
-     * Gets the API Version
-     *
-     * @return The Current API Version.
-     */
-    public static String getAPIVersion() {
-        return INSTANCE.impl.getAPIVersion();
-    }
-
-    /**
      * Gets the Server Version
      *
      * @return The Current Server Version.

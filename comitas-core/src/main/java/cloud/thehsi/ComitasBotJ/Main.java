@@ -5,8 +5,10 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
+import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -58,6 +60,12 @@ public class Main implements Runnable {
     )
     private boolean strictSafeMode;
 
+    @CommandLine.Option(
+            names = "--list-plugins",
+            description = "List all plugins, regardless of whitelists, and exit."
+    )
+    private boolean listPlugins;
+
     // Properties
     private static StartupProperties props;
     public static StartupProperties props() {
@@ -87,7 +95,7 @@ public class Main implements Runnable {
 
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
-                strictSafeMode
+                strictSafeMode, listPlugins
         );
 
         // Load Configuration from ./server.properties
@@ -120,6 +128,13 @@ public class Main implements Runnable {
     }
 
     private void takeConfigActions() {
+        if (props().listPlugins()) {
+            logger.info("Loadable Plugins:");
+            new PluginLoaderManager().listPlugins();
+            logger.info("Exiting...");
+            System.exit(0);
+        }
+
         if (!conf().enabled.get()) {
             logger.warn("This Server is disabled!");
             logger.warn("To change this, go to ./server.properties and set enabled=true");

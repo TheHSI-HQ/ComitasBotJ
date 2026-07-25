@@ -8,8 +8,6 @@ import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import java.util.List;
 
 public interface InternalComitasImpl {
-    String getAPIVersion();
-
     String getServerVersion();
 
     PluginManager getPluginManager();

@@ -17,6 +17,7 @@ public class ServerConfig {
 
         public final BooleanProperty enabled;
         public final BooleanProperty loadPlugins;
+        public final StringProperty allowedPlugins;
         public final StringProperty botActivityName;
 
         public ParsedServerConfig(ServerConfig cfg) {
@@ -24,6 +25,7 @@ public class ServerConfig {
 
             this.enabled = makeProperty("enabled", true);
             this.loadPlugins = makeProperty("load-plugins", true);
+            this.allowedPlugins = makeProperty("allowed-plugins", "*");
             this.botActivityName = makeProperty("bot-activity-name", "ComitasBotJ");
         }
 

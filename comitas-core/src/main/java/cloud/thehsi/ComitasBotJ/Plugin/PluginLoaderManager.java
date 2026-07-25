@@ -61,7 +61,7 @@ public class PluginLoaderManager {
             Plugin plugin = clazz.getDeclaredConstructor().newInstance();
 
             plugins.add(new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
-                    "Base", "0.1b", Comitas.getAPIVersion(), UUID.fromString("7fe3a14c-69f5-49a9-a6eb-7321311b7864"), "comitas")
+                    "Base", "0.1b", Comitas.getServerVersion(), UUID.fromString("7fe3a14c-69f5-49a9-a6eb-7321311b7864"), "comitas")
             ));
 
             plugin.onEnable();
@@ -90,6 +90,11 @@ public class PluginLoaderManager {
         if (jars == null)
             return;
 
+        List<String> allowedPlugins = new ArrayList<>();
+
+        if (!Objects.equals(Main.conf().allowedPlugins.get(), "*"))
+            allowedPlugins = List.of(Main.conf().allowedPlugins.get().split(","));
+
         for (File jar : jars) {
             try {
                 URLClassLoader loader =
@@ -109,12 +114,6 @@ public class PluginLoaderManager {
                 String mainClass =
                         props.getProperty("main");
 
-                String name =
-                        props.getProperty("name");
-
-                String version =
-                        props.getProperty("version");
-
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
                                 .asSubclass(Plugin.class);
@@ -126,29 +125,86 @@ public class PluginLoaderManager {
                         props
                 );
 
+                if (!allowedPlugins.isEmpty())
+                    if (!allowedPlugins.contains(metadata.name()) && !allowedPlugins.contains(metadata.uuid().toString()))
+                        continue;
+
                 if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
-                    logger.warn("Plugin {} is not using universal UUID formatting", name);
+                    logger.warn("Plugin {} is not using universal UUID formatting", metadata.name());
+
+                if (metadata.name().contains(","))
+                    logger.warn("Plugin {} is has an illegal character in its name [,]", metadata.name());
 
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
                     if (ignoreApiTarget)
-                        logger.warn("Plugin only supports API {}, current Version is {}", props.getProperty("api-target"), Comitas.getAPIVersion());
+                        logger.warn("Plugin only supports API {}, current Version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
                     else
                         throw new RuntimeException(
-                                "Plugin only supports API " +
+                                "Plugin only supports " +
                                         props.getProperty("api-target") +
                                         ", current Version is " +
-                                        Comitas.getAPIVersion()
+                                        Comitas.getServerVersion()
                         );
 
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
-                logger.info("Loaded Plugin {} {}", name, version);
+                logger.info("Loaded Plugin {} {}", metadata.name(), metadata.version());
 
                 pluginManager.loadDataStore(metadata.uuid());
 
                 plugin.onEnable();
             } catch (Exception e) {
                 logger.error("Error when loading: \"{}\":", jar.getName());
+                logger.error("{}[{}]{} {}",
+                        ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.WHITE,
+                        e.getLocalizedMessage()
+                );
+            }
+        }
+    }
+
+    public void listPlugins() {
+        File pluginDir = new File("plugins");
+
+        if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
+
+        File[] jars = pluginDir.listFiles(
+                f -> f.getName().endsWith(".jar")
+        );
+
+        if (jars == null)
+            return;
+
+        for (File jar : jars) {
+            try {
+                try (URLClassLoader loader = new URLClassLoader(
+                        new URL[]{jar.toURI().toURL()},
+                        getClass().getClassLoader()
+                )) {
+                    InputStream is = loader.getResourceAsStream(
+                            "plugin.properties"
+                    );
+
+                    Properties props = new Properties();
+                    props.load(is);
+
+                    Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
+                            props
+                    );
+
+                    boolean compatible = isApiTargetCompatible(metadata.targetAPI(), Main.getAPIVersion());
+
+                    logger.info("[{}{}{}] {} {} ({})",
+                            compatible ? ConsoleColor.BRIGHT_GREEN : ConsoleColor.BRIGHT_RED,
+                            compatible ? "G" : "B",
+                            ConsoleColor.RESET,
+                            metadata.name(),
+                            metadata.version(),
+                            jar.getName());
+                }
+            } catch (Exception e) {
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
@@ -190,7 +246,20 @@ public class PluginLoaderManager {
     }
 
     private boolean isApiTargetCompatible(String target) {
-        long apiVersion = versionId(Comitas.getAPIVersion());
+        long apiVersion = versionId(Comitas.getServerVersion());
+
+        target = target.trim();
+        String[] parts = target.split("-");
+
+        if (parts.length == 1) {
+            return apiVersion == versionId(parts[0]);
+        }
+
+        return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
+    }
+
+    private boolean isApiTargetCompatible(String target, String overwriteApiVersion) {
+        long apiVersion = versionId(overwriteApiVersion);
 
         target = target.trim();
         String[] parts = target.split("-");

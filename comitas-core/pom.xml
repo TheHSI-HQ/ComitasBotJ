@@ -83,7 +83,7 @@
         <dependency>
             <groupId>cloud.thehsi.ComitasBotJ</groupId>
             <artifactId>comitas-api</artifactId>
-            <version>${api.version}</version>
+            <version>${comitas.version}</version>
         </dependency>
 
         <dependency>

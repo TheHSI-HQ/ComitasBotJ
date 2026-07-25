@@ -82,11 +82,6 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
-    public String getAPIVersion() {
-        return Main.getAPIVersion();
-    }
-
-    @Override
     public String getServerVersion() {
         return Main.getServerVersion();
     }

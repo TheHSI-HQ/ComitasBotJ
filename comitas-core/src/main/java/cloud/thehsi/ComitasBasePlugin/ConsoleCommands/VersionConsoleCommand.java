@@ -20,6 +20,5 @@ public class VersionConsoleCommand extends ConsoleCommand {
     public void execute(String[] args) {
         getConsoleLogger().info("Currently running:");
         getConsoleLogger().info("  ComitasBotJ {}v{}", "" + ConsoleColor.BLUE + ConsoleColor.BOLD, Comitas.getServerVersion());
-        getConsoleLogger().info("  Comitas API {}v{}", "" + ConsoleColor.BLUE + ConsoleColor.BOLD, Comitas.getAPIVersion());
     }
 }

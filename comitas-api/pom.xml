@@ -13,7 +13,7 @@
     </parent>
 
     <artifactId>comitas-api</artifactId>
-    <version>${api.version}</version>
+    <version>${comitas.version}</version>
 
     <properties>
         <maven.compiler.release>23</maven.compiler.release>
