@@ -3,8 +3,15 @@ package cloud.thehsi.ComitasBotJ.Discord.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.entities.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public record InternalReaction(MessageReaction reaction, Message message) implements Reaction {
     @Override
@@ -13,12 +20,51 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
+    public List<Member> getReacters() {
+        List<Member> reactors = new ArrayList<>();
+        Guild guild = reaction.getGuild();
+
+        reaction.retrieveUsers()
+                .queue(users -> {
+                    for (User user : users) {
+                        guild.retrieveMember(user).queue(member -> reactors.add(new InternalMember(member)));
+                    }
+                });
+
+        return reactors;
+    }
+
+    @Override
     public int getCount() {
-        return reaction.getCount();
+        return reaction.retrieveUsers().complete().size();
+    }
+
+    @Override
+    public boolean haveIReacted() {
+        for (User user : reaction.retrieveUsers().complete())
+            if (user.getIdLong() == reaction.getJDA().getSelfUser().getIdLong())
+                return true;
+
+        return false;
+    }
+
+    @Override
+    public boolean exists() {
+        return !reaction.retrieveUsers().complete().isEmpty();
     }
 
     @Override
     public void clear() {
         reaction.clearReactions().queue();
+    }
+
+    @Override
+    public void react() {
+        message.react(new InternalEmoji(reaction.getEmoji()));
+    }
+
+    @Override
+    public void unreact() {
+        message.unreact(new InternalEmoji(reaction.getEmoji()));
     }
 }

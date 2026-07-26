@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
@@ -15,14 +15,14 @@ import org.jetbrains.annotations.Nullable;
 public class InternalMessageSentEvent implements MessageSentEvent {
     private final Message message;
     private final cloud.thehsi.ComitasBotJ.API.Discord.Message.Message iMessage;
-    private final net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel;
+    private final MessageChannel channel;
     private final net.dv8tion.jda.api.entities.Member author;
 
     public InternalMessageSentEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
-        this.iMessage = new InternalMessage(message);
+        this.iMessage = new InternalMessage(message, this::deleteMessage);
 
-        this.channel = event.getChannel().asTextChannel(); // TODO: Fix Cannot convert channel of type ThreadChannel to TextChannel!
+        this.channel = new InternalMessageChannel(event.getChannel());
         this.author = event.getMember();
     }
 
@@ -62,8 +62,8 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     }
 
     @Override
-    public TextChannel getChannel() {
-        return new InternalTextChannel(channel);
+    public MessageChannel getChannel() {
+        return channel;
     }
 
     @Override

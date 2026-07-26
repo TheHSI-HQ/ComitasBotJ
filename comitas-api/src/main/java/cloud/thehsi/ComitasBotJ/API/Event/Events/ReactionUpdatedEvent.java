@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.ReactionAction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
@@ -11,19 +12,26 @@ public interface ReactionUpdatedEvent extends Event {
      *
      * @return The Message Author
      */
-    Member getMember();
+    Member member();
 
     /**
      * Get the Message which Reactions got updated
      *
      * @return The Message
      */
-    Message getMessage();
+    Message message();
 
     /**
      * The updated reaction
      *
      * @return The updated reaction
      */
-    Reaction getReaction();
+    Reaction reaction();
+
+    /**
+     * Did the reaction count get increased or decreased
+     *
+     * @return The action that happened
+     */
+    ReactionAction reactionAction();
 }

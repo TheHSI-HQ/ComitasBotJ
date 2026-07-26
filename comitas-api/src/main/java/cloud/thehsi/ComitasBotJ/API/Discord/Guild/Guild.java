@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public interface Guild {
      *
      * @return The default channel of this guild.
      */
-    TextChannel getDefaultChannel();
+    MessageChannel getDefaultChannel();
 
     /**
      * Returns a list of Members of the guild.

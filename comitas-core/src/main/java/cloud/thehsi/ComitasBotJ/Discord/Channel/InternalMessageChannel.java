@@ -1,6 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
@@ -8,23 +8,25 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import org.jetbrains.annotations.Nullable;
 
-public class InternalTextChannel extends InternalChannel implements TextChannel {
-    final net.dv8tion.jda.api.entities.channel.concrete.TextChannel textChannel;
+public class InternalMessageChannel extends InternalChannel implements MessageChannel {
+    final net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel;
 
-    public InternalTextChannel(net.dv8tion.jda.api.entities.channel.concrete.TextChannel textChannel) {
-        super(textChannel);
+    public InternalMessageChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+        super(channel);
 
-        this.textChannel = textChannel;
+        this.channel = channel;
     }
 
     @Override
     public void sendMessage(Component message) {
         String msg = ComponentParser.parseComponent(message);
 
-        textChannel.sendMessage(msg).queue();
+        channel.sendMessage(msg).queue();
     }
 
     @Override
@@ -36,7 +38,7 @@ public class InternalTextChannel extends InternalChannel implements TextChannel 
 
         MessageEmbed messageEmbed = internal.embed();
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            textChannel.sendMessage(data).queue();
+            channel.sendMessage(data).queue();
         }
     }
 
@@ -54,12 +56,15 @@ public class InternalTextChannel extends InternalChannel implements TextChannel 
         }
 
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            textChannel.sendMessage(data).queue();
+            channel.sendMessage(data).queue();
         }
     }
 
     @Override
+    @Nullable
     public Guild getGuild() {
-        return new InternalGuild(textChannel.getGuild());
+        if (channel instanceof GuildChannel guildChannel)
+            return new InternalGuild(guildChannel.getGuild());
+        return null;
     }
 }

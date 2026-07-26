@@ -1,15 +1,16 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
+import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
+import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReactionAction;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalMessageSentEvent;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalUserRoleAddedEvent;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalUserRoleRemovedEvent;
+import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -18,6 +19,8 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -175,5 +178,33 @@ public class DiscordAPI extends ListenerAdapter {
                 event.getGuild().addRoleToMember(event.getUser(), role).queue();
             }
         }
+    }
+
+    @Override
+    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+        if (event.getMember() == null) return;
+
+        Message message = new InternalMessage(event.retrieveMessage().complete());
+
+        eventManager.callEvent(new InternalReactionUpdatedEvent(
+                new InternalMember(event.getMember()),
+                message,
+                new InternalReaction(event.getReaction(), message),
+                InternalReactionAction.INCREASED
+        ));
+    }
+
+    @Override
+    public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
+        if (event.getMember() == null) return;
+
+        Message message = new InternalMessage(event.retrieveMessage().complete());
+
+        eventManager.callEvent(new InternalReactionUpdatedEvent(
+                new InternalMember(event.getMember()),
+                message,
+                new InternalReaction(event.getReaction(), message),
+                event.getReaction().retrieveUsers().complete().isEmpty() ? InternalReactionAction.REMOVED : InternalReactionAction.DECREASED
+        ));
     }
 }

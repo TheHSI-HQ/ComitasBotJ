@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 
 @SuppressWarnings("unused")
-public interface TextChannel extends Channel {
+public interface MessageChannel extends Channel {
     /**
      * Send a Message in the Channel
      *

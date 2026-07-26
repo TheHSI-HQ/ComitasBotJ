@@ -1,13 +1,15 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
@@ -26,15 +28,25 @@ public class InternalMessage implements Message {
     private final net.dv8tion.jda.api.entities.Message message;
     private boolean deleted = false;
 
+    private Runnable optionalDeletionCallback = null;
+
     public InternalMessage(net.dv8tion.jda.api.entities.Message message) {
         this.message = message;
     }
 
+    public InternalMessage(net.dv8tion.jda.api.entities.Message message, Runnable deletionCallback) {
+        this.optionalDeletionCallback = deletionCallback;
+        this.message = message;
+    }
 
     @Override
     public void delete() {
         deleted = true;
-        message.delete().queue();
+
+        if (optionalDeletionCallback != null)
+            optionalDeletionCallback.run();
+        else
+            message.delete().queue();
     }
 
     @Override
@@ -66,8 +78,8 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public TextChannel getChannel() {
-        return new InternalTextChannel((net.dv8tion.jda.api.entities.channel.concrete.TextChannel) message.getChannel());
+    public MessageChannel getChannel() {
+        return new InternalMessageChannel(message.getChannel());
     }
 
     @Override
@@ -92,6 +104,16 @@ public class InternalMessage implements Message {
             reactions.add(new InternalReaction(reaction, this));
         }
         return reactions;
+    }
+
+    @Override
+    public void react(Emoji emoji) {
+        message.addReaction(((InternalEmoji)emoji).emoji()).queue();
+    }
+
+    @Override
+    public void unreact(Emoji emoji) {
+        message.removeReaction(((InternalEmoji)emoji).emoji()).queue();
     }
 
     @Override

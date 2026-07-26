@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
@@ -40,7 +41,7 @@ public interface Message {
      *
      * @return The Message Channel
      */
-    TextChannel getChannel();
+    MessageChannel getChannel();
 
     /**
      * Is this message a reply to another message
@@ -63,6 +64,16 @@ public interface Message {
      * @return The list of reactions
      */
     List<Reaction> getReactions();
+
+    /**
+     * React to this message
+     */
+    void react(Emoji emoji);
+
+    /**
+     * Removes a reaction to this message
+     */
+    void unreact(Emoji emoji);
 
     /**
      * Get a list of attachments to this message

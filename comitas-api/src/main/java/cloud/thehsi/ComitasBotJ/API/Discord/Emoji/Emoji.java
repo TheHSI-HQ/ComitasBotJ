@@ -1,13 +1,15 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Emoji;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+
 @SuppressWarnings("unused")
 public interface Emoji {
     /**
      * Generates the emoji so it can be placed in a message
      *
-     * @return The emoji string
+     * @return The emoji component
      */
-    String asMessageEmbed();
+    Component asMessageEmbed();
 
     /**
      * Get the emoji name

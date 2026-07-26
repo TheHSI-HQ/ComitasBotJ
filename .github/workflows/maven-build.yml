@@ -22,17 +22,11 @@ jobs:
           java-version: 21
           cache: maven
 
-      # 1. Install API into local Maven repo first
-      - name: Install comitas-api
-        run: mvn -pl comitas-api -am clean install -DskipTests
-
-      # 2. Build the remaining modules as artifacts
       - name: Build core + plugin
         run: |
           mvn -pl comitas-core -am clean package -DskipTests
           mvn -pl example-plugin -am clean package -DskipTests
 
-      # 3. Upload artifacts
       - name: Upload core artifact
         uses: actions/upload-artifact@v4
         with:

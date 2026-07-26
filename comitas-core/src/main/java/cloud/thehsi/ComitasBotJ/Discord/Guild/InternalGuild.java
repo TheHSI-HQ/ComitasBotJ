@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 
 import java.util.ArrayList;
@@ -23,9 +23,9 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public TextChannel getDefaultChannel() {
-        return new InternalTextChannel(
-                (net.dv8tion.jda.api.entities.channel.concrete.TextChannel) guild.getDefaultChannel()
+    public MessageChannel getDefaultChannel() {
+        return new InternalMessageChannel(
+                (net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) guild.getDefaultChannel()
         );
     }
 
@@ -45,8 +45,8 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
         List<Channel> channels = new ArrayList<>();
 
         for (net.dv8tion.jda.api.entities.channel.Channel channel : guild.getChannels()) {
-            if (channel instanceof net.dv8tion.jda.api.entities.channel.concrete.TextChannel)
-                channels.add(new InternalTextChannel((net.dv8tion.jda.api.entities.channel.concrete.TextChannel) channel));
+            if (channel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel)
+                channels.add(new InternalMessageChannel((net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) channel));
             else
                 channels.add(new InternalChannel(channel));
         }
