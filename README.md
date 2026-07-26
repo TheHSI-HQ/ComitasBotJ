@@ -3,9 +3,11 @@
 > [!IMPORTANT]
 > ComitasBotJ is still in early development, if you're missing any feature, please open an issue
 
-A modular Discord bot framework for replacing multiple single-purpose bots with one extensible instance.
 
-The continuation of [ComitasBot](https://git.thehsi.cloud/TheHSI/ComitasBot)
+## What is ComitasBotJ?
+ComitasBotJ is a modular Discord bot framework that allows multiple features to run inside a single bot instance. Functionality is provided through independently loadable plugins, making it easy to extend the bot without modifying the core runtime.
+
+Also known as the continuation of [ComitasBot](https://git.thehsi.cloud/TheHSI/ComitasBot).
 
 ## Features
 
@@ -26,7 +28,7 @@ The continuation of [ComitasBot](https://git.thehsi.cloud/TheHSI/ComitasBot)
 
 ### Option 1. Download the Precompiled JAR
 
-Download the latest comitas-core-*.jar from the [Releases Tab](https://github.com/TheHSI-HQ/ComitasBotJ/releases)
+Download the latest `comitas-core-*.jar` from the [Releases page](https://github.com/TheHSI-HQ/ComitasBotJ/releases)
 
 Start it using
 
@@ -36,38 +38,53 @@ java -jar comitas-core-<version>.jar
 
 ### Option 2. Build from Source
 
-0. Prerequisites:
+1. Prerequisites:
 
-- Java 21 or newer
-- Maven
-- Git
+   - Java 21 or newer
+   - Maven
+   - Git
 
-1. Clone the Repo
+2. Clone the Repo
 
-```bash
-git clone https://github.com/TheHSI-HQ/ComitasBotJ
-cd ComitasBotJ
-```
+    ```bash
+    git clone https://github.com/TheHSI-HQ/ComitasBotJ
+    cd ComitasBotJ
+    ```
 
-2. Install the API
+3. Install the API to the local Maven repository
 
-```bash
-mvn -pl comitas-api -am clean install
-```
+    ```bash
+    mvn -pl comitas-api -am clean install
+    ```
 
-3. Build ComitasBotJ (comitas-core)
+4. Build ComitasBotJ (comitas-core)
 
-```bash
-mvn -pl comitas-core -am clean install
-cd comitas-core
-cd target
-```
+    ```bash
+    mvn -pl comitas-core -am clean install
+    cd comitas-core
+    cd target
+    ```
 
-4. Start the Server
+5. Start the Server
+    
+    ```bash
+    java -jar comitas-core-<version>.jar
+    ```
 
-```bash
-java -jar comitas-core-<version>.jar
-```
+6. Configure the Bot
+
+    Before ComitasBotJ can connect to Discord, you must provide a valid Discord bot token.
+    
+    Open the generated `tokens.secret` file and add your token after `bot=`:
+    
+    ```properties
+    bot=YOUR_DISCORD_BOT_TOKEN
+    ```
+    
+    Save the file and restart ComitasBotJ. Once the bot successfully connects to Discord, type `invite` into the bot's terminal and press **Enter**.
+    
+    ComitasBotJ will generate an invite link. Open the link in your browser and follow the instructions to invite the bot to your Discord server.
+
 
 ## Configuration
 
@@ -80,15 +97,29 @@ The `server.properties` file is automatically created on the first startup. It i
 | `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                              |
 | `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                               |
 | `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. |
-| `bot-activity-name` | string   | `ComitasBotJ` | The name of the activity, the bot will be shown as actively doing                                        |
+| `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                  |
 
-## Project Structure
-```ansii
-ComitasBotJ
-├── comitas-api # Public API for plugin developers
-├── comitas-core # Main bot runtime
-└── example-plugin # A example plugin
+### File Structure
+
+The following files and directories are created and used by ComitasBotJ:
+
+```text
+.
+├── comitas-core-<version>.jar # The ComitasBotJ executable JAR file
+├── server.properties          # The main configuration file
+├── tokens.secret              # The file containing the Discord bot token
+├── logs/                      # Logs from the last 365 days
+│   ├── latest.log             # The current log file
+│   └── ...
+├── plugin_data/               # Persistent data used by plugins
+│   └── ...
+└── plugins/                   # Directory from which plugins are loaded
+    └── ...
 ```
+
+> [!WARNING]
+> Do not modify or delete files in `plugin_data/` unless you know exactly what you are doing. Plugins may rely on the data stored in this directory.
+
 
 ## Plugin Development
 
@@ -100,7 +131,7 @@ Plugins can:
 - Store persistent data
 - Extend bot functionality
 
-See the [API documentation](api.md) for more information.
+See the [API documentation](API.md) for more information.
 
 ## Contributing
 

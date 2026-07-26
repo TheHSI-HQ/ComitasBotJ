@@ -14,6 +14,7 @@ public class Main extends Plugin {
         new PluginsConsoleCommand(this);
         new StopConsoleCommand(this);
         new ReloadConsoleCommand(this);
+        new InviteConsoleCommand(this);
     }
 
     @Override

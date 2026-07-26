@@ -17,6 +17,13 @@ public interface Bot {
     String getDisplayName();
 
     /**
+     * Generates an invitation link for the bot.
+     *
+     * @return The generated invitation look
+     */
+    String generateInvitationLink();
+
+    /**
      * Returns the bot's ID.
      *
      * @return The bot's ID
