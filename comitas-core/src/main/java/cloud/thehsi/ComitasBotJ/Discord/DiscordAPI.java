@@ -37,31 +37,11 @@ import java.util.concurrent.TimeUnit;
 
 public class DiscordAPI extends ListenerAdapter {
     static JDA api;
-    boolean firstStartup = true;
     final EventManager eventManager;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
-
-    public static JDA api() {
-        return api;
-    }
-
-    record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            RoleModificationLoopFix that = (RoleModificationLoopFix) o;
-            return add == that.add && affectedUser == that.affectedUser && affectedRole == that.affectedRole;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(add, affectedUser, affectedRole);
-        }
-    }
-
     final List<RoleModificationLoopFix> roleModificationLoopFixList = new ArrayList<>();
-
     private final String BOT_TOKEN;
+    boolean firstStartup = true;
 
     public DiscordAPI(String BOT_TOKEN, EventManager eventManager) {
         this.BOT_TOKEN = BOT_TOKEN;
@@ -69,6 +49,10 @@ public class DiscordAPI extends ListenerAdapter {
         connect();
 
         this.eventManager = eventManager;
+    }
+
+    public static JDA api() {
+        return api;
     }
 
     private void connect() {
@@ -106,7 +90,9 @@ public class DiscordAPI extends ListenerAdapter {
 
         eventManager.callEvent(messageSentEvent);
 
-        if (messageSentEvent.isDelete()) event.getMessage().delete().queue(ignored -> {}, error -> {});
+        if (messageSentEvent.isDelete()) event.getMessage().delete().queue(ignored -> {
+        }, error -> {
+        });
     }
 
     @Override
@@ -119,7 +105,7 @@ public class DiscordAPI extends ListenerAdapter {
             );
 
         eventManager.callEvent(new InternalBotConnectEvent(
-                        api.getSelfUser()
+                api.getSelfUser()
         ));
 
         if (firstStartup) {
@@ -153,7 +139,9 @@ public class DiscordAPI extends ListenerAdapter {
                 roleModificationLoopFixList.add(
                         new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong())
                 );
-                event.getGuild().removeRoleFromMember(event.getUser(), role).queue(ignored -> {}, error -> {});
+                event.getGuild().removeRoleFromMember(event.getUser(), role).queue(ignored -> {
+                }, error -> {
+                });
             }
         }
     }
@@ -210,5 +198,19 @@ public class DiscordAPI extends ListenerAdapter {
                 new InternalReaction(event.getReaction(), message),
                 event.getReaction().retrieveUsers().complete().isEmpty() ? InternalReactionAction.REMOVED : InternalReactionAction.DECREASED
         ));
+    }
+
+    record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            RoleModificationLoopFix that = (RoleModificationLoopFix) o;
+            return add == that.add && affectedUser == that.affectedUser && affectedRole == that.affectedRole;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(add, affectedUser, affectedRole);
+        }
     }
 }

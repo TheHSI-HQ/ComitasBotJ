@@ -10,7 +10,8 @@ import java.util.Objects;
 public class InternalPersistentDataStorage implements PersistentDataStorage {
     private Map<String, Entry> data = new HashMap<>();
 
-    public InternalPersistentDataStorage() {}
+    public InternalPersistentDataStorage() {
+    }
 
     public InternalPersistentDataStorage(Map<String, Entry> data) {
         this.data = data;

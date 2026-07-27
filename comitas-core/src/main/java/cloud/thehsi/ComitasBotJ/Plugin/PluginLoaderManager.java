@@ -16,9 +16,9 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
     private final List<LoadedPlugin> plugins = new ArrayList<>();
-    public InternalPluginManager pluginManager = null;
-
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
+    public InternalPluginManager pluginManager = null;
+    LoadedPlugin basePlugin = null;
 
     public PluginLoaderManager() {
     }
@@ -45,8 +45,6 @@ public class PluginLoaderManager {
 
         return null;
     }
-
-    LoadedPlugin basePlugin = null;
 
     public void loadBasePlugin() {
         if (basePlugin == null)
@@ -111,10 +109,10 @@ public class PluginLoaderManager {
         for (File jar : jars) {
             try {
                 URLClassLoader loader =
-                         new URLClassLoader(
-                                 new URL[]{jar.toURI().toURL()},
-                                 getClass().getClassLoader()
-                         );
+                        new URLClassLoader(
+                                new URL[]{jar.toURI().toURL()},
+                                getClass().getClassLoader()
+                        );
 
                 InputStream is =
                         loader.getResourceAsStream(

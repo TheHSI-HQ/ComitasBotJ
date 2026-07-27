@@ -10,17 +10,8 @@ public class EmbedTitle {
     String text = null;
     String url = null;
 
-    @Nullable
-    public String text() {
-        return text;
+    private EmbedTitle() {
     }
-
-    @Nullable
-    public String url() {
-        return url;
-    }
-
-    private EmbedTitle() {}
 
     public EmbedTitle(@NotNull String text) {
         this.text = text;
@@ -29,5 +20,15 @@ public class EmbedTitle {
     public EmbedTitle(@NotNull String text, @NotNull String url) {
         this.text = text;
         this.url = url;
+    }
+
+    @Nullable
+    public String text() {
+        return text;
+    }
+
+    @Nullable
+    public String url() {
+        return url;
     }
 }

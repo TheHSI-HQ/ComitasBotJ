@@ -36,6 +36,56 @@ public class Style {
     private boolean codeBlock;
     private boolean spoiler;
 
+    private Style(boolean bold, boolean italic, boolean underline, boolean strikethrough, boolean bigHeader, boolean smallHeader, boolean smallerHeader, boolean subtext, boolean quote, boolean bulletPoints, boolean code, boolean codeBlock, boolean spoiler) {
+        this.bold = bold;
+        this.italic = italic;
+        this.underline = underline;
+        this.strikethrough = strikethrough;
+        this.bigHeader = bigHeader;
+        this.smallHeader = smallHeader;
+        this.smallerHeader = smallerHeader;
+        this.subtext = subtext;
+        this.quote = quote;
+        this.bulletPoints = bulletPoints;
+        this.code = code;
+        this.codeBlock = codeBlock;
+        this.spoiler = spoiler;
+    }
+
+    public Style(Style style) {
+        this.bold = style.bold;
+        this.italic = style.italic;
+        this.underline = style.underline;
+        this.strikethrough = style.strikethrough;
+        this.bigHeader = style.bigHeader;
+        this.smallHeader = style.smallHeader;
+        this.smallerHeader = style.smallerHeader;
+        this.subtext = style.subtext;
+        this.quote = style.quote;
+        this.bulletPoints = style.bulletPoints;
+        this.code = style.code;
+        this.codeBlock = style.codeBlock;
+        this.spoiler = style.spoiler;
+    }
+
+    public static Style fromMask(int mask) {
+        return new Style(
+                (mask & 1) != 0,
+                (mask & 2 << 1) != 0,
+                (mask & 2 << 2) != 0,
+                (mask & 2 << 3) != 0,
+                (mask & 2 << 4) != 0,
+                (mask & 2 << 5) != 0,
+                (mask & 2 << 6) != 0,
+                (mask & 2 << 7) != 0,
+                (mask & 2 << 8) != 0,
+                (mask & 2 << 9) != 0,
+                (mask & 2 << 10) != 0,
+                (mask & 2 << 11) != 0,
+                (mask & 2 << 12) != 0
+        );
+    }
+
     public boolean isBold() {
         return bold;
     }
@@ -86,56 +136,6 @@ public class Style {
 
     public boolean isSpoiler() {
         return spoiler;
-    }
-
-    private Style(boolean bold, boolean italic, boolean underline, boolean strikethrough, boolean bigHeader, boolean smallHeader, boolean smallerHeader, boolean subtext, boolean quote, boolean bulletPoints, boolean code, boolean codeBlock, boolean spoiler) {
-        this.bold = bold;
-        this.italic = italic;
-        this.underline = underline;
-        this.strikethrough = strikethrough;
-        this.bigHeader = bigHeader;
-        this.smallHeader = smallHeader;
-        this.smallerHeader = smallerHeader;
-        this.subtext = subtext;
-        this.quote = quote;
-        this.bulletPoints = bulletPoints;
-        this.code = code;
-        this.codeBlock = codeBlock;
-        this.spoiler = spoiler;
-    }
-
-    public Style(Style style) {
-        this.bold = style.bold;
-        this.italic = style.italic;
-        this.underline = style.underline;
-        this.strikethrough = style.strikethrough;
-        this.bigHeader = style.bigHeader;
-        this.smallHeader = style.smallHeader;
-        this.smallerHeader = style.smallerHeader;
-        this.subtext = style.subtext;
-        this.quote = style.quote;
-        this.bulletPoints = style.bulletPoints;
-        this.code = style.code;
-        this.codeBlock = style.codeBlock;
-        this.spoiler = style.spoiler;
-    }
-
-    public static Style fromMask(int mask) {
-        return new Style(
-                (mask & 1) != 0,
-                (mask & 2 << 1) != 0,
-                (mask & 2 << 2) != 0,
-                (mask & 2 << 3) != 0,
-                (mask & 2 << 4) != 0,
-                (mask & 2 << 5) != 0,
-                (mask & 2 << 6) != 0,
-                (mask & 2 << 7) != 0,
-                (mask & 2 << 8) != 0,
-                (mask & 2 << 9) != 0,
-                (mask & 2 << 10) != 0,
-                (mask & 2 << 11) != 0,
-                (mask & 2 << 12) != 0
-        );
     }
 
     public Style add(Style style) {

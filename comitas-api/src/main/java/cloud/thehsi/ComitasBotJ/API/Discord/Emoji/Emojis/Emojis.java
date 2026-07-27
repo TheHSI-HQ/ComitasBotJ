@@ -1,5 +1,5 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis;
-    
+
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection"})

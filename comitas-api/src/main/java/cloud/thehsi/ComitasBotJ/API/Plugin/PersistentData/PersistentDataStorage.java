@@ -5,8 +5,8 @@ public interface PersistentDataStorage {
     /**
      * Set a key in this storage to some data.
      *
-     * @param key The data address
-     * @param type The type of the data
+     * @param key   The data address
+     * @param type  The type of the data
      * @param value The data
      */
     <T> void set(
@@ -18,7 +18,7 @@ public interface PersistentDataStorage {
     /**
      * Retrieve data from this storage.
      *
-     * @param key The data address
+     * @param key  The data address
      * @param type The type of the data
      */
     <T> T get(
@@ -39,7 +39,7 @@ public interface PersistentDataStorage {
     /**
      * Does this Storage have this key of that type?
      *
-     * @param key The key
+     * @param key  The key
      * @param type The type
      * @return Does this Storage have this key of that type?
      */

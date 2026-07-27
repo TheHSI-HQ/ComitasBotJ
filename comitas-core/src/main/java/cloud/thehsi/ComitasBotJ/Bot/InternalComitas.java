@@ -32,17 +32,17 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
+    private final ConsoleCommandRegistry consoleCommandRegistry;
+    private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
+    private final ConsolePrompt consolePrompt;
+    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private PluginLoaderManager pluginLoaderManager;
     private InternalPluginManager pluginManager;
-    private final ConsoleCommandRegistry consoleCommandRegistry;
     private InternalScheduler scheduler;
     private EventManager eventManager;
     private DiscordAPI api;
     private Logger logger;
     private Bot bot;
-    private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
-    private final ConsolePrompt consolePrompt;
-
     private String bot_token;
 
     public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry, ConsolePrompt consolePrompt) {
@@ -169,8 +169,6 @@ public class InternalComitas implements InternalComitasImpl {
         System.exit(0);
     }
 
-    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
-
     private void onShutdown() {
         if (!shuttingDown.compareAndSet(false, true)) return;
 
@@ -219,7 +217,8 @@ public class InternalComitas implements InternalComitasImpl {
             try {
                 terminal.writer().flush();
                 terminal.close(); // deterministically close BEFORE JLine's hook can race us
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         ((LoggerContext) LoggerFactory.getILoggerFactory()).stop();

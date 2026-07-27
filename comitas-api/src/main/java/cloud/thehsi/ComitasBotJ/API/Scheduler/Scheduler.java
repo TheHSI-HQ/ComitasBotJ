@@ -21,7 +21,7 @@ public interface Scheduler {
     /**
      * Run a task asynchronously repeatedly
      *
-     * @param delayMS Delay between now and first execution in milliseconds
+     * @param delayMS    Delay between now and first execution in milliseconds
      * @param intervalMS Delay between evey execution in milliseconds
      * @return The task
      */

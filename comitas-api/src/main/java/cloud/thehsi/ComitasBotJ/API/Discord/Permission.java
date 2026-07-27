@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class Permission {
-    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");
     public static final Permission CREATE_INSTANT_INVITE =
             new Permission(1L, "CREATE_INSTANT_INVITE");
     public static final Permission KICK_MEMBERS =
@@ -110,6 +109,13 @@ public class Permission {
             new Permission(2L << 51, "PIN_MESSAGES");
     public static final Permission BYPASS_SLOWMODE =
             new Permission(2L << 52, "BYPASS_SLOWMODE");
+    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");
+    final long permission;
+    final String name;
+    private Permission(long permission, String name) {
+        this.permission = permission;
+        this.name = name;
+    }
 
     public static Permission fromValue(String permission) {
         return switch (permission) {
@@ -170,13 +176,5 @@ public class Permission {
                 yield null;
             }
         };
-    }
-
-    final long permission;
-    final String name;
-
-    private Permission(long permission, String name) {
-        this.permission = permission;
-        this.name = name;
     }
 }

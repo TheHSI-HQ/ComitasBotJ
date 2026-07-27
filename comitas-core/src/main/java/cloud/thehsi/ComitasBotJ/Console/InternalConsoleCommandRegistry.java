@@ -23,7 +23,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
 
             try {
                 cmd.consoleCommandExecutor().execute(args);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 logger.error("Failed to execute command '{}'", command, e);
             }
             return true;

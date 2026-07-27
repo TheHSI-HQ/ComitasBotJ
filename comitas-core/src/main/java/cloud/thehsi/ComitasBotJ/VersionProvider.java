@@ -6,7 +6,7 @@ public class VersionProvider implements IVersionProvider {
 
     @Override
     public String[] getVersion() {
-        return new String[] {
+        return new String[]{
                 "ComitasBotJ " + Main.getServerVersion()
         };
     }

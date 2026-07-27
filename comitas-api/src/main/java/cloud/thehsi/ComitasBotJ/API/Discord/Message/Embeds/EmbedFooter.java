@@ -10,17 +10,8 @@ public class EmbedFooter {
     String text = null;
     String imageUrl = null;
 
-    @Nullable
-    public String text() {
-        return text;
+    private EmbedFooter() {
     }
-
-    @Nullable
-    public String imageUrl() {
-        return imageUrl;
-    }
-
-    private EmbedFooter() {}
 
     public EmbedFooter(@NotNull String text) {
         this.text = text;
@@ -29,5 +20,15 @@ public class EmbedFooter {
     public EmbedFooter(@NotNull String text, @NotNull String imageUrl) {
         this.text = text;
         this.imageUrl = imageUrl;
+    }
+
+    @Nullable
+    public String text() {
+        return text;
+    }
+
+    @Nullable
+    public String imageUrl() {
+        return imageUrl;
     }
 }

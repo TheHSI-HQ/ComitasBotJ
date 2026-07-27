@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
 public class RepeatingTask implements Task {
     final int taskId;
     final Plugin owner;
-    boolean canceled = false;
     final ScheduledFuture<?> scheduledFuture;
     final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+    boolean canceled = false;
 
 
     public RepeatingTask(int taskId, Plugin owner, Runnable runnable, Long delay, Long interval) {

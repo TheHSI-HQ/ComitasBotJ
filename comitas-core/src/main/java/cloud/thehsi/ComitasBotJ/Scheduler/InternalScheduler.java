@@ -9,9 +9,6 @@ import java.util.Map;
 
 public class InternalScheduler implements Scheduler {
 
-    record ScheduledTask(Task task, Runnable runnable) {
-    }
-
     final Map<Integer, ScheduledTask> tasks = new HashMap<>();
     int nextTaskId = 0;
 
@@ -31,7 +28,6 @@ public class InternalScheduler implements Scheduler {
         thread.start();
         return task;
     }
-
 
     @Override
     public Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayMS, long intervalMS) {
@@ -60,5 +56,8 @@ public class InternalScheduler implements Scheduler {
         for (ScheduledTask task : tasks.values()) {
             task.task().cancel();
         }
+    }
+
+    record ScheduledTask(Task task, Runnable runnable) {
     }
 }

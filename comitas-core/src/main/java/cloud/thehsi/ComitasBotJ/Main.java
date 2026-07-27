@@ -24,69 +24,72 @@ import java.util.Properties;
         description = "ComitasBotJ"
 )
 public class Main implements Runnable {
+    public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
     private static final long STARTUP_TIME = System.currentTimeMillis();
-
     private static final ConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
     private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
-
-    public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
-
-    public static long getRuntimeMS() {
-        return System.currentTimeMillis() - STARTUP_TIME;
-    }
-
+    // Properties
+    private static StartupProperties props;
+    private static ServerConfig.ParsedServerConfig conf;
     @CommandLine.Option(
             names = "--no-cmd",
             description = "Disable command line"
     )
     private boolean noCmd;
-
     @CommandLine.Option(
             names = "--ignore-api-target",
             description = "Ignore API Version specification in Plugins"
     )
     private boolean ignoreApiTarget;
-
     @CommandLine.Option(
             names = "--safe-mode",
             description = "Enable safe mode (No Plugin loading)."
     )
     private boolean safeMode;
-
     @CommandLine.Option(
             names = "--strict-safe-mode",
             description = "Same as safe mode but also skips base plugin."
     )
     private boolean strictSafeMode;
-
     @CommandLine.Option(
             names = "--list-plugins",
             description = "List all plugins, regardless of whitelists, and exit."
     )
     private boolean listPlugins;
 
-    // Properties
-    private static StartupProperties props;
+    public static long getRuntimeMS() {
+        return System.currentTimeMillis() - STARTUP_TIME;
+    }
+
     public static StartupProperties props() {
         return props;
     }
 
-    private static ServerConfig.ParsedServerConfig conf;
     public static ServerConfig.ParsedServerConfig conf() {
         return conf;
     }
 
     public static void main(String[] args) {
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
-   ___           _ _           ___      _      _\s
-  / __|___ _ __ (_) |_ __ _ __| _ ) ___| |_ _ | |
- | (__/ _ \\ '  \\| |  _/ _` (_-< _ \\/ _ \\  _| || |
-  \\___\\___/_|_|_|_|\\__\\__,_/__/___/\\___/\\__|\\__/\s
- """);
+                  ___           _ _           ___      _      _\s
+                 / __|___ _ __ (_) |_ __ _ __| _ ) ___| |_ _ | |
+                | (__/ _ \\ '  \\| |  _/ _` (_-< _ \\/ _ \\  _| || |
+                 \\___\\___/_|_|_|_|\\__\\__,_/__/___/\\___/\\__|\\__/\s
+                """);
 
         int exitCode = new CommandLine(new Main()).execute(args);
         System.exit(exitCode);
+    }
+
+    public static String getServerVersion() {
+        try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
+            Properties props = new Properties();
+            props.load(in);
+            return props.getProperty("version");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -167,22 +170,12 @@ public class Main implements Runnable {
             logger.warn("""
                     {}
                     Strict Safe Mode is enabled.
-        
+                    
                     Plugin loading and all built-in commands are disabled.
                     To quit ComitasBotJ, press Ctrl+C (^C).
-        
+                    
                     This mode is intended only for debugging and testing
                     and should not be used in production environments.
                     """, ConsoleColor.YELLOW);
     }
-
-    public static String getServerVersion() {
-                try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
-                    Properties props = new Properties();
-                    props.load(in);
-                    return props.getProperty("version");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+}

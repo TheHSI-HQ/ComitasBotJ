@@ -81,7 +81,7 @@ public class ConsolePrompt {
         // printAbove redraws the prompt line beneath automatically
         lineReader.printAbove(line);
     }
-    
+
     public LineReader lineReader() {
         return lineReader;
     }

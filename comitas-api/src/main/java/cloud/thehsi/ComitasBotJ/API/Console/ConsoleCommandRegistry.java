@@ -20,8 +20,8 @@ public interface ConsoleCommandRegistry {
         final List<String> aliases;
         final String plugin_prefix;
         final Plugin plugin;
-        String description = "";
         final ConsoleCommandExecutor consoleCommandExecutor;
+        String description = "";
 
         public CommandBuilder(Plugin plugin, ConsoleCommandExecutor consoleCommandExecutor) {
             this.plugin = plugin;
@@ -61,6 +61,6 @@ public interface ConsoleCommandRegistry {
     }
 
     record Command(List<String> aliases, Plugin plugin, String description,
-                          ConsoleCommandExecutor consoleCommandExecutor) {
+                   ConsoleCommandExecutor consoleCommandExecutor) {
     }
 }

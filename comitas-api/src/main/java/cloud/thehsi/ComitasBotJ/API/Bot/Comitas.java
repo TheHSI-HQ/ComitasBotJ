@@ -16,14 +16,6 @@ public class Comitas {
     private Comitas() {
     }
 
-    public void init(InternalComitasImpl impl) {
-        assert INSTANCE.impl == null;
-
-        INSTANCE.impl = impl;
-
-        INSTANCE.impl.init();
-    }
-
     /* Not supposed to be used by Plugin Developers */
     public static UtilityBackend getUtilityBackend() {
         return INSTANCE.impl.getUtilityBackend();
@@ -104,5 +96,13 @@ public class Comitas {
      */
     public static Scheduler getScheduler() {
         return INSTANCE.impl.getScheduler();
+    }
+
+    public void init(InternalComitasImpl impl) {
+        assert INSTANCE.impl == null;
+
+        INSTANCE.impl = impl;
+
+        INSTANCE.impl.init();
     }
 }

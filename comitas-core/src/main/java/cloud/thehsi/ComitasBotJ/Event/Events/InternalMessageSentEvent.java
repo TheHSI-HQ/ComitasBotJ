@@ -21,6 +21,7 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     private final MessageChannel channel;
     private final Guild guild;
     private final net.dv8tion.jda.api.entities.Member author;
+    private boolean delete = false;
 
     public InternalMessageSentEvent(MessageReceivedEvent event) {
         this.message = event.getMessage();
@@ -30,8 +31,6 @@ public class InternalMessageSentEvent implements MessageSentEvent {
         this.guild = new InternalGuild(event.getGuild());
         this.author = event.getMember();
     }
-
-    private boolean delete = false;
 
     @Override
     public boolean isDelete() {
@@ -78,7 +77,7 @@ public class InternalMessageSentEvent implements MessageSentEvent {
 
     @Override
     public MyMessage reply(Component message) {
-       return iMessage.reply(message);
+        return iMessage.reply(message);
     }
 
     @Override

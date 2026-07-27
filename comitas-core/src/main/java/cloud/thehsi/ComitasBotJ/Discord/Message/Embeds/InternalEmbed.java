@@ -16,10 +16,6 @@ import java.time.temporal.TemporalAccessor;
 public class InternalEmbed implements Embed {
     final MessageEmbed embed;
 
-    public MessageEmbed embed() {
-        return embed;
-    }
-
     public InternalEmbed(
             @Nullable EmbedAuthor author,
             @Nullable Color color,
@@ -52,5 +48,9 @@ public class InternalEmbed implements Embed {
             build = build.setUrl(url);
 
         this.embed = build.build();
+    }
+
+    public MessageEmbed embed() {
+        return embed;
     }
 }

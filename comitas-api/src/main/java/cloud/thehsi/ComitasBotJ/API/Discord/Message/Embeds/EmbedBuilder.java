@@ -28,6 +28,7 @@ public class EmbedBuilder {
         this.author = author;
         return this;
     }
+
     /**
      * Sets the embeds author.
      *
@@ -71,6 +72,7 @@ public class EmbedBuilder {
         this.footer = footer;
         return this;
     }
+
     /**
      * Sets the embeds footer.
      *
@@ -114,6 +116,7 @@ public class EmbedBuilder {
         this.title = title;
         return this;
     }
+
     /**
      * Sets the embeds title.
      *

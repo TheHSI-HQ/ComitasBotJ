@@ -11,7 +11,9 @@ public interface InternalComitasImpl {
     String getServerVersion();
 
     PluginManager getPluginManager();
+
     ConsoleCommandRegistry getConsoleCommandRegistry();
+
     Scheduler getScheduler();
 
     List<Guild> getGuilds();
@@ -21,5 +23,6 @@ public interface InternalComitasImpl {
     Bot getBot();
 
     void init();
+
     void shutdown();
 }

@@ -109,12 +109,12 @@ public class InternalMessage implements Message {
 
     @Override
     public void react(Emoji emoji) {
-        message.addReaction(((InternalEmoji)emoji).emoji()).complete();
+        message.addReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override
     public void unreact(Emoji emoji) {
-        message.removeReaction(((InternalEmoji)emoji).emoji()).complete();
+        message.removeReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override

@@ -9,7 +9,8 @@ public class Component {
     private Style style = Style.RESET;
     private String content = "";
 
-    private Component() {}
+    private Component() {
+    }
 
     /**
      * Copy a component.
@@ -19,6 +20,99 @@ public class Component {
             children.add(new Component(child));
         content = component.content;
         style = component.style;
+    }
+
+    /**
+     * An empty component
+     *
+     * @return The empty component.
+     */
+    public static Component empty() {
+        return new Component();
+    }
+
+    /**
+     * Create a raw component (without auto escaping)
+     *
+     * @param content The raw content
+     * @return The raw component.
+     */
+    public static Component raw(String content) {
+        Component c = new Component();
+        c.content = content;
+        return c;
+    }
+
+    /**
+     * Create a component from a link
+     *
+     * @param link The link url
+     * @return The link component.
+     */
+    public static Component link(String link) {
+        Component c = new Component();
+        c.content = link;
+        return c;
+    }
+
+    /**
+     * Create a component from a link
+     *
+     * @param link  The link url
+     * @param label The link label
+     * @return The link component.
+     */
+    public static Component link(String link, String label) {
+        Component c = new Component();
+        c.content = "[%s](%s)".formatted(link, label);
+        return c;
+    }
+
+    /**
+     * Create a component from text
+     *
+     * @param content The content
+     * @return The text component.
+     * @implNote Any content will be auto escaped
+     */
+    public static Component text(String content) {
+        Component c = new Component();
+        c.content(content);
+        return c;
+    }
+
+    /**
+     * Create a component from text and a style
+     *
+     * @param content The content
+     * @param style   The style
+     * @return The text component.
+     * @implNote Any content will be auto escaped
+     */
+    public static Component text(String content, Style style) {
+        Component c = new Component();
+        c.content(content);
+        c.style(style);
+        return c;
+    }
+
+    /**
+     * Create a component from text and multiple styles
+     *
+     * @param content The content
+     * @param styles  The styles
+     * @return The text component.
+     * @implNote Any content will be auto escaped
+     * @implNote Styles will be added together.
+     */
+    public static Component text(String content, Style... styles) {
+        Component c = new Component();
+        c.content = content;
+        Style finalStyle = Style.RESET;
+        for (Style style : styles)
+            finalStyle = finalStyle.add(style);
+        c.style = finalStyle;
+        return c;
     }
 
     /**
@@ -50,10 +144,10 @@ public class Component {
 
     /**
      * Sets the components content.
-     * @implNote Any content will be auto escaped
      *
      * @param content The new content
      * @return The component.
+     * @implNote Any content will be auto escaped
      */
     public Component content(String content) {
         this.content = content;
@@ -121,98 +215,5 @@ public class Component {
         for (Component child : children)
             this.append(child);
         return this;
-    }
-
-    /**
-     * An empty component
-     *
-     * @return The empty component.
-     */
-    public static Component empty() {
-        return new Component();
-    }
-
-    /**
-     * Create a raw component (without auto escaping)
-     *
-     * @param content The raw content
-     * @return The raw component.
-     */
-    public static Component raw(String content) {
-        Component c = new Component();
-        c.content = content;
-        return c;
-    }
-
-    /**
-     * Create a component from a link
-     *
-     * @param link The link url
-     * @return The link component.
-     */
-    public static Component link(String link) {
-        Component c = new Component();
-        c.content = link;
-        return c;
-    }
-
-    /**
-     * Create a component from a link
-     *
-     * @param link The link url
-     * @param label The link label
-     * @return The link component.
-     */
-    public static Component link(String link, String label) {
-        Component c = new Component();
-        c.content = "[%s](%s)".formatted(link, label);
-        return c;
-    }
-
-    /**
-     * Create a component from text
-     * @implNote Any content will be auto escaped
-     *
-     * @param content The content
-     * @return The text component.
-     */
-    public static Component text(String content) {
-        Component c = new Component();
-        c.content(content);
-        return c;
-    }
-
-    /**
-     * Create a component from text and a style
-     * @implNote Any content will be auto escaped
-     *
-     * @param content The content
-     * @param style The style
-     * @return The text component.
-     */
-    public static Component text(String content, Style style) {
-        Component c = new Component();
-        c.content(content);
-        c.style(style);
-        return c;
-    }
-
-    /**
-     * Create a component from text and multiple styles
-     * @implNote Any content will be auto escaped
-     * @implNote Styles will be added together.
-     *
-     * @param content The content
-     * @param styles The styles
-     * @return The text component.
-     */
-    public static Component text(String content, Style... styles) {
-        Component c = new Component();
-        c.content = content;
-        Style finalStyle = Style.RESET;
-        for (Style style : styles)
-            finalStyle = finalStyle.add(style);
-        c.style = finalStyle;
-        return c;
     }
 }

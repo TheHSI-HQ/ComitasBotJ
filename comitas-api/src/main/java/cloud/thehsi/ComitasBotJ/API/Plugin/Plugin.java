@@ -12,7 +12,39 @@ import java.util.UUID;
 
 @SuppressWarnings("unused")
 public abstract class Plugin {
-    public record PluginMetadata(String name, String version, String jarName, String targetAPI, UUID uuid, String consoleCommandPrefix) {
+    /**
+     * Gets the plugin's {@link PersistentDataStorage}.
+     * <p>
+     * The {@link PersistentDataStorage} is used to store data across restarts.
+     *
+     * @return The {@link PersistentDataStorage} owned use by this {@link Plugin}
+     */
+    public static PersistentDataStorage getPersistentDataStorage() {
+        return Comitas.getPluginManager().getPersistentDataStorage();
+    }
+
+    /**
+     * Initialize a new {@link ConsoleCommandRegistry.CommandBuilder}.
+     * <p>
+     * It is primarily used to register Commands.
+     *
+     * @param executor A {@link ConsoleCommandExecutor} that will handle the command
+     * @return The generated {@link ConsoleCommandRegistry.CommandBuilder}
+     */
+    public ConsoleCommandRegistry.CommandBuilder createCommandBuilder(ConsoleCommandExecutor executor) {
+        return new ConsoleCommandRegistry.CommandBuilder(this, executor);
+    }
+
+    public Logger getLogger() {
+        return LoggerFactory.getLogger(getClass());
+    }
+
+    public abstract void onEnable();
+
+    public abstract void onDisable();
+
+    public record PluginMetadata(String name, String version, String jarName, String targetAPI, UUID uuid,
+                                 String consoleCommandPrefix) {
         public static PluginMetadata fromProperties(Properties props, String jarName) {
             if (!props.containsKey("name")) throw new RuntimeException("Plugin is missing name in plugin.properties");
             if (!props.containsKey("version"))
@@ -36,35 +68,4 @@ public abstract class Plugin {
             }
         }
     }
-
-    /**
-     * Initialize a new {@link ConsoleCommandRegistry.CommandBuilder}.
-     * <p>
-     * It is primarily used to register Commands.
-     *
-     * @param executor A {@link ConsoleCommandExecutor} that will handle the command
-     * @return The generated {@link ConsoleCommandRegistry.CommandBuilder}
-     */
-    public ConsoleCommandRegistry.CommandBuilder createCommandBuilder(ConsoleCommandExecutor executor) {
-        return new ConsoleCommandRegistry.CommandBuilder(this, executor);
-    }
-
-    /**
-     * Gets the plugin's {@link PersistentDataStorage}.
-     * <p>
-     * The {@link PersistentDataStorage} is used to store data across restarts.
-     *
-     * @return The {@link PersistentDataStorage} owned use by this {@link Plugin}
-     */
-    public static PersistentDataStorage getPersistentDataStorage() {
-        return Comitas.getPluginManager().getPersistentDataStorage();
-    }
-
-    public Logger getLogger() {
-        return LoggerFactory.getLogger(getClass());
-    }
-
-    public abstract void onEnable();
-
-    public abstract void onDisable();
 }

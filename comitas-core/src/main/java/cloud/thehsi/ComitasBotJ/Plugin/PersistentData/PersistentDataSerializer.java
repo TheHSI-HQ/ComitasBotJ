@@ -26,8 +26,9 @@ public class PersistentDataSerializer {
         );
 
         Type type = new TypeToken<
-                        Map<String, InternalPersistentDataStorage.Entry>
-                        >() {}.getType();
+                Map<String, InternalPersistentDataStorage.Entry>
+                >() {
+        }.getType();
 
         return GSON.fromJson(json, type);
     }

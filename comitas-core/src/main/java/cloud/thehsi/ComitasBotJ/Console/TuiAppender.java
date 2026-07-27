@@ -8,19 +8,18 @@ import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
 
 public class TuiAppender extends AppenderBase<ILoggingEvent> {
-    private static volatile ConsolePrompt instance;
-
     // ANSI color codes
     private static final String RESET = "\033[0m";
     private static final String GREY = "\033[90m"; // timestamp brackets
     private static final String WHITE = "\033[97m"; // logger name
     private static final String BOLD = "\033[1m";
-
     private static final String INFO = "\033[92m"; // bright green
     private static final String WARN = "\033[93m"; // bright yellow
     private static final String ERROR = "\033[91m"; // bright red
     private static final String DEBUG = "\033[94m"; // bright blue
     private static final String TRACE = "\033[90m"; // grey
+    private static volatile ConsolePrompt instance;
+    private static volatile boolean bypass = false;
 
     public TuiAppender(Context context) {
         setContext(context);
@@ -30,9 +29,9 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
         instance = prompt;
     }
 
-    private static volatile boolean bypass = false;
-
-    public static void setBypassMode(boolean b) { bypass = b; }
+    public static void setBypassMode(boolean b) {
+        bypass = b;
+    }
 
     @Override
     protected void append(ILoggingEvent event) {

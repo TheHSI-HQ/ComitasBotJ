@@ -7,58 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ComponentParser {
-    private ComponentParser() {}
-
-    private record BooleanDifference(Boolean value) {
-        public static final BooleanDifference SAME = new BooleanDifference(null);
-        public static final BooleanDifference TRUE = new BooleanDifference(true);
-        public static final BooleanDifference FALSE = new BooleanDifference(false);
-
-        public boolean isTrue() {
-            return value == Boolean.TRUE;
-        }
-
-        public boolean isFalse() {
-            return value == Boolean.FALSE;
-        }
-
-        public static BooleanDifference fromDiff(boolean old_value, boolean new_value) {
-            if (old_value == new_value) return BooleanDifference.SAME;
-            if (new_value) return BooleanDifference.TRUE;
-            return BooleanDifference.FALSE;
-        }
-    }
-
-    private static class StyleDifference {
-        final BooleanDifference bold;
-        final BooleanDifference italic;
-        final BooleanDifference underline;
-        final BooleanDifference strikethrough;
-        final BooleanDifference bigHeader;
-        final BooleanDifference smallHeader;
-        final BooleanDifference smallerHeader;
-        final BooleanDifference subtext;
-        final BooleanDifference quote;
-        final BooleanDifference bulletPoints;
-        final BooleanDifference code;
-        final BooleanDifference codeBlock;
-        final BooleanDifference spoiler;
-
-        public StyleDifference(Style old_style, Style new_style) {
-            bold = BooleanDifference.fromDiff(old_style.isBold(), new_style.isBold());
-            italic = BooleanDifference.fromDiff(old_style.isItalic(), new_style.isItalic());
-            underline = BooleanDifference.fromDiff(old_style.isUnderline(), new_style.isUnderline());
-            strikethrough = BooleanDifference.fromDiff(old_style.isStrikethrough(), new_style.isStrikethrough());
-            bigHeader = BooleanDifference.fromDiff(old_style.isBigHeader(), new_style.isBigHeader());
-            smallHeader = BooleanDifference.fromDiff(old_style.isSmallHeader(), new_style.isSmallHeader());
-            smallerHeader = BooleanDifference.fromDiff(old_style.isSmallerHeader(), new_style.isSmallerHeader());
-            subtext = BooleanDifference.fromDiff(old_style.isSubtext(), new_style.isSubtext());
-            quote = BooleanDifference.fromDiff(old_style.isQuote(), new_style.isQuote());
-            bulletPoints = BooleanDifference.fromDiff(old_style.isBulletPoints(), new_style.isBulletPoints());
-            code = BooleanDifference.fromDiff(old_style.isCode(), new_style.isCode());
-            codeBlock = BooleanDifference.fromDiff(old_style.isCodeBlock(), new_style.isCodeBlock());
-            spoiler = BooleanDifference.fromDiff(old_style.isSpoiler(), new_style.isSpoiler());
-        }
+    private ComponentParser() {
     }
 
     public static String parseComponent(Component component) {
@@ -152,5 +101,57 @@ public class ComponentParser {
         if (styleDifference.codeBlock.isFalse()) line += "\n```";
 
         return line;
+    }
+
+    private record BooleanDifference(Boolean value) {
+        public static final BooleanDifference SAME = new BooleanDifference(null);
+        public static final BooleanDifference TRUE = new BooleanDifference(true);
+        public static final BooleanDifference FALSE = new BooleanDifference(false);
+
+        public static BooleanDifference fromDiff(boolean old_value, boolean new_value) {
+            if (old_value == new_value) return BooleanDifference.SAME;
+            if (new_value) return BooleanDifference.TRUE;
+            return BooleanDifference.FALSE;
+        }
+
+        public boolean isTrue() {
+            return value == Boolean.TRUE;
+        }
+
+        public boolean isFalse() {
+            return value == Boolean.FALSE;
+        }
+    }
+
+    private static class StyleDifference {
+        final BooleanDifference bold;
+        final BooleanDifference italic;
+        final BooleanDifference underline;
+        final BooleanDifference strikethrough;
+        final BooleanDifference bigHeader;
+        final BooleanDifference smallHeader;
+        final BooleanDifference smallerHeader;
+        final BooleanDifference subtext;
+        final BooleanDifference quote;
+        final BooleanDifference bulletPoints;
+        final BooleanDifference code;
+        final BooleanDifference codeBlock;
+        final BooleanDifference spoiler;
+
+        public StyleDifference(Style old_style, Style new_style) {
+            bold = BooleanDifference.fromDiff(old_style.isBold(), new_style.isBold());
+            italic = BooleanDifference.fromDiff(old_style.isItalic(), new_style.isItalic());
+            underline = BooleanDifference.fromDiff(old_style.isUnderline(), new_style.isUnderline());
+            strikethrough = BooleanDifference.fromDiff(old_style.isStrikethrough(), new_style.isStrikethrough());
+            bigHeader = BooleanDifference.fromDiff(old_style.isBigHeader(), new_style.isBigHeader());
+            smallHeader = BooleanDifference.fromDiff(old_style.isSmallHeader(), new_style.isSmallHeader());
+            smallerHeader = BooleanDifference.fromDiff(old_style.isSmallerHeader(), new_style.isSmallerHeader());
+            subtext = BooleanDifference.fromDiff(old_style.isSubtext(), new_style.isSubtext());
+            quote = BooleanDifference.fromDiff(old_style.isQuote(), new_style.isQuote());
+            bulletPoints = BooleanDifference.fromDiff(old_style.isBulletPoints(), new_style.isBulletPoints());
+            code = BooleanDifference.fromDiff(old_style.isCode(), new_style.isCode());
+            codeBlock = BooleanDifference.fromDiff(old_style.isCodeBlock(), new_style.isCodeBlock());
+            spoiler = BooleanDifference.fromDiff(old_style.isSpoiler(), new_style.isSpoiler());
+        }
     }
 }

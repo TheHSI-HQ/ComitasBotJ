@@ -11,22 +11,8 @@ public class EmbedAuthor {
     String url = null;
     String imageUrl = null;
 
-    @Nullable
-    public String name() {
-        return name;
+    private EmbedAuthor() {
     }
-
-    @Nullable
-    public String url() {
-        return url;
-    }
-
-    @Nullable
-    public String imageUrl() {
-        return imageUrl;
-    }
-
-    private EmbedAuthor() {}
 
     public EmbedAuthor(@NotNull String name) {
         this.name = name;
@@ -41,5 +27,20 @@ public class EmbedAuthor {
         this.name = name;
         this.url = url;
         this.imageUrl = imageUrl;
+    }
+
+    @Nullable
+    public String name() {
+        return name;
+    }
+
+    @Nullable
+    public String url() {
+        return url;
+    }
+
+    @Nullable
+    public String imageUrl() {
+        return imageUrl;
     }
 }

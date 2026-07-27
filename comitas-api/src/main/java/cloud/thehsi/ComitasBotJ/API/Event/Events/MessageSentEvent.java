@@ -76,7 +76,7 @@ public interface MessageSentEvent extends Event {
      * Reply to the message in the same channel this message was send in with an Embed
      *
      * @param message The message to be sent
-     * @param embed The embed to attach to this message
+     * @param embed   The embed to attach to this message
      * @return The message that was sent
      */
     MyMessage reply(Component message, Embed embed);
@@ -85,7 +85,7 @@ public interface MessageSentEvent extends Event {
      * Reply to the message in the same channel this message was send in with multiple Embeds
      *
      * @param message The message to be sent
-     * @param embeds The embeds to attach to this message
+     * @param embeds  The embeds to attach to this message
      * @return The message that was sent
      */
     MyMessage reply(Component message, Embed... embeds);

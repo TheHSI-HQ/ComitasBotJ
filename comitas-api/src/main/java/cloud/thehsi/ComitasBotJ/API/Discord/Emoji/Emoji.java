@@ -7,20 +7,6 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("unused")
 public interface Emoji {
     /**
-     * Generates the emoji so it can be placed in a message
-     *
-     * @return The emoji component
-     */
-    Component asMessageEmbed();
-
-    /**
-     * Get the emoji name
-     *
-     * @return The emoji name
-     */
-    String getName();
-
-    /**
      * Get an emoji by id
      *
      * @return The emoji
@@ -49,4 +35,18 @@ public interface Emoji {
     static Emoji fromUnicode(String id) {
         return Comitas.getUtilityBackend().getEmojiFromUnicode(id);
     }
+
+    /**
+     * Generates the emoji so it can be placed in a message
+     *
+     * @return The emoji component
+     */
+    Component asMessageEmbed();
+
+    /**
+     * Get the emoji name
+     *
+     * @return The emoji name
+     */
+    String getName();
 }

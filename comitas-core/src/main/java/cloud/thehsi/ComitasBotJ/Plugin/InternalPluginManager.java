@@ -24,15 +24,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class InternalPluginManager implements PluginManager {
+    private static final StackWalker STACK_WALKER =
+            StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     private final PluginLoaderManager pluginLoaderManager;
     private final EventManager eventManager;
     private final InternalScheduler scheduler;
     private final Map<UUID, InternalPersistentDataStorage> pluginDataStores = new HashMap<>();
     private final Logger logger;
     private DiscordAPI discordAPI;
-
-    private static final StackWalker STACK_WALKER =
-            StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
 
     public InternalPluginManager(PluginLoaderManager pluginLoaderManager, EventManager eventManager, InternalScheduler scheduler) {
         this.pluginLoaderManager = pluginLoaderManager;

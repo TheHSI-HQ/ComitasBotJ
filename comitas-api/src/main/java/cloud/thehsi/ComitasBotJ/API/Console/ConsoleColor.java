@@ -48,19 +48,18 @@ public class ConsoleColor {
     public static final ConsoleColor BG_BRIGHT_MAGENTA = new ConsoleColor("\033[105m");
     public static final ConsoleColor BG_BRIGHT_CYAN = new ConsoleColor("\033[106m");
     public static final ConsoleColor BG_BRIGHT_WHITE = new ConsoleColor("\033[107m");
+    private final String value;
 
     private ConsoleColor(String value) {
         this.value = value;
     }
 
-    private final String value;
+    public static ConsoleColor of(@NotNull Color color) {
+        return new ConsoleColor("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
+    }
 
     @Override
     public String toString() {
         return value;
-    }
-
-    public static ConsoleColor of(@NotNull Color color) {
-        return new ConsoleColor("\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m");
     }
 }
