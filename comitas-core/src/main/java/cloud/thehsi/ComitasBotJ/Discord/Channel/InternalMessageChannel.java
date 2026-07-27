@@ -4,9 +4,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -23,14 +25,14 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     }
 
     @Override
-    public void sendMessage(Component message) {
+    public MyMessage sendMessage(Component message) {
         String msg = ComponentParser.parseComponent(message);
 
-        channel.sendMessage(msg).queue();
+        return new InternalMyMessage(channel.sendMessage(msg).complete());
     }
 
     @Override
-    public void sendMessage(Component message, Embed embed) {
+    public MyMessage sendMessage(Component message, Embed embed) {
         String msg = ComponentParser.parseComponent(message);
 
         if (!(embed instanceof InternalEmbed internal))
@@ -38,12 +40,12 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
 
         MessageEmbed messageEmbed = internal.embed();
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            channel.sendMessage(data).queue();
+            return new InternalMyMessage(channel.sendMessage(data).complete());
         }
     }
 
     @Override
-    public void sendMessage(Component message, Embed... embeds) {
+    public MyMessage sendMessage(Component message, Embed... embeds) {
         String msg = ComponentParser.parseComponent(message);
 
         MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
@@ -56,7 +58,7 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
         }
 
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            channel.sendMessage(data).queue();
+            return new InternalMyMessage(channel.sendMessage(data).complete());
         }
     }
 

@@ -3,10 +3,12 @@ package cloud.thehsi.ComitasBotJ.Discord.User;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -15,9 +17,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalMember implements Member {
     private final net.dv8tion.jda.api.entities.User user;
@@ -103,114 +103,62 @@ public class InternalMember implements Member {
     }
 
     @Override
-    public CompletableFuture<Boolean> kick() {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.kick().queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void kick() {
+        member.kick().complete();
     }
 
     @Override
-    public CompletableFuture<Boolean> kick(String reason) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.kick().reason(reason).queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void kick(String reason) {
+        member.kick().reason(reason).complete();
     }
 
     @Override
-    public CompletableFuture<Boolean> ban() {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.ban(0, TimeUnit.DAYS).queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void ban() {
+        member.ban(0, TimeUnit.SECONDS).complete();
     }
 
     @Override
-    public CompletableFuture<Boolean> ban(String reason) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.ban(0, TimeUnit.DAYS).reason(reason).queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void ban(String reason) {
+        member.ban(0, TimeUnit.SECONDS).reason(reason).complete();
     }
 
     @Override
-    public CompletableFuture<Boolean> ban(int deletionPeriodHours) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.ban(deletionPeriodHours, TimeUnit.HOURS).queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void ban(int deletionPeriodHours) {
+        member.ban(deletionPeriodHours, TimeUnit.HOURS).complete();
     }
 
     @Override
-    public CompletableFuture<Boolean> ban(String reason, int deletionPeriodHours) {
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
-
-        member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).queue(
-                success -> future.complete(true),
-                error -> future.complete(false)
-        );
-
-        return future;
+    public void ban(String reason, int deletionPeriodHours) {
+        member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).complete();
     }
 
     @Override
-    public boolean sendDirectMessage(Component message) {
+    public MyMessage sendDirectMessage(Component message) {
         String msg = ComponentParser.parseComponent(message);
 
-        AtomicBoolean s = new AtomicBoolean(false);
-        member.getUser().openPrivateChannel()
+        return new InternalMyMessage(member.getUser().openPrivateChannel()
                 .flatMap(channel -> channel.sendMessage(msg))
-                .queue(
-                        success -> s.set(true),
-                        failure -> s.set(false)
-                );
-        return s.get();
+                .complete());
     }
 
     @Override
-    public boolean sendDirectMessage(Component message, Embed embed) {
+    public MyMessage sendDirectMessage(Component message, Embed embed) {
         String msg = ComponentParser.parseComponent(message);
 
         if (!(embed instanceof InternalEmbed internal))
             throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
 
         MessageEmbed messageEmbed = internal.embed();
-        AtomicBoolean s = new AtomicBoolean(false);
 
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            member.getUser().openPrivateChannel()
+            return new InternalMyMessage(member.getUser().openPrivateChannel()
                     .flatMap(channel -> channel.sendMessage(data))
-                    .queue(
-                            success -> s.set(true),
-                            failure -> s.set(false)
-                    );
-            return s.get();
+                    .complete());
         }
     }
 
     @Override
-    public boolean sendDirectMessage(Component message, Embed... embeds) {
+    public MyMessage sendDirectMessage(Component message, Embed... embeds) {
         String msg = ComponentParser.parseComponent(message);
 
         MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
@@ -222,16 +170,10 @@ public class InternalMember implements Member {
             messageEmbeds[i] = internal.embed();
         }
 
-        AtomicBoolean s = new AtomicBoolean(false);
-
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            member.getUser().openPrivateChannel()
+            return new InternalMyMessage(member.getUser().openPrivateChannel()
                     .flatMap(channel -> channel.sendMessage(data))
-                    .queue(
-                            success -> s.set(true),
-                            failure -> s.set(false)
-                    );
-            return s.get();
+                    .complete());
         }
     }
 }

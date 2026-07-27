@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
@@ -67,17 +68,17 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     }
 
     @Override
-    public void reply(Component message) {
-        iMessage.reply(message);
+    public MyMessage reply(Component message) {
+       return iMessage.reply(message);
     }
 
     @Override
-    public void reply(Component message, Embed embed) {
-        iMessage.reply(message, embed);
+    public MyMessage reply(Component message, Embed embed) {
+        return iMessage.reply(message, embed);
     }
 
     @Override
-    public void reply(Component message, Embed... embeds) {
-        iMessage.reply(message, embeds);
+    public MyMessage reply(Component message, Embed... embeds) {
+        return iMessage.reply(message, embeds);
     }
 }

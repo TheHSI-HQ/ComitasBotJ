@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InternalMessage implements Message {
-    private final net.dv8tion.jda.api.entities.Message message;
+    final net.dv8tion.jda.api.entities.Message message;
     private boolean deleted = false;
 
     private Runnable optionalDeletionCallback = null;
@@ -46,7 +47,7 @@ public class InternalMessage implements Message {
         if (optionalDeletionCallback != null)
             optionalDeletionCallback.run();
         else
-            message.delete().queue();
+            message.delete().complete();
     }
 
     @Override
@@ -91,7 +92,7 @@ public class InternalMessage implements Message {
     public @Nullable Message getRepliedMessage() {
         MessageReference ref = message.getMessageReference();
 
-        if (ref == null || ref.getMessageIdLong() != 0)
+        if (ref == null || ref.getMessageIdLong() == 0)
             return null;
 
         return new InternalMessage(ref.getMessage());
@@ -108,12 +109,12 @@ public class InternalMessage implements Message {
 
     @Override
     public void react(Emoji emoji) {
-        message.addReaction(((InternalEmoji)emoji).emoji()).queue();
+        message.addReaction(((InternalEmoji)emoji).emoji()).complete();
     }
 
     @Override
     public void unreact(Emoji emoji) {
-        message.removeReaction(((InternalEmoji)emoji).emoji()).queue();
+        message.removeReaction(((InternalEmoji)emoji).emoji()).complete();
     }
 
     @Override
@@ -126,14 +127,24 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public void reply(Component message) {
-        String msg = ComponentParser.parseComponent(message);
+    public @Nullable MyMessage asMyMessage() {
+        Member author = getAuthor();
+        if (author == null) return null;
 
-        this.message.reply(msg).queue();
+        if (!getAuthor().isMe()) return null;
+
+        return new InternalMyMessage(message, optionalDeletionCallback);
     }
 
     @Override
-    public void reply(Component message, Embed embed) {
+    public MyMessage reply(Component message) {
+        String msg = ComponentParser.parseComponent(message);
+
+        return new InternalMyMessage(this.message.reply(msg).complete());
+    }
+
+    @Override
+    public MyMessage reply(Component message, Embed embed) {
         String msg = ComponentParser.parseComponent(message);
 
         if (!(embed instanceof InternalEmbed internal))
@@ -141,12 +152,12 @@ public class InternalMessage implements Message {
 
         MessageEmbed messageEmbed = internal.embed();
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            this.message.reply(data).queue();
+            return new InternalMyMessage(this.message.reply(data).complete());
         }
     }
 
     @Override
-    public void reply(Component message, Embed... embeds) {
+    public MyMessage reply(Component message, Embed... embeds) {
         String msg = ComponentParser.parseComponent(message);
 
         MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
@@ -159,7 +170,7 @@ public class InternalMessage implements Message {
         }
 
         try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            this.message.reply(data).queue();
+            return new InternalMyMessage(this.message.reply(data).complete());
         }
     }
 }

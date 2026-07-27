@@ -2,13 +2,13 @@ package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
 public interface Member {
@@ -95,50 +95,42 @@ public interface Member {
 
     /**
      * Kick this user
-     *
-     * @return Was the user successfully kicked
      */
-    CompletableFuture<Boolean> kick();
+    void kick();
 
     /**
      * Kick this user
      *
      * @param reason The kick reason
-     * @return Was the user successfully kicked
      */
-    CompletableFuture<Boolean> kick(String reason);
+    void kick(String reason);
 
     /**
      * Ban this user
-     *
-     * @return Was the user successfully banned
      */
-    CompletableFuture<Boolean> ban();
+    void ban();
 
     /**
      * Ban this user
      *
      * @param reason The ban reason
-     * @return Was the user successfully banned
      */
-    CompletableFuture<Boolean> ban(String reason);
+    void ban(String reason);
 
     /**
      * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
      *
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
-     * @return Was the user successfully banned
      */
-    CompletableFuture<Boolean> ban(int deletionPeriodHours);
+    void ban(int deletionPeriodHours);
 
     /**
      * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
      *
-     * @param reason The ban reason
+     * @param reason              The ban reason
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
-     * @return Was the user successfully banned
      */
-    CompletableFuture<Boolean> ban(String reason, int deletionPeriodHours);
+    void ban(String reason, int deletionPeriodHours);
 
     /**
      * Messages this User with a Message of your choosing
@@ -147,25 +139,25 @@ public interface Member {
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    boolean sendDirectMessage(Component message);
+    MyMessage sendDirectMessage(Component message);
 
     /**
      * Messages this User with a Message of your choosing
      *
      * @param message The message you want to send
-     * @param embed The embed to attach to this message
+     * @param embed   The embed to attach to this message
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    boolean sendDirectMessage(Component message, Embed embed);
+    MyMessage sendDirectMessage(Component message, Embed embed);
 
     /**
      * Messages this User with a Message of your choosing
      *
      * @param message The message you want to send
-     * @param embeds The embeds to attach to this message
+     * @param embeds  The embeds to attach to this message
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    boolean sendDirectMessage(Component message, Embed... embeds);
+    MyMessage sendDirectMessage(Component message, Embed... embeds);
 }

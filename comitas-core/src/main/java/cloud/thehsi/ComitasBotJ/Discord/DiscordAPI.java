@@ -153,7 +153,7 @@ public class DiscordAPI extends ListenerAdapter {
                 roleModificationLoopFixList.add(
                         new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong())
                 );
-                event.getGuild().removeRoleFromMember(event.getUser(), role).queue();
+                event.getGuild().removeRoleFromMember(event.getUser(), role).queue(ignored -> {}, error -> {});
             }
         }
     }

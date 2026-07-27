@@ -24,12 +24,8 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
         List<Member> reactors = new ArrayList<>();
         Guild guild = reaction.getGuild();
 
-        reaction.retrieveUsers()
-                .queue(users -> {
-                    for (User user : users) {
-                        guild.retrieveMember(user).queue(member -> reactors.add(new InternalMember(member)));
-                    }
-                });
+        for (User user : reaction.retrieveUsers())
+            reactors.add(new InternalMember(guild.retrieveMember(user).complete()));
 
         return reactors;
     }
@@ -55,7 +51,7 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
 
     @Override
     public void clear() {
-        reaction.clearReactions().queue();
+        reaction.clearReactions().complete();
     }
 
     @Override

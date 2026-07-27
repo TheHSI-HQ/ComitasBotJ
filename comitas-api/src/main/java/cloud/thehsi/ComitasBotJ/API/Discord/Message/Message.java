@@ -83,25 +83,37 @@ public interface Message {
     List<Attachment> getAttachments();
 
     /**
+     * Returns the MyMessage cast of the Message if the bot send the message
+     *
+     * @return The MyMessage or null
+     */
+    @Nullable
+    MyMessage asMyMessage();
+
+
+    /**
      * Reply to the message in the same channel this message was send in
      *
      * @param message The message to be sent
+     * @return The message that was sent
      */
-    void reply(Component message);
+    MyMessage reply(Component message);
 
     /**
      * Reply to the message in the same channel this message was send in with an Embed
      *
      * @param message The message to be sent
-     * @param embed The embed to attach to this message
+     * @param embed   The embed to attach to this message
+     * @return The message that was sent
      */
-    void reply(Component message, Embed embed);
+    MyMessage reply(Component message, Embed embed);
 
     /**
      * Reply to the message in the same channel this message was send in with multiple Embeds
      *
      * @param message The message to be sent
-     * @param embeds The embeds to attach to this message
+     * @param embeds  The embeds to attach to this message
+     * @return The message that was sent
      */
-    void reply(Component message, Embed... embeds);
+    MyMessage reply(Component message, Embed... embeds);
 }
