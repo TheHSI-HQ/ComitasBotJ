@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Emoji;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface Emoji {
@@ -17,4 +19,24 @@ public interface Emoji {
      * @return The emoji name
      */
     String getName();
+
+    /**
+     * Get an emoji by id
+     *
+     * @return The emoji
+     */
+    @Nullable
+    static Emoji from(String id) {
+        return Comitas.getUtilityBackend().getEmojiFromId(id);
+    }
+
+    /**
+     * Get an emoji by id
+     *
+     * @return The emoji
+     */
+    @Nullable
+    static Emoji from(long id) {
+        return Comitas.getUtilityBackend().getEmojiFromId(id);
+    }
 }

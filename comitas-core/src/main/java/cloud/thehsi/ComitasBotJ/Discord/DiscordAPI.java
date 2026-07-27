@@ -36,10 +36,14 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPI extends ListenerAdapter {
-    JDA api;
+    static JDA api;
     boolean firstStartup = true;
     final EventManager eventManager;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
+
+    public static JDA api() {
+        return api;
+    }
 
     record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
         @Override
