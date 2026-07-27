@@ -47,4 +47,10 @@ public class InternalUtilityBackend implements UtilityBackend {
         if (customEmoji == null) return null;
         return new InternalEmoji(customEmoji);
     }
+
+    @Override
+    @Nullable
+    public Emoji getEmojiFromUnicode(String unicodeEmoji) {
+        return new InternalEmoji(unicodeEmoji);
+    }
 }

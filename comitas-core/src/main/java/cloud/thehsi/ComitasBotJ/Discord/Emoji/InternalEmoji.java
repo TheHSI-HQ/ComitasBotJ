@@ -4,6 +4,10 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 
 public record InternalEmoji(net.dv8tion.jda.api.entities.emoji.Emoji emoji) implements Emoji {
+    public InternalEmoji(String unicodeEmoji) {
+        this(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(unicodeEmoji));
+    }
+
     @Override
     public Component asMessageEmbed() {
         return Component.raw(emoji.getAsReactionCode());

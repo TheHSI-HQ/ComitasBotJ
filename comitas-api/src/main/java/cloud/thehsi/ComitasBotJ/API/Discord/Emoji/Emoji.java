@@ -26,7 +26,7 @@ public interface Emoji {
      * @return The emoji
      */
     @Nullable
-    static Emoji from(String id) {
+    static Emoji fromId(String id) {
         return Comitas.getUtilityBackend().getEmojiFromId(id);
     }
 
@@ -36,7 +36,17 @@ public interface Emoji {
      * @return The emoji
      */
     @Nullable
-    static Emoji from(long id) {
+    static Emoji fromId(long id) {
+        return Comitas.getUtilityBackend().getEmojiFromId(id);
+    }
+
+    /**
+     * Create an emoji from a Unicode character
+     *
+     * @return The emoji
+     */
+    @Nullable
+    static Emoji fromUnicode(String id) {
         return Comitas.getUtilityBackend().getEmojiFromId(id);
     }
 }

@@ -19,4 +19,5 @@ public interface UtilityBackend {
     Emoji getEmojiFromId(String id);
     @Nullable
     Emoji getEmojiFromId(long id);
+    Emoji getEmojiFromUnicode(String unicodeEmoji);
 }
