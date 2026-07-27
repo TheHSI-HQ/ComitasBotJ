@@ -34,17 +34,17 @@ public class InternalScheduler implements Scheduler {
 
 
     @Override
-    public Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delay, long interval) {
-        Task task = new RepeatingTask(nextTaskId, plugin, runnable, delay, interval);
+    public Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayMS, long intervalMS) {
+        Task task = new RepeatingTask(nextTaskId, plugin, runnable, delayMS, intervalMS);
         tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
         return task;
     }
 
     @Override
-    public Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delay) {
+    public Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayMS) {
         Thread thread = new Thread(() -> {
             try {
-                Thread.sleep(delay);
+                Thread.sleep(delayMS);
                 runnable.run();
             } catch (InterruptedException ignored) {
             }

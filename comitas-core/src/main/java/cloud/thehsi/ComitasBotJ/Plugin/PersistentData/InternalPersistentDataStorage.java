@@ -60,6 +60,11 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
         return Objects.equals(value.type, type.getName());
     }
 
+    @Override
+    public void remove(String key) {
+        data.remove(key);
+    }
+
     public Map<String, Entry> getData() {
         return this.data;
     }
