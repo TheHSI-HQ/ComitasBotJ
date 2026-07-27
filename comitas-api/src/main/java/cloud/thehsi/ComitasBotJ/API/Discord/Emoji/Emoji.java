@@ -47,6 +47,6 @@ public interface Emoji {
      */
     @Nullable
     static Emoji fromUnicode(String id) {
-        return Comitas.getUtilityBackend().getEmojiFromId(id);
+        return Comitas.getUtilityBackend().getEmojiFromUnicode(id);
     }
 }
