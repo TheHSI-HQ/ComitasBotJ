@@ -127,6 +127,14 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    public @Nullable MyMessage forward(MessageChannel channel) {
+        if (!(channel instanceof InternalMessageChannel internal))
+            throw new IllegalArgumentException("MessageChannel was not created by Comitas");
+
+        return new InternalMyMessage(message.forwardTo(internal.channel()).complete());
+    }
+
+    @Override
     public @Nullable MyMessage asMyMessage() {
         Member author = getAuthor();
         if (author == null) return null;

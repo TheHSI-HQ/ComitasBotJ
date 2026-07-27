@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
@@ -55,6 +56,13 @@ public interface MessageSentEvent extends Event {
      * @return The Message Channel
      */
     MessageChannel getChannel();
+
+    /**
+     * Get the Guild the Message was sent in
+     *
+     * @return The Message Guild
+     */
+    Guild getGuild();
 
     /**
      * Reply to the message in the same channel this message was send in

@@ -83,6 +83,14 @@ public interface Message {
     List<Attachment> getAttachments();
 
     /**
+     * Forward the message to a {@link MessageChannel}
+     *
+     * @return The message with the forwarded message
+     */
+    @Nullable
+    MyMessage forward(MessageChannel channel);
+
+    /**
      * Returns the MyMessage cast of the Message if the bot send the message
      *
      * @return The MyMessage or null

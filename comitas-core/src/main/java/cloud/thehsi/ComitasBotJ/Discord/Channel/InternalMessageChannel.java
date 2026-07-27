@@ -24,6 +24,10 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
         this.channel = channel;
     }
 
+    public net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel() {
+        return channel;
+    }
+
     @Override
     public MyMessage sendMessage(Component message) {
         String msg = ComponentParser.parseComponent(message);

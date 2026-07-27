@@ -1,12 +1,14 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
@@ -17,6 +19,7 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     private final Message message;
     private final cloud.thehsi.ComitasBotJ.API.Discord.Message.Message iMessage;
     private final MessageChannel channel;
+    private final Guild guild;
     private final net.dv8tion.jda.api.entities.Member author;
 
     public InternalMessageSentEvent(MessageReceivedEvent event) {
@@ -24,6 +27,7 @@ public class InternalMessageSentEvent implements MessageSentEvent {
         this.iMessage = new InternalMessage(message, this::deleteMessage);
 
         this.channel = new InternalMessageChannel(event.getChannel());
+        this.guild = new InternalGuild(event.getGuild());
         this.author = event.getMember();
     }
 
@@ -65,6 +69,11 @@ public class InternalMessageSentEvent implements MessageSentEvent {
     @Override
     public MessageChannel getChannel() {
         return channel;
+    }
+
+    @Override
+    public Guild getGuild() {
+        return guild;
     }
 
     @Override
