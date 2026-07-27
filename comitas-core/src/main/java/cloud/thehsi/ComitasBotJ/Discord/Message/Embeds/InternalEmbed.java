@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.time.temporal.TemporalAccessor;
 
+@SuppressWarnings("unused")
 public class InternalEmbed implements Embed {
     final MessageEmbed embed;
 

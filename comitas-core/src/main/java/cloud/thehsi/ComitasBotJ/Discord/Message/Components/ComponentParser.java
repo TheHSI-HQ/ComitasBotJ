@@ -103,6 +103,7 @@ public class ComponentParser {
         return line;
     }
 
+    @SuppressWarnings("unused")
     private record BooleanDifference(Boolean value) {
         public static final BooleanDifference SAME = new BooleanDifference(null);
         public static final BooleanDifference TRUE = new BooleanDifference(true);
@@ -123,6 +124,7 @@ public class ComponentParser {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class StyleDifference {
         final BooleanDifference bold;
         final BooleanDifference italic;

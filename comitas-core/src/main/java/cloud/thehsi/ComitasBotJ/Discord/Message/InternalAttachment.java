@@ -8,6 +8,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 
+@SuppressWarnings("unused")
 public record InternalAttachment(Message.Attachment attachment) implements Attachment {
     @Override
     public CompletableFuture<String> getHash() {
