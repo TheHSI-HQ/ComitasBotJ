@@ -176,6 +176,7 @@ public class ServerConfig {
     }
 
     public record BooleanProperty(Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean get() {
             return getter.get();
         }

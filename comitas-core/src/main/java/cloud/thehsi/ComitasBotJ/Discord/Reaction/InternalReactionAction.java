@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Reaction;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.ReactionAction;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class InternalReactionAction implements ReactionAction {
     // True is increase, False is decrease
     private final boolean direction;
