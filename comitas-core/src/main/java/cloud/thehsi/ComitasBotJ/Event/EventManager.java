@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EventManager {
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".EventManager");
@@ -23,9 +20,10 @@ public class EventManager {
 
     public void registerListener(Plugin plugin, Listener listener) {
         for (Method method : listener.getClass().getDeclaredMethods()) {
-
             if (!method.isAnnotationPresent(EventHandler.class))
                 continue;
+
+            EventHandler handler = method.getAnnotation(EventHandler.class);
 
             Class<?>[] params = method.getParameterTypes();
 
@@ -43,7 +41,10 @@ public class EventManager {
 
             listeners
                     .computeIfAbsent(eventClass, k -> new ArrayList<>())
-                    .add(new RegisteredListener(listener, plugin, method));
+                    .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, method));
+
+            listeners.get(eventClass)
+                    .sort(Comparator.comparingInt(RegisteredListener::slot)); // Sort by Slot
         }
     }
 
@@ -84,6 +85,7 @@ public class EventManager {
     }
 
     private record RegisteredListener(
+            int slot,
             Listener listener,
             Plugin plugin,
             Method method

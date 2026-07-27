@@ -9,4 +9,20 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @SuppressWarnings("unused")
 public @interface EventHandler {
+    /**
+     * Define the priority of the event.
+     * <p>
+     * First priority to the last priority executed:
+     * <ol>
+     * <li>LOWEST
+     * <li>LOW
+     * <li>NORMAL
+     * <li>HIGH
+     * <li>HIGHEST
+     * <li>MONITOR
+     * </ol>
+     *
+     * @return the priority
+     */
+    EventPriority priority() default EventPriority.NORMAL;
 }

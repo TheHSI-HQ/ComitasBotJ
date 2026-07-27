@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedBuilder;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
+import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
@@ -36,7 +37,7 @@ public class Main extends Plugin implements Listener {
     }
 
     @SuppressWarnings("unused")
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onBotConnect(BotConnectEvent event) {
         getLogger().info("Hello from {}", event.getUserName());
 
@@ -44,7 +45,7 @@ public class Main extends Plugin implements Listener {
     }
 
     @SuppressWarnings("unused")
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onMessage(MessageSentEvent event) {
         if (event.getAuthor().isMe()) return;
 
