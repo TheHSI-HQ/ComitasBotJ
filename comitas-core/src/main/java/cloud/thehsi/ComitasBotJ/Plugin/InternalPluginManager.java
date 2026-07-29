@@ -148,8 +148,9 @@ public class InternalPluginManager implements PluginManager {
                         dataStore.getData()
                 ).getBytes();
 
-        while (true) {
+        int attempts = 1;
 
+        while (true) {
             try {
                 Files.createDirectories(directory);
 
@@ -167,15 +168,22 @@ public class InternalPluginManager implements PluginManager {
                         StandardCopyOption.ATOMIC_MOVE
                 );
 
+                if (attempts > 1)
+                    logger.info(
+                            "Plugin data for {} was saved (After {} attempts). ",
+                            pluginUUID,
+                            attempts
+                    );
+
                 return;
-
             } catch (IOException e) {
-
+                attempts++;
                 logger.error(
                         "CRITICAL: Failed to save plugin data for {}. " +
                                 "The server will continue retrying until the data " +
-                                "can be safely saved.",
+                                "can be safely saved. (Attempt {})",
                         pluginUUID,
+                        attempts,
                         e
                 );
             }
@@ -183,7 +191,6 @@ public class InternalPluginManager implements PluginManager {
             try {
                 //noinspection BusyWait
                 Thread.sleep(1000);
-
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
 
