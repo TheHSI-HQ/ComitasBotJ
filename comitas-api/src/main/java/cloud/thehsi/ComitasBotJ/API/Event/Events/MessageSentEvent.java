@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface MessageSentEvent extends Event {
@@ -48,6 +49,7 @@ public interface MessageSentEvent extends Event {
      *
      * @return The Message Author
      */
+    @Nullable
     Member getAuthor();
 
     /**

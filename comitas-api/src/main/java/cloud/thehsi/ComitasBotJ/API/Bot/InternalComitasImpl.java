@@ -18,8 +18,6 @@ public interface InternalComitasImpl {
 
     Scheduler getScheduler();
 
-    List<Guild> getGuilds();
-
     UtilityBackend getUtilityBackend();
 
     Bot getBot();

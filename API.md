@@ -126,7 +126,7 @@ Now that you know how the plugins work and how to install them, let's get the Bo
 
    This prevents the bot from responding to its own messages. Without this check, the bot could potentially trigger its own listener repeatedly.
    ```java
-   if (event.getAuthor().isMe()) return;
+   if (Comitas.getBot().isMe(event.getAuthor())) return;
    ```
 
 5. Check if the message contains the word `Banana` and respond with `Who said banana?`
@@ -156,7 +156,7 @@ Now that you know how the plugins work and how to install them, let's get the Bo
    public class Listeners implements Listener {
        @EventHandler
        private void onMessageSent(MessageSentEvent event) {
-           if (event.getAuthor().isMe()) {
+           if (Comitas.getBot().isMe(event.getAuthor())) {
                 return;
            }
 

@@ -110,11 +110,6 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
-    public List<Guild> getGuilds() {
-        return api.getAPI().getGuilds().stream().map(e -> (Guild) new InternalGuild(e)).toList();
-    }
-
-    @Override
     public UtilityBackend getUtilityBackend() {
         return utilityBackend;
     }

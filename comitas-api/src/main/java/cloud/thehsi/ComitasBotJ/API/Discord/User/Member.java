@@ -34,16 +34,16 @@ public interface Member {
     Long getId();
 
     /**
-     * Determine if the message was sent by a bot
+     * Determine if the user is a bot
      *
-     * @return Was message send by a bot
+     * @return Is user a bot
      */
     boolean isBot();
 
     /**
-     * Determine if the message was sent by this bot
+     * Determine if the user is this bot
      *
-     * @return Was message send by this bot
+     * @return Is user is this bot
      */
     boolean isMe();
 

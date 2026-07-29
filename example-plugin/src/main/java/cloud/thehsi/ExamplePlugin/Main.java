@@ -1,5 +1,6 @@
 package cloud.thehsi.ExamplePlugin;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
@@ -49,7 +50,7 @@ public class Main extends Plugin implements Listener {
     @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.LOW)
     public void onMessage(MessageSentEvent event) {
-        if (event.getAuthor().isMe()) return;
+        if (Comitas.getBot().isMe(event.getAuthor())) return;
 
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 

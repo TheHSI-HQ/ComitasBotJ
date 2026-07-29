@@ -58,15 +58,6 @@ public class Comitas {
     }
 
     /**
-     * Gets a list of Guilds the Bot is a member of.
-     *
-     * @return A List of Guild.
-     */
-    public static List<Guild> getGuilds() {
-        return INSTANCE.impl.getGuilds();
-    }
-
-    /**
      * Gets the {@link PluginManager}.
      * <p>
      * The {@link PluginManager} is used to register events and interact with the Plugin Loader.
