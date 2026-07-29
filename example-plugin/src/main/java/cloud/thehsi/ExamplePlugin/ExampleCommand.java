@@ -17,10 +17,11 @@ public class ExampleCommand implements CommandSupplier {
             @CommandOption(name = "target", description = "The Target") Member target,
             @CommandOption(name = "message", description = "The Message", required = false) @Nullable String message
     ) {
+        context.replyEphemeral(Component.text("Ok, imma tell ").append(Component.text(target.getDisplayName())));
 
         if (message != null)
-            context.channel().sendMessage(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
+            context.reply(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
         else
-            context.channel().sendMessage(Component.text("Hi ").append(target.mention()));
+            context.reply(Component.text("Hi ").append(target.mention()));
     }
 }

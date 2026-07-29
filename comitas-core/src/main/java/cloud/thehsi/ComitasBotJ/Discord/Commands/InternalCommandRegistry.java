@@ -1,10 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Commands;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
-import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
-import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -41,10 +38,7 @@ public class InternalCommandRegistry implements CommandRegistry {
 
         Object[] args = new Object[command.method().getParameters().length];
         Context context = new InternalContext(
-                event.getMember() == null ? null : new InternalMember(event.getMember()),
-                new InternalMessageChannel(event.getMessageChannel()),
-                new InternalGuild(event.getGuild()),
-                event.getName()
+                event
         );
 
         List<OptionMapping> options = new ArrayList<>(List.copyOf(event.getOptions()));
@@ -66,9 +60,9 @@ public class InternalCommandRegistry implements CommandRegistry {
         try {
             command.method().invoke(command.commandSupplier(), (Object[]) args);
         } catch (InvocationTargetException e) {
-            logger.error("Error whilst executing command {}", context.command(), e.getCause());
+            logger.error("Error whilst executing command {}", context.commandName(), e.getCause());
         } catch (Exception e) {
-            logger.error("Error whilst invoking command {}", context.command(), e);
+            logger.error("Error whilst invoking command {}", context.commandName(), e);
         }
     }
 
