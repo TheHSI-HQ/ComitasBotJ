@@ -6,14 +6,12 @@ import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRegistry;
-import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
-import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
@@ -29,7 +27,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -43,7 +40,6 @@ public class InternalComitas implements InternalComitasImpl {
     private InternalPluginManager pluginManager;
     private InternalScheduler scheduler;
     private EventManager eventManager;
-    private DiscordAPI api;
     private Logger logger;
     private Bot bot;
     private String bot_token;
@@ -161,7 +157,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Start Bot
         logger.info("Starting Bot...");
-        api = new DiscordAPI(bot_token, eventManager, commandRegistry);
+        DiscordAPI api = new DiscordAPI(bot_token, eventManager, commandRegistry);
 
         pluginManager.setDiscordApi(api);
 
