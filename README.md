@@ -3,6 +3,7 @@
 > [!IMPORTANT]
 > ComitasBotJ is still in early development, if you're missing any feature, please open an issue
 
+[![Build ComitasBotJ](https://github.com/TheHSI-HQ/ComitasBotJ/actions/workflows/maven-build.yml/badge.svg)](https://github.com/TheHSI-HQ/ComitasBotJ/actions/workflows/maven-build.yml)
 
 ## What is ComitasBotJ?
 ComitasBotJ is a modular Discord bot framework that allows multiple features to run inside a single bot instance. Functionality is provided through independently loadable plugins, making it easy to extend the bot without modifying the core runtime.
