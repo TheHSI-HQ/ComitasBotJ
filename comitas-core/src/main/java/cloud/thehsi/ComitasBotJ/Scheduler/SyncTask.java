@@ -17,22 +17,28 @@ public class SyncTask implements Task {
         this.owner = owner;
     }
 
+    @Override
     public int getTaskId() {
         return taskId;
     }
 
-    public @NotNull Plugin getOwner() {
+    @Override
+    @NotNull
+    public Plugin getOwner() {
         return owner;
     }
 
+    @Override
     public boolean isSync() {
         return true;
     }
 
+    @Override
     public boolean isCancelled() {
         return false;
     }
 
+    @Override
     public void cancel() {
     }
 }

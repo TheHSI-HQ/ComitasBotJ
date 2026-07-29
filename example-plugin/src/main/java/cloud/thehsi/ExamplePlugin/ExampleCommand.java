@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 
 public class ExampleCommand implements CommandSupplier {
+    @SuppressWarnings("unused")
     @Command(name = "example", description = "An example command")
     public void exampleCommand(
             Context context,

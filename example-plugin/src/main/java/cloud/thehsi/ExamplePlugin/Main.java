@@ -41,7 +41,7 @@ public class Main extends Plugin implements Listener {
     public void onBotConnect(BotReadyEvent event) {
         getLogger().info("Hello from {}", event.getUserName());
 
-        PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
+        Comitas.getPluginManager().getPersistentDataStorage();
 
         Comitas.getCommandRegistry().register(new ExampleCommand());
     }

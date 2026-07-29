@@ -32,22 +32,28 @@ public class RepeatingTask implements Task {
         }, delay, interval, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public int getTaskId() {
         return taskId;
     }
 
-    public @NotNull Plugin getOwner() {
+    @Override
+    @NotNull
+    public Plugin getOwner() {
         return owner;
     }
 
+    @Override
     public boolean isSync() {
         return false;
     }
 
+    @Override
     public boolean isCancelled() {
         return canceled;
     }
 
+    @Override
     public void cancel() {
         canceled = true;
         scheduledFuture.cancel(true);

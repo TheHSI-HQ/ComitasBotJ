@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ public class DiscordAPI extends ListenerAdapter {
     final EventManager eventManager;
     final InternalCommandRegistry commandRegistry;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
-    final List<RoleModificationLoopFix> roleModificationLoopFixList = new ArrayList<>();
+    final List<RoleModificationLoopFix> roleModificationLoopFixList = Collections.synchronizedList(new ArrayList<>());
     private final String BOT_TOKEN;
     boolean firstStartup = true;
 

@@ -369,9 +369,13 @@ public class PluginLister {
         int minor = 0;
         int patch = 0;
 
-        if (parts.length > 0) major = Integer.parseInt(parts[0]);
-        if (parts.length > 1) minor = Integer.parseInt(parts[1]);
-        if (parts.length > 2) patch = Integer.parseInt(parts[2]);
+        try {
+            if (parts.length > 0) major = Integer.parseInt(parts[0]);
+            if (parts.length > 1) minor = Integer.parseInt(parts[1]);
+            if (parts.length > 2) patch = Integer.parseInt(parts[2]);
+        }catch (NumberFormatException e) {
+            return 0;
+        }
 
         return major * 1_000_000_000L
                 + minor * 1_000_000L

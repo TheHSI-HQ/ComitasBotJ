@@ -24,9 +24,15 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public MessageChannel getDefaultChannel() {
-        return new InternalMessageChannel(
-                (net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) guild.getDefaultChannel()
-        );
+        net.dv8tion.jda.api.entities.channel.middleman.GuildChannel defaultChannel = guild.getDefaultChannel();
+
+        if (defaultChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) {
+            return new InternalMessageChannel(
+                    (net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) guild.getDefaultChannel()
+            );
+        }
+
+        return null;
     }
 
     @Override
