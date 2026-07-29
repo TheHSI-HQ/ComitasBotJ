@@ -58,4 +58,10 @@ public record InternalBot(SelfUser bot) implements Bot {
         if (member == null) return false;
         else return member.isMe();
     }
+
+    @Override
+    public boolean isMeOrNull(@Nullable Member member) {
+        if (member == null) return true;
+        else return member.isMe();
+    }
 }

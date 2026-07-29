@@ -156,7 +156,7 @@ Now that you know how the plugins work and how to install them, let's get the Bo
    public class Listeners implements Listener {
        @EventHandler
        private void onMessageSent(MessageSentEvent event) {
-           if (Comitas.getBot().isMe(event.getAuthor())) {
+           if (Comitas.getBot().isMeOrNull(event.getAuthor())) {
                 return;
            }
 

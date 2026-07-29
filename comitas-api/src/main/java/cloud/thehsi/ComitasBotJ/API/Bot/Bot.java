@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -67,5 +68,15 @@ public interface Bot {
      * @param member The member to check
      * @return Is the member this bot
      */
+    @Contract("null -> false")
     boolean isMe(@Nullable Member member);
+
+    /**
+     * Determine if a {@link Member} is not this Bot and not null
+     *
+     * @param member The member to check
+     * @return Is the member not this bot and not null
+     */
+    @Contract("null -> true")
+    boolean isMeOrNull(@Nullable Member member);
 }
