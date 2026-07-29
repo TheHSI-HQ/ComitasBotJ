@@ -1,7 +1,10 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Main;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,16 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
-    private final List<ConsoleCommandRegistry.Command> commands = new ArrayList<>();
-    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".CommandRegistry");
+    private final List<ConsoleCommand> consoleCommands = new ArrayList<>();
+    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".ConsoleCommandRegistry");
 
-    private boolean isCommandMeant(String command, ConsoleCommandRegistry.Command consoleCommand) {
-        return consoleCommand.aliases().contains(command);
+    private boolean isCommandMeant(String command, ConsoleCommand consoleCommand) {
+        return List.of(consoleCommand.aliases()).contains(command);
     }
 
-    @Override
     public boolean runCommand(String command, String[] args) {
-        for (ConsoleCommandRegistry.Command cmd : commands) {
+        for (ConsoleCommand cmd : consoleCommands) {
             if (!isCommandMeant(command, cmd)) continue;
 
             try {
@@ -32,22 +34,23 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
         return false;
     }
 
-    @Override
     public String[] validCommandList() {
         List<String> commandList = new ArrayList<>();
 
-        commands.forEach(cmd -> commandList.addAll(cmd.aliases()));
+        consoleCommands.forEach(cmd -> commandList.addAll(List.of(cmd.aliases())));
 
         return commandList.toArray(new String[0]);
     }
 
     @Override
-    public List<ConsoleCommandRegistry.Command> registeredCommands() {
-        return commands.stream().toList();
+    public void register(ConsoleCommandExecutor executor, @Nullable String description, String... aliases) {
+        consoleCommands.add(
+                new ConsoleCommand(aliases, Comitas.getPluginManager().getPlugin(), description, executor)
+        );
     }
 
     @Override
-    public void register(ConsoleCommandRegistry.Command command) {
-        commands.add(command);
+    public List<ConsoleCommand> registeredCommands() {
+        return new ArrayList<>(consoleCommands);
     }
 }

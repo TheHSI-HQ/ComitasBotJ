@@ -5,11 +5,13 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.InternalComitasImpl;
 import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
+import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
@@ -36,6 +38,7 @@ public class InternalComitas implements InternalComitasImpl {
     private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
     private final ConsolePrompt consolePrompt;
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private InternalCommandRegistry commandRegistry;
     private PluginLoaderManager pluginLoaderManager;
     private InternalPluginManager pluginManager;
     private InternalScheduler scheduler;
@@ -92,6 +95,11 @@ public class InternalComitas implements InternalComitasImpl {
     }
 
     @Override
+    public CommandRegistry getCommandRegistry() {
+        return commandRegistry;
+    }
+
+    @Override
     public ConsoleCommandRegistry getConsoleCommandRegistry() {
         return consoleCommandRegistry;
     }
@@ -139,6 +147,7 @@ public class InternalComitas implements InternalComitasImpl {
         logger.info("Loading API Integrations...");
         eventManager = new EventManager();
         scheduler = new InternalScheduler();
+        commandRegistry = new InternalCommandRegistry();
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
@@ -147,7 +156,8 @@ public class InternalComitas implements InternalComitasImpl {
         pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
                 eventManager,
-                scheduler
+                scheduler,
+                commandRegistry
         );
 
         pluginLoaderManager.loadPlugins();
@@ -156,7 +166,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Start Bot
         logger.info("Starting Bot...");
-        api = new DiscordAPI(bot_token, eventManager);
+        api = new DiscordAPI(bot_token, eventManager, commandRegistry);
 
         pluginManager.setDiscordApi(api);
 

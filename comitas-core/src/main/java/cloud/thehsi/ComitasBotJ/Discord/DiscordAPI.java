@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
+import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReactionAction;
@@ -18,6 +19,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
@@ -38,17 +40,19 @@ import java.util.concurrent.TimeUnit;
 public class DiscordAPI extends ListenerAdapter {
     static JDA api;
     final EventManager eventManager;
+    final InternalCommandRegistry commandRegistry;
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
     final List<RoleModificationLoopFix> roleModificationLoopFixList = new ArrayList<>();
     private final String BOT_TOKEN;
     boolean firstStartup = true;
 
-    public DiscordAPI(String BOT_TOKEN, EventManager eventManager) {
+    public DiscordAPI(String BOT_TOKEN, EventManager eventManager, InternalCommandRegistry commandRegistry) {
         this.BOT_TOKEN = BOT_TOKEN;
 
-        connect();
-
         this.eventManager = eventManager;
+        this.commandRegistry = commandRegistry;
+
+        connect();
     }
 
     public static JDA api() {
@@ -96,6 +100,13 @@ public class DiscordAPI extends ListenerAdapter {
     }
 
     @Override
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        super.onSlashCommandInteraction(event);
+
+        commandRegistry.handleCommand(event);
+    }
+
+    @Override
     public void onReady(@NotNull ReadyEvent event) {
         super.onReady(event);
 
@@ -104,7 +115,9 @@ public class DiscordAPI extends ListenerAdapter {
                     Activity.watching(Main.conf().botActivityName.get())
             );
 
-        eventManager.callEvent(new InternalBotConnectEvent(
+        commandRegistry.setDiscordApi(this);
+
+        eventManager.callEvent(new InternalBotReadyEvent(
                 api.getSelfUser()
         ));
 

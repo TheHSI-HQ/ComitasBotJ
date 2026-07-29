@@ -1,8 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,18 +19,6 @@ public abstract class Plugin {
      */
     public static PersistentDataStorage getPersistentDataStorage() {
         return Comitas.getPluginManager().getPersistentDataStorage();
-    }
-
-    /**
-     * Initialize a new {@link ConsoleCommandRegistry.CommandBuilder}.
-     * <p>
-     * It is primarily used to register Commands.
-     *
-     * @param executor A {@link ConsoleCommandExecutor} that will handle the command
-     * @return The generated {@link ConsoleCommandRegistry.CommandBuilder}
-     */
-    public ConsoleCommandRegistry.CommandBuilder createCommandBuilder(ConsoleCommandExecutor executor) {
-        return new ConsoleCommandRegistry.CommandBuilder(this, executor);
     }
 
     public Logger getLogger() {

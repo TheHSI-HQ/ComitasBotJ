@@ -9,12 +9,12 @@ public class Main extends Plugin {
         getLogger().info("Base Loaded");
 
         // Initialize Commands
-        new HelpConsoleCommand(this);
-        new VersionConsoleCommand(this);
-        new PluginsConsoleCommand(this);
-        new StopConsoleCommand(this);
-        new ReloadConsoleCommand(this);
-        new InviteConsoleCommand(this);
+        new HelpConsoleCommand();
+        new VersionConsoleCommand();
+        new PluginsConsoleCommand();
+        new StopConsoleCommand();
+        new ReloadConsoleCommand();
+        new InviteConsoleCommand();
     }
 
     @Override

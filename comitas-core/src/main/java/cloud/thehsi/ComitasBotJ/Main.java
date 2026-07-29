@@ -2,7 +2,6 @@ package cloud.thehsi.ComitasBotJ;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
@@ -26,7 +25,7 @@ import java.util.Properties;
 public class Main implements Runnable {
     public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
     private static final long STARTUP_TIME = System.currentTimeMillis();
-    private static final ConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
+    private static final InternalConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
     private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
     // Properties

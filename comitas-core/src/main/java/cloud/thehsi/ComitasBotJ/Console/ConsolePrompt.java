@@ -1,7 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.LoggerContext;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
@@ -15,11 +14,11 @@ import java.util.List;
 public class ConsolePrompt {
     private static final Logger logger = LoggerFactory.getLogger("Console");
     private static final Logger stdInLogger = LoggerFactory.getLogger("StdIn.Console");
-    private final ConsoleCommandRegistry registry;
+    private final InternalConsoleCommandRegistry registry;
 
     private final LineReader lineReader;
 
-    public ConsolePrompt(ConsoleCommandRegistry registry) {
+    public ConsolePrompt(InternalConsoleCommandRegistry registry) {
         this.registry = registry;
 
         try {

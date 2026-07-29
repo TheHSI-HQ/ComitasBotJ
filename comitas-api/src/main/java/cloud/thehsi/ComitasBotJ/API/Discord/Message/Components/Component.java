@@ -150,7 +150,7 @@ public class Component {
      * @implNote Any content will be auto escaped
      */
     public Component content(String content) {
-        this.content = content;
+        this.content = content == null ? "null" : content;
         this.content = this.content.replace("\\", "\\\\");
         this.content = this.content.replace("*", "\\*");
         this.content = this.content.replace("_", "\\_");

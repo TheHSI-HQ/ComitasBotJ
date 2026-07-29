@@ -10,7 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedBuilder;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
@@ -38,10 +38,12 @@ public class Main extends Plugin implements Listener {
 
     @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.LOW)
-    public void onBotConnect(BotConnectEvent event) {
+    public void onBotConnect(BotReadyEvent event) {
         getLogger().info("Hello from {}", event.getUserName());
 
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
+
+        Comitas.getCommandRegistry().register(new ExampleCommand());
     }
 
     @SuppressWarnings("unused")

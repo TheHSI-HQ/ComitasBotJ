@@ -150,11 +150,8 @@ public class PluginLoaderManager {
                     if (Main.props().ignoreApiTarget())
                         logger.warn("Plugin only supports {}, current version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
                     else
-                        throw new RuntimeException(
-                                "Plugin only supports " +
-                                        props.getProperty("api-target") +
-                                        ", current version is " +
-                                        Comitas.getServerVersion()
+                        throw new PluginCompatibilityException(
+                                props.getProperty("api-target"), Comitas.getServerVersion()
                         );
 
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
@@ -164,13 +161,21 @@ public class PluginLoaderManager {
                 pluginManager.loadDataStore(metadata.uuid());
 
                 plugin.onEnable();
+            } catch (PluginCompatibilityException e) {
+                logger.error("Incompatible plugin found: \"{}\":", jar.getName());
+                logger.error("{}[{}]{} {}",
+                        ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.BRIGHT_RED + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.WHITE,
+                        e.getLocalizedMessage()
+                );
             } catch (Exception e) {
                 logger.error("Error when loading: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.BRIGHT_BLUE + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.WHITE,
-                        e.getLocalizedMessage()
+                        e.getLocalizedMessage(), e
                 );
             }
         }

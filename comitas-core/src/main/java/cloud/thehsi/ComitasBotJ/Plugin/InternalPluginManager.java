@@ -4,9 +4,10 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotConnectEvent;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotReadyEvent;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
@@ -29,14 +30,16 @@ public class InternalPluginManager implements PluginManager {
     private final PluginLoaderManager pluginLoaderManager;
     private final EventManager eventManager;
     private final InternalScheduler scheduler;
+    private final InternalCommandRegistry commandRegistry;
     private final Map<UUID, InternalPersistentDataStorage> pluginDataStores = new HashMap<>();
     private final Logger logger;
     private DiscordAPI discordAPI;
 
-    public InternalPluginManager(PluginLoaderManager pluginLoaderManager, EventManager eventManager, InternalScheduler scheduler) {
+    public InternalPluginManager(PluginLoaderManager pluginLoaderManager, EventManager eventManager, InternalScheduler scheduler, InternalCommandRegistry commandRegistry) {
         this.pluginLoaderManager = pluginLoaderManager;
         this.eventManager = eventManager;
         this.scheduler = scheduler;
+        this.commandRegistry = commandRegistry;
 
         this.pluginLoaderManager.initPluginManager(this);
         this.logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginManager");
@@ -45,7 +48,7 @@ public class InternalPluginManager implements PluginManager {
         exec.scheduleAtFixedRate(() -> {
             for (Plugin.PluginMetadata metadata : getAllPluginMetadata())
                 saveDataStore(metadata.uuid());
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 5, TimeUnit.MINUTES);
     }
 
     @Override
@@ -202,6 +205,7 @@ public class InternalPluginManager implements PluginManager {
 
     private void unloadPlugins() {
         pluginLoaderManager.unloadPlugins();
+        commandRegistry.unregisterAll();
         scheduler.cancelAll();
         eventManager.clearEvents();
     }
@@ -214,7 +218,7 @@ public class InternalPluginManager implements PluginManager {
 
         // Fake the bot being ready, so plugins listening for it can react
         if (discordAPI != null)
-            eventManager.callEvent(new InternalBotConnectEvent(discordAPI.getAPI().getSelfUser()));
+            eventManager.callEvent(new InternalBotReadyEvent(discordAPI.getAPI().getSelfUser()));
         logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
     }
 
@@ -240,6 +244,7 @@ public class InternalPluginManager implements PluginManager {
         try {
             if (discordAPI != null)
                 discordAPI.reconnect();
+
         } catch (InterruptedException e) {
             throw new RuntimeException("Reload aborted");
         }

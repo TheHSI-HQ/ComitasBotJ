@@ -3,7 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 
 @SuppressWarnings("unused")
-public interface BotConnectEvent extends Event {
+public interface BotReadyEvent extends Event {
     /**
      * Returns the bot's Username.
      *

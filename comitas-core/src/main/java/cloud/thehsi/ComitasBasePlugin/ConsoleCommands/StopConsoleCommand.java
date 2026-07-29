@@ -1,17 +1,15 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
-import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
 public class StopConsoleCommand extends ConsoleCommand {
-    public StopConsoleCommand(Plugin plugin) {
-        plugin.createCommandBuilder(this)
-                .setDescription("Stops ComitasBotJ")
-                .addCommand("stop")
-                .addCommand("exit")
-                .addCommand("quit")
-                .addCommand("die")
-                .register();
+    public StopConsoleCommand() {
+        Comitas.getConsoleCommandRegistry().register(
+                this,
+                "Stops ComitasBotJ",
+                "stop", "exit", "quit", "die"
+        );
     }
 
     @Override

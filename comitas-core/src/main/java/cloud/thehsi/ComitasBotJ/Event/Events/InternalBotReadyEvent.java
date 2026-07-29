@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.BotConnectEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
 import net.dv8tion.jda.api.entities.SelfUser;
 
-public record InternalBotConnectEvent(SelfUser bot) implements BotConnectEvent {
+public record InternalBotReadyEvent(SelfUser bot) implements BotReadyEvent {
     @Override
     public String getUserName() {
         return bot.getName();
