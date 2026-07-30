@@ -4,9 +4,12 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.requests.restaction.CommandCreateAction;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,19 +127,25 @@ public class InternalCommandRegistry implements CommandRegistry {
         if (this.api == null) throw new RuntimeException("Command registration requested before ready");
 
         for (Command command : api.getAPI().retrieveCommands().complete())
-            command.delete().queue();
+            command.delete().complete();
         api.getAPI().updateCommands().complete();
     }
 
     void register(RegisteredCommand command) {
         if (this.api == null) throw new RuntimeException("Command registration requested before ready");
-        CommandCreateAction action = api.getAPI().upsertCommand(command.name(), command.description());
+        SlashCommandData data = Commands.slash(command.name(), command.description());
+
+        data = data.setContexts(InteractionContextType.PRIVATE_CHANNEL, InteractionContextType.BOT_DM, InteractionContextType.GUILD);
 
         for (CommandArgument<?> arg : command.arguments())
             if (arg.type() != CommandArgumentType.CONTEXT)
-                action = action.addOption(arg.type().optionType(), arg.name(), arg.description(), arg.required());
+                data = data.addOptions(new OptionData(
+                        arg.type().optionType(), arg.name(), arg.description(), arg.required())
+                );
 
-        action.complete();
+        this.api.getAPI().updateCommands()
+                .addCommands(data)
+                .complete();
     }
 
     record RegisteredCommand(String name, String description, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}

@@ -9,7 +9,13 @@ import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
-public record InternalAttachment(Message.Attachment attachment) implements Attachment {
+public class InternalAttachment implements Attachment {
+    final Message.Attachment attachment;
+
+    public InternalAttachment(Message.Attachment attachment) {
+        this.attachment = attachment;
+    }
+
     @Override
     public CompletableFuture<String> getHash() {
         return attachment.getProxy().download().thenApply(input -> {

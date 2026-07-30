@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.User;
@@ -62,5 +63,10 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     @Override
     public void unreact() {
         message.unreact(new InternalEmoji(reaction.getEmoji()));
+    }
+
+    @Override
+    public void removeReaction(Member member) {
+        reaction.removeReaction(((InternalUser) member.getUser()).user).complete();
     }
 }

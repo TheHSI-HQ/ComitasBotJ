@@ -7,9 +7,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedFooter;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedTitle;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,5 +54,15 @@ public class InternalUtilityBackend implements UtilityBackend {
     @Nullable
     public Emoji getEmojiFromUnicode(String unicodeEmoji) {
         return new InternalEmoji(unicodeEmoji);
+    }
+
+    @Override
+    public @Nullable User getUserFromId(String id) {
+        return new InternalUser(DiscordAPI.api().getUserById(id));
+    }
+
+    @Override
+    public @Nullable User getUserFromId(long id) {
+        return new InternalUser(DiscordAPI.api().getUserById(id));
     }
 }

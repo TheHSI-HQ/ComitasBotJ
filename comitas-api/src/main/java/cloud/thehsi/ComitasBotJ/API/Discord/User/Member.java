@@ -1,164 +1,104 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface Member {
+public interface Member extends User {
     /**
-     * Returns the user's Username.
+     * Returns this member as a member.
      *
-     * @return The user's Username.
+     * @return The member
      */
-    String getUserName();
+    User getUser();
 
     /**
-     * Returns the user's Display Name.
+     * Returns the member's guild
      *
-     * @return The user's Display Name
+     * @return The member's guild
      */
-    String getDisplayName();
+    Guild getGuild();
 
     /**
-     * Returns the user's ID.
+     * Returns the member's primary color.
      *
-     * @return The user's ID
-     */
-    Long getId();
-
-    /**
-     * Determine if the user is a bot
-     *
-     * @return Is user a bot
-     */
-    boolean isBot();
-
-    /**
-     * Determine if the user is this bot
-     *
-     * @return Is user is this bot
-     */
-    boolean isMe();
-
-    /**
-     * Generates a Mention-String ({@code <@USERID>}).
-     * <p>
-     * Putting this String in any Discord Message, will mention this User.
-     *
-     * @return The generated Mention-Component
-     */
-    Component mention();
-
-    /**
-     * Returns the user's primary color.
-     *
-     * @return The user's primary color
+     * @return The member's primary color
      */
     @Nullable
     Color getPrimaryColor();
 
     /**
-     * Returns the user's secondary color.
+     * Returns the member's secondary color.
      *
-     * @return The user's secondary color
+     * @return The member's secondary color
      */
     @Nullable
     Color getSecondaryColor();
 
     /**
-     * Returns the user's tertiary color.
+     * Returns the member's tertiary color.
      *
-     * @return The user's tertiary color
+     * @return The member's tertiary color
      */
     @Nullable
     Color getTertiaryColor();
 
     /**
-     * Returns the user's name in there color.
+     * Returns the member's name in their color.
      *
-     * @return The user's name with there color
+     * @return The member's name with their color
      */
+    @Override
     String getLoggableName();
 
     /**
-     * Generates a list of all user permissions
+     * Generates a list of all member permissions
      *
      * @return The generated list of permissions
      */
     List<Permission> getPermissions();
 
     /**
-     * Kick this user
+     * Kick this member
      */
     void kick();
 
     /**
-     * Kick this user
+     * Kick this member
      *
      * @param reason The kick reason
      */
     void kick(String reason);
 
     /**
-     * Ban this user
+     * Ban this member
      */
-    void ban();
+    Ban ban();
 
     /**
-     * Ban this user
+     * Ban this member
      *
      * @param reason The ban reason
      */
-    void ban(String reason);
+    Ban ban(String reason);
 
     /**
-     * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
+     * Ban and delete the last {@code deletionPeriodHours} hours of message from this member
      *
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      */
-    void ban(int deletionPeriodHours);
+    Ban ban(int deletionPeriodHours);
 
     /**
-     * Ban and delete the last {@code deletionPeriodHours} hours of message from this user
+     * Ban and delete the last {@code deletionPeriodHours} hours of message from this member
      *
      * @param reason              The ban reason
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      */
-    void ban(String reason, int deletionPeriodHours);
-
-    /**
-     * Messages this User with a Message of your choosing
-     *
-     * @param message The message you want to send
-     * @return Was the message successfully send
-     */
-    @ApiStatus.Experimental
-    MyMessage sendDirectMessage(Component message);
-
-    /**
-     * Messages this User with a Message of your choosing
-     *
-     * @param message The message you want to send
-     * @param embed   The embed to attach to this message
-     * @return Was the message successfully send
-     */
-    @ApiStatus.Experimental
-    MyMessage sendDirectMessage(Component message, Embed embed);
-
-    /**
-     * Messages this User with a Message of your choosing
-     *
-     * @param message The message you want to send
-     * @param embeds  The embeds to attach to this message
-     * @return Was the message successfully send
-     */
-    @ApiStatus.Experimental
-    MyMessage sendDirectMessage(Component message, Embed... embeds);
+    Ban ban(String reason, int deletionPeriodHours);
 }

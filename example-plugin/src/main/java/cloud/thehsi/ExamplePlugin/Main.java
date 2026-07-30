@@ -22,8 +22,6 @@ import java.awt.*;
 public class Main extends Plugin implements Listener {
     @Override
     public void onEnable() {
-        // Your code Here
-
         getLogger().info("Hello World from Example Plugin");
 
         Comitas.getPluginManager().registerEvents(this, this);
@@ -31,8 +29,6 @@ public class Main extends Plugin implements Listener {
 
     @Override
     public void onDisable() {
-        // Your code here
-
         getLogger().info("Bye Bye from ExamplePlugin!");
     }
 

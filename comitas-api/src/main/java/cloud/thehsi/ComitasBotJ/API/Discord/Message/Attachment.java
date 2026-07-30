@@ -24,6 +24,4 @@ public interface Attachment {
      * @return The attachment's url
      */
     String getURL();
-
-    // TODO: Continue Implementation
 }

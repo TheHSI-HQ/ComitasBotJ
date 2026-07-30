@@ -1,17 +1,13 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
-import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
+import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -19,43 +15,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class InternalMember implements Member {
-    private final net.dv8tion.jda.api.entities.User user;
-    private final net.dv8tion.jda.api.entities.Member member;
+public class InternalMember extends InternalUser implements Member {
+    final net.dv8tion.jda.api.entities.Member member;
 
     public InternalMember(net.dv8tion.jda.api.entities.Member member) {
-        this.user = member.getUser();
+        super(member.getUser());
         this.member = member;
     }
 
     @Override
-    public String getUserName() {
-        return user.getName();
+    public User getUser() {
+        return this;
     }
 
     @Override
-    public String getDisplayName() {
-        return user.getEffectiveName();
-    }
-
-    @Override
-    public Long getId() {
-        return user.getIdLong();
-    }
-
-    @Override
-    public boolean isBot() {
-        return user.isBot();
-    }
-
-    @Override
-    public boolean isMe() {
-        return user.getIdLong() == user.getJDA().getSelfUser().getIdLong();
-    }
-
-    @Override
-    public Component mention() {
-        return Component.raw(user.getAsMention());
+    public Guild getGuild() {
+        return new InternalGuild(member.getGuild());
     }
 
     @Override
@@ -113,67 +88,30 @@ public class InternalMember implements Member {
     }
 
     @Override
-    public void ban() {
+    public Ban ban() {
         member.ban(0, TimeUnit.SECONDS).complete();
+
+        return new InternalBan(getUser(), null, getGuild());
     }
 
     @Override
-    public void ban(String reason) {
+    public Ban ban(String reason) {
         member.ban(0, TimeUnit.SECONDS).reason(reason).complete();
+
+        return new InternalBan(getUser(), reason, getGuild());
     }
 
     @Override
-    public void ban(int deletionPeriodHours) {
+    public Ban ban(int deletionPeriodHours) {
         member.ban(deletionPeriodHours, TimeUnit.HOURS).complete();
+
+        return new InternalBan(getUser(), null, getGuild());
     }
 
     @Override
-    public void ban(String reason, int deletionPeriodHours) {
+    public Ban ban(String reason, int deletionPeriodHours) {
         member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).complete();
-    }
 
-    @Override
-    public MyMessage sendDirectMessage(Component message) {
-        String msg = ComponentParser.parseComponent(message);
-
-        return new InternalMyMessage(member.getUser().openPrivateChannel()
-                .flatMap(channel -> channel.sendMessage(msg))
-                .complete());
-    }
-
-    @Override
-    public MyMessage sendDirectMessage(Component message, Embed embed) {
-        String msg = ComponentParser.parseComponent(message);
-
-        if (!(embed instanceof InternalEmbed internal))
-            throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-        MessageEmbed messageEmbed = internal.embed();
-
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            return new InternalMyMessage(member.getUser().openPrivateChannel()
-                    .flatMap(channel -> channel.sendMessage(data))
-                    .complete());
-        }
-    }
-
-    @Override
-    public MyMessage sendDirectMessage(Component message, Embed... embeds) {
-        String msg = ComponentParser.parseComponent(message);
-
-        MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
-
-        for (int i = 0; i < embeds.length; i++) {
-            if (!(embeds[i] instanceof InternalEmbed internal))
-                throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-            messageEmbeds[i] = internal.embed();
-        }
-
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            return new InternalMyMessage(member.getUser().openPrivateChannel()
-                    .flatMap(channel -> channel.sendMessage(data))
-                    .complete());
-        }
+        return new InternalBan(getUser(), reason, getGuild());
     }
 }

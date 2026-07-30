@@ -20,8 +20,8 @@ public class ExampleCommand implements CommandSupplier {
         context.replyEphemeral(Component.text("Ok, imma tell ").append(Component.text(target.getDisplayName())));
 
         if (message != null)
-            context.reply(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
+            context.channel().sendMessage(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
         else
-            context.reply(Component.text("Hi ").append(target.mention()));
+            context.channel().sendMessage(Component.text("Hi ").append(target.mention()));
     }
 }

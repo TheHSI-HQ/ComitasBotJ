@@ -80,7 +80,7 @@ public interface Message {
      *
      * @return The list of attachments
      */
-    List<Attachment> getAttachments();
+    List<MessageAttachment> getAttachments();
 
     /**
      * Forward the message to a {@link MessageChannel}

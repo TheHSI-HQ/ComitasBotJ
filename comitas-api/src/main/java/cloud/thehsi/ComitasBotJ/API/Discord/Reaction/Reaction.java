@@ -64,4 +64,11 @@ public interface Reaction {
      * Removes the bots reaction
      */
     void unreact();
+
+    /**
+     * Removes a members reaction
+     *
+     * @param member TThe member whose reaction is to be removed
+     */
+    void removeReaction(Member member);
 }

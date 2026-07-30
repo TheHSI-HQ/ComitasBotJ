@@ -2,10 +2,10 @@ package cloud.thehsi.ComitasBotJ.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageAttachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
@@ -118,11 +118,10 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public List<Attachment> getAttachments() {
-        List<Attachment> attachments = new ArrayList<>();
-        for (net.dv8tion.jda.api.entities.Message.Attachment attachment : message.getAttachments()) {
-            attachments.add(new InternalAttachment(attachment));
-        }
+    public List<MessageAttachment> getAttachments() {
+        List<MessageAttachment> attachments = new ArrayList<>();
+        for (net.dv8tion.jda.api.entities.Message.Attachment attachment : message.getAttachments())
+            attachments.add(new InternalMessageAttachment(attachment, message));
         return attachments;
     }
 
