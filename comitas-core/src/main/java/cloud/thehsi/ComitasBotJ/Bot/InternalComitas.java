@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -113,6 +115,12 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public Bot getBot() {
         return bot;
+    }
+
+    static List<Runnable> onShutdownCalls = new ArrayList<>();
+
+    public static void addShutdownCall(Runnable callback) {
+        onShutdownCalls.add(callback);
     }
 
     @Override
@@ -223,5 +231,8 @@ public class InternalComitas implements InternalComitasImpl {
         }
 
         ((LoggerContext) LoggerFactory.getILoggerFactory()).stop();
+
+        for (Runnable callback : onShutdownCalls)
+            callback.run();
     }
 }

@@ -10,6 +10,7 @@ public class Main extends Plugin {
 
         // Initialize Commands
         new HelpConsoleCommand();
+        new UpdateConsoleCommand();
         new VersionConsoleCommand();
         new PluginsConsoleCommand();
         new StopConsoleCommand();

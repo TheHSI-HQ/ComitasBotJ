@@ -20,6 +20,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <comitas.version>0.0.13</comitas.version>
+        <comitas.version>0.0.14a</comitas.version>
     </properties>
 </project>

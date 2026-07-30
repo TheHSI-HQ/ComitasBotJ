@@ -75,7 +75,7 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
         }
     }
 
-    private String formatThrowable(IThrowableProxy throwable) {
+    public static String formatThrowable(IThrowableProxy throwable) {
         StringBuilder sb = new StringBuilder();
 
         String timestamp = new java.text.SimpleDateFormat("HH:mm:ss")
