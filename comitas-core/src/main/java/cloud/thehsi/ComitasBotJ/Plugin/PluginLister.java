@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import static cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager.versionId;
+
 public class PluginLister {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
@@ -347,39 +349,5 @@ public class PluginLister {
         }
 
         return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
-    }
-
-    private static long versionId(String version) {
-        version = version.trim().toLowerCase();
-
-        int suffix = 2; // release
-        char last = version.charAt(version.length() - 1);
-
-        if (last == 'a') {
-            suffix = 0;
-            version = version.substring(0, version.length() - 1);
-        } else if (last == 'b') {
-            suffix = 1;
-            version = version.substring(0, version.length() - 1);
-        }
-
-        String[] parts = version.split("\\.");
-
-        int major = 0;
-        int minor = 0;
-        int patch = 0;
-
-        try {
-            if (parts.length > 0) major = Integer.parseInt(parts[0]);
-            if (parts.length > 1) minor = Integer.parseInt(parts[1]);
-            if (parts.length > 2) patch = Integer.parseInt(parts[2]);
-        }catch (NumberFormatException e) {
-            return 0;
-        }
-
-        return major * 1_000_000_000L
-                + minor * 1_000_000L
-                + patch * 1_000L
-                + suffix;
     }
 }

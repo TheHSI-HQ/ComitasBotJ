@@ -181,17 +181,17 @@ public class PluginLoaderManager {
         }
     }
 
-    private long versionId(String version) {
+    public static long versionId(String version) {
         version = version.trim().toLowerCase();
 
-        int suffix = 2; // release
+        int suffix = 0; // release
         char last = version.charAt(version.length() - 1);
 
         if (last == 'a') {
-            suffix = 0;
+            suffix = -100;
             version = version.substring(0, version.length() - 1);
         } else if (last == 'b') {
-            suffix = 1;
+            suffix = -99;
             version = version.substring(0, version.length() - 1);
         }
 
