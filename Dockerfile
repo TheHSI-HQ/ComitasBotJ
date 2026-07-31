@@ -3,16 +3,8 @@ FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
-# Build comitas-api first
-COPY ./comitas-api ./comitas-api
-WORKDIR /build/comitas-api
-RUN mvn clean install
-
-# Build comitas-core
-WORKDIR /build
-COPY ./comitas-core ./comitas-core
-WORKDIR /build/comitas-core
-RUN mvn clean package
+COPY ./ ./
+RUN mvn -pl comitas-core -am clean package
 
 # Runtime stage
 FROM eclipse-temurin:21-jre

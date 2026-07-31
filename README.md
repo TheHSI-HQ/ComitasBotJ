@@ -132,7 +132,7 @@ Plugins can:
 - Store persistent data
 - Extend bot functionality
 
-See the [API documentation](API.md) for more information.
+See the [API documentation](docs/API.md) for more information.
 
 ## Contributing
 
