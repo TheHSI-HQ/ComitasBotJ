@@ -64,6 +64,18 @@ public interface Member extends User {
     List<Permission> getPermissions();
 
     /**
+     * Get the members online status
+     */
+    OnlineStatus getOnlineStatus();
+
+    /**
+     * Get the members online status for a specified {@link ClientType}
+     *
+     * @param clientType The client type to fetch the online status for
+     */
+    OnlineStatus getOnlineStatus(ClientType clientType);
+
+    /**
      * Kick this member
      */
     void kick();

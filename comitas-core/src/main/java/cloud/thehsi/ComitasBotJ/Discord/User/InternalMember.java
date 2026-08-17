@@ -4,7 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
@@ -75,6 +77,18 @@ public class InternalMember extends InternalUser implements Member {
                     Permission.fromValue(permission.name())
             );
         return permissions;
+    }
+
+    @Override
+    public OnlineStatus getOnlineStatus() {
+        return OnlineStatus.fromKey(member.getOnlineStatus().getKey());
+    }
+
+    @Override
+    public OnlineStatus getOnlineStatus(ClientType clientType) {
+        return OnlineStatus.fromKey(member.getOnlineStatus(
+                net.dv8tion.jda.api.entities.ClientType.fromKey(clientType.getKey())
+        ).getKey());
     }
 
     @Override
