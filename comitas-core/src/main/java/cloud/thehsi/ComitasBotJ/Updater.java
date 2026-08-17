@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 public class Updater {
     static final String GITHUB_REPO = "TheHSI-HQ/ComitasBotJ";
-    static ExecutorService executorService = Executors.newCachedThreadPool();
+    static final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private static final DecimalFormat DF = new DecimalFormat("0.00",
             DecimalFormatSymbols.getInstance(Locale.ROOT));

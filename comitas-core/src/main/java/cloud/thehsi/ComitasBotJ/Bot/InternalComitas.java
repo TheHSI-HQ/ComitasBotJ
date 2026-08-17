@@ -116,7 +116,7 @@ public class InternalComitas implements InternalComitasImpl {
         return bot;
     }
 
-    static List<Runnable> onShutdownCalls = new ArrayList<>();
+    static final List<Runnable> onShutdownCalls = new ArrayList<>();
 
     public static void addShutdownCall(Runnable callback) {
         onShutdownCalls.add(callback);

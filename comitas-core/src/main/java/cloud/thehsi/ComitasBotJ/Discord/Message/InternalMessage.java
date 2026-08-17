@@ -85,7 +85,11 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    @Nullable
     public MessageChannel getChannel() {
+        if (!message.hasChannel())
+            return null;
+
         return new InternalMessageChannel(message.getChannel());
     }
 

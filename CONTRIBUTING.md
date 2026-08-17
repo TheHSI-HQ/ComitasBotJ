@@ -23,7 +23,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 #### **Do you intend to add a new feature or change an existing one?**
 
-* Then you should **Fork** ComitasBotJ, implement your change and Open a Pull Requst.
+* Then you should **Fork** ComitasBotJ, implement your change and Open a Pull Request.
 
 #### **Do you have questions about the source code?**
 

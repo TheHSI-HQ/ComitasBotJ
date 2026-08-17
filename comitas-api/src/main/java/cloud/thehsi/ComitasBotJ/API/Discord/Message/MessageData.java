@@ -12,9 +12,9 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class MessageData {
     Component content = Component.empty();
-    List<Embed> embeds = new ArrayList<>();
-    List<Attachment> attachments = new ArrayList<>();
-    List<AttachmentUpload> attachmentUploads = new ArrayList<>();
+    final List<Embed> embeds = new ArrayList<>();
+    final List<Attachment> attachments = new ArrayList<>();
+    final List<AttachmentUpload> attachmentUploads = new ArrayList<>();
 
     public MessageData setContent(Component content) {
         this.content = content;

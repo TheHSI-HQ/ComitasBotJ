@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UpdateConsoleCommand extends ConsoleCommand {
-    AtomicBoolean needsConfirmation = new AtomicBoolean(false);
+    final AtomicBoolean needsConfirmation = new AtomicBoolean(false);
 
     public UpdateConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
