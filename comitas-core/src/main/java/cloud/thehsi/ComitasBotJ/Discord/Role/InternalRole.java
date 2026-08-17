@@ -6,7 +6,6 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,11 +54,8 @@ public record InternalRole(net.dv8tion.jda.api.entities.Role role) implements Ro
 
     @Override
     public List<Permission> getPermissions() {
-        List<Permission> permissions = new ArrayList<>();
-        for (net.dv8tion.jda.api.Permission permission : role.getPermissions())
-            permissions.add(
-                    Permission.fromValue(permission.name())
-            );
-        return permissions;
+        return role.getPermissions().stream()
+                .map(e -> Permission.fromValue(e.getName()))
+                .toList();
     }
 }

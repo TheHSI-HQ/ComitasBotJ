@@ -19,11 +19,9 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.MessageReference;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class InternalMessage implements Message {
@@ -125,11 +123,9 @@ public class InternalMessage implements Message {
 
     @Override
     public List<Reaction> getReactions() {
-        List<Reaction> reactions = new ArrayList<>();
-        for (MessageReaction reaction : message.getReactions()) {
-            reactions.add(new InternalReaction(reaction, this));
-        }
-        return reactions;
+        return message.getReactions().stream()
+                .map(e -> (Reaction) new InternalReaction(e, this))
+                .toList();
     }
 
     @Override
@@ -144,10 +140,9 @@ public class InternalMessage implements Message {
 
     @Override
     public List<MessageAttachment> getAttachments() {
-        List<MessageAttachment> attachments = new ArrayList<>();
-        for (net.dv8tion.jda.api.entities.Message.Attachment attachment : message.getAttachments())
-            attachments.add(new InternalMessageAttachment(attachment, message));
-        return attachments;
+        return message.getAttachments().stream()
+                .map(e -> (MessageAttachment) new InternalMessageAttachment(e, message))
+                .toList();
     }
 
     @Override

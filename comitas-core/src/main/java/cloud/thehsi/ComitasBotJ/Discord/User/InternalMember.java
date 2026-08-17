@@ -12,7 +12,6 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -71,12 +70,9 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public List<Permission> getPermissions() {
-        List<Permission> permissions = new ArrayList<>();
-        for (net.dv8tion.jda.api.Permission permission : member.getPermissions())
-            permissions.add(
-                    Permission.fromValue(permission.name())
-            );
-        return permissions;
+        return member.getPermissions().stream()
+                .map(e -> Permission.fromValue(e.name()))
+                .toList();
     }
 
     @Override

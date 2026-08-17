@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.User;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record InternalReaction(MessageReaction reaction, Message message) implements Reaction {
@@ -21,14 +20,14 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
-    public List<Member> getReacters() {
-        List<Member> reactors = new ArrayList<>();
+    public List<Member> getReactors() {
         Guild guild = reaction.getGuild();
 
-        for (User user : reaction.retrieveUsers())
-            reactors.add(new InternalMember(guild.retrieveMember(user).complete()));
-
-        return reactors;
+        return reaction.retrieveUsers().stream()
+                .map(e -> (Member) new InternalMember(
+                        guild.retrieveMember(e).complete()
+                ))
+                .toList();
     }
 
     @Override

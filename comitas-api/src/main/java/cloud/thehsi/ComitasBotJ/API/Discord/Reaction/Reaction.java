@@ -20,7 +20,7 @@ public interface Reaction {
      *
      * @return A list of all reactors
      */
-    List<Member> getReacters();
+    List<Member> getReactors();
 
     /**
      * Gets the amount of reactions

@@ -9,13 +9,14 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalForumChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements Guild {
@@ -62,49 +63,34 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Invite> getInvites() {
-        List<Invite> invites = new ArrayList<>();
-
-        for (net.dv8tion.jda.api.entities.Invite invite : guild.retrieveInvites().complete()) {
-            invites.add(new InternalInvite(invite));
-        }
-
-        return invites;
+        return guild.retrieveInvites().complete().stream()
+                .map(e -> (Invite) new InternalInvite(e))
+                .toList();
     }
 
     @Override
     public List<Ban> getBans() {
-        List<Ban> bans = new ArrayList<>();
-
-        for (net.dv8tion.jda.api.entities.Guild.Ban ban : guild.retrieveBanList().complete())
-            bans.add(new InternalBan(
-                    new InternalUser(ban.getUser()),
-                    ban.getReason(),
-                    this
-            ));
-
-        return bans;
+        return guild.retrieveBanList().complete().stream()
+                .map(e -> (Ban) (new InternalBan(
+                        new InternalUser(e.getUser()),
+                        e.getReason(),
+                        this
+                )))
+                .toList();
     }
 
     @Override
     public List<Member> getMembers() {
-        List<Member> members = new ArrayList<>();
-
-        for (net.dv8tion.jda.api.entities.Member member : guild.getMembers()) {
-            members.add(new InternalMember(member));
-        }
-
-        return members;
+        return guild.getMembers().stream()
+                .map(e -> (Member) new InternalMember(e))
+                .toList();
     }
 
     @Override
     public List<Role> getRoles() {
-        List<Role> roles = new ArrayList<>();
-
-        for (net.dv8tion.jda.api.entities.Role role : guild.getRoles()) {
-            roles.add(new InternalRole(role));
-        }
-
-        return roles;
+        return guild.getRoles().stream()
+                .map(e -> (Role) new InternalRole(e))
+                .toList();
     }
 
     @Override
@@ -124,16 +110,17 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Channel> getChannels() {
-        List<Channel> channels = new ArrayList<>();
+        return guild.getChannels().stream()
+                .map(channel -> {
+                    // Channel Mapping
+                    if (channel instanceof ForumChannel cast)
+                        return new InternalForumChannel(cast);
+                    if (channel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel cast)
+                        return new InternalMessageChannel(cast);
 
-        for (net.dv8tion.jda.api.entities.channel.Channel channel : guild.getChannels()) {
-            if (channel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel)
-                channels.add(new InternalMessageChannel((net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) channel));
-            else
-                channels.add(new InternalChannel(channel));
-        }
-
-        return channels;
+                    return new InternalChannel(channel);
+                }).map(e -> (Channel) e)
+                .toList();
     }
 
     @Override

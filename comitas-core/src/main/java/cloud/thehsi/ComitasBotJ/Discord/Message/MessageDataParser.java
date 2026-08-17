@@ -23,10 +23,11 @@ public class MessageDataParser {
     private MessageDataParser() {}
 
     public record ParsedMessageData(String message, MessageEmbed[] messageEmbeds, List<AttachedFile> attachedFiles) {
-        List<FileUpload> fileUploads() {
-            List<FileUpload> fileUploads = new ArrayList<>();
-            attachedFiles.stream().filter(e -> e instanceof FileUpload).forEach(e -> fileUploads.add((FileUpload) e));
-            return fileUploads;
+        public List<FileUpload> fileUploads() {
+            return attachedFiles.stream()
+                    .filter(e -> e instanceof FileUpload)
+                    .map(e -> (FileUpload) e)
+                    .toList();
         }
     }
 

@@ -32,10 +32,9 @@ public class PluginLoaderManager {
     }
 
     public List<Plugin.PluginMetadata> pluginMetadataList() {
-        List<Plugin.PluginMetadata> metadataList = new ArrayList<>();
-        for (LoadedPlugin plugin : plugins)
-            metadataList.add(plugin.metadata());
-        return metadataList;
+        return plugins.stream()
+                .map(LoadedPlugin::metadata)
+                .toList();
     }
 
     public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
