@@ -8,5 +8,7 @@ import java.lang.annotation.*;
 public @interface Command {
     String name();
     String description();
+    CommandType[] commandType() default { CommandType.GUILD_INSTALL };
+    CommandContextType[] commandContextType() default { CommandContextType.GUILD };
 }
 

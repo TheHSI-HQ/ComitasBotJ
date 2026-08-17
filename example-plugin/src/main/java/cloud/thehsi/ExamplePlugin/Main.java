@@ -8,10 +8,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedBuilder;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
@@ -44,7 +45,7 @@ public class Main extends Plugin implements Listener {
 
     @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.LOW)
-    public void onMessage(MessageSentEvent event) {
+    public void onMessage(MessageReceivedEvent event) {
         if (Comitas.getBot().isMeOrNull(event.getAuthor())) return;
 
         PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
@@ -52,20 +53,21 @@ public class Main extends Plugin implements Listener {
         if (event.getRawContent().startsWith("!hello")) {
             Emoji thumbs_up = Emojis.THUMBSUP;
 
-            Component thumbsUpEmoji = thumbs_up != null ? thumbs_up.asMessageEmbed() : Component.empty();
+            Component thumbsUpEmoji = thumbs_up.asMessageEmbed();
 
             Embed embed = new EmbedBuilder()
                     .setTitle("Hello " + event.getAuthor().getDisplayName())
                     .setDescription(
                             Component.text("Best Regards from " )
                                     .append(Component.text(Comitas.getBot().getDisplayName(), Style.BOLD, Style.UNDERLINE))
+                                    .append(" ")
                                     .append(thumbsUpEmoji)
                     )
                     .setAuthor(new EmbedAuthor(Comitas.getBot().getDisplayName(), "https://www.thehsi.cloud/", "https://www.thehsi.cloud/logo.png"))
                     .setColor(new Color(151, 45, 231))
                     .build();
 
-            event.reply(Component.empty(), embed);
+            event.reply(new MessageData(embed));
 
             if (storage.has("message", PersistentDataTypes.STRING))
                 event.reply(

@@ -3,14 +3,14 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public interface MessageSentEvent extends Event {
+public interface MessageReceivedEvent extends Event {
     /**
      * Is this message marked for deletion
      *
@@ -38,6 +38,13 @@ public interface MessageSentEvent extends Event {
     String getRawContent();
 
     /**
+     * Get the messages content parsed into a component
+     *
+     * @return The message content as a component tree
+     */
+    Component getContent();
+
+    /**
      * Get the Message
      *
      * @return The Message
@@ -62,8 +69,9 @@ public interface MessageSentEvent extends Event {
     /**
      * Get the Guild the Message was sent in
      *
-     * @return The Message Guild
+     * @return The Message Guild (Maybe null if dm)
      */
+    @Nullable
     Guild getGuild();
 
     /**
@@ -75,20 +83,10 @@ public interface MessageSentEvent extends Event {
     MyMessage reply(Component message);
 
     /**
-     * Reply to the message in the same channel this message was send in with an Embed
+     * Reply to the message in the same channel this message was send in with message data
      *
-     * @param message The message to be sent
-     * @param embed   The embed to attach to this message
+     * @param messageData The message data
      * @return The message that was sent
      */
-    MyMessage reply(Component message, Embed embed);
-
-    /**
-     * Reply to the message in the same channel this message was send in with multiple Embeds
-     *
-     * @param message The message to be sent
-     * @param embeds  The embeds to attach to this message
-     * @return The message that was sent
-     */
-    MyMessage reply(Component message, Embed... embeds);
+    MyMessage reply(MessageData messageData);
 }

@@ -18,6 +18,12 @@ public class InternalEmbed implements Embed {
     final MessageEmbed embed;
 
     public InternalEmbed(
+            MessageEmbed embed
+    ) {
+        this.embed = embed;
+    }
+
+    public InternalEmbed(
             @Nullable EmbedAuthor author,
             @Nullable Color color,
             @Nullable Component description,

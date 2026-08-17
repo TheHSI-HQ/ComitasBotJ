@@ -1,17 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-
-import java.awt.*;
+import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 
 public class InternalUser implements User {
     public final net.dv8tion.jda.api.entities.User user;
@@ -57,46 +51,13 @@ public class InternalUser implements User {
 
     @Override
     public MyMessage sendDirectMessage(Component message) {
-        String msg = ComponentParser.parseComponent(message);
-
-        return new InternalMyMessage(user.openPrivateChannel()
-                .flatMap(channel -> channel.sendMessage(msg))
-                .complete());
+        return sendDirectMessage(message.toMessageData());
     }
 
     @Override
-    public MyMessage sendDirectMessage(Component message, Embed embed) {
-        String msg = ComponentParser.parseComponent(message);
-
-        if (!(embed instanceof InternalEmbed internal))
-            throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-        MessageEmbed messageEmbed = internal.embed();
-
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            return new InternalMyMessage(user.openPrivateChannel()
-                    .flatMap(channel -> channel.sendMessage(data))
-                    .complete());
-        }
-    }
-
-    @Override
-    public MyMessage sendDirectMessage(Component message, Embed... embeds) {
-        String msg = ComponentParser.parseComponent(message);
-
-        MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
-
-        for (int i = 0; i < embeds.length; i++) {
-            if (!(embeds[i] instanceof InternalEmbed internal))
-                throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-            messageEmbeds[i] = internal.embed();
-        }
-
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            return new InternalMyMessage(user.openPrivateChannel()
-                    .flatMap(channel -> channel.sendMessage(data))
-                    .complete());
-        }
+    public MyMessage sendDirectMessage(MessageData messageData) {
+        return MessageDataParser.send(messageData, data -> new InternalMyMessage(user.openPrivateChannel()
+                .flatMap(channel -> channel.sendMessage(data))
+                .complete()));
     }
 }

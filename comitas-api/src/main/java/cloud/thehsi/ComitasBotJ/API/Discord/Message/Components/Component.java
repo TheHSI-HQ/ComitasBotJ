@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Components;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +11,10 @@ public class Component {
     private final List<Component> children = new ArrayList<>();
     private Style style = Style.RESET;
     private String content = "";
+
+    public MessageData toMessageData() {
+        return new MessageData(this);
+    }
 
     private Component() {
     }
@@ -32,6 +39,17 @@ public class Component {
     }
 
     /**
+     * A newline component
+     *
+     * @return The newline component.
+     */
+    public static Component newLine() {
+        Component c = new Component();
+        c.content = "\n";
+        return c;
+    }
+
+    /**
      * Create a raw component (without auto escaping)
      *
      * @param content The raw content
@@ -40,6 +58,19 @@ public class Component {
     public static Component raw(String content) {
         Component c = new Component();
         c.content = content;
+        return c;
+    }
+
+    /**
+     * Create a component from a Timestamp
+     *
+     * @param timestamp The timestamp
+     * @param format The timestamp format
+     * @return The timestamp component.
+     */
+    public static Component timestamp(Instant timestamp, TimeStampFormat format) {
+        Component c = new Component();
+        c.content = "<t:" + timestamp.getEpochSecond() + ":" + format.getIdentifier() + ">";
         return c;
     }
 
@@ -189,6 +220,17 @@ public class Component {
     public Component style(Style style) {
         if (style == null) style = Style.RESET;
         this.style = style;
+        return this;
+    }
+
+    /**
+     * Append a string to this component.
+     *
+     * @param child String to be appended
+     * @return The component.
+     */
+    public Component append(String child) {
+        this.children.add(Component.text(child));
         return this;
     }
 

@@ -1,6 +1,6 @@
-package cloud.thehsi.ComitasBotJ.Discord.Message;
+package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageAttachment;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.util.List;

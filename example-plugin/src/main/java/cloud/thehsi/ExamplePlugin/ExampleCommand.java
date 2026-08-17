@@ -1,20 +1,20 @@
 package cloud.thehsi.ExamplePlugin;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command;
-import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandOption;
-import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandSupplier;
-import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Context;
+import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.Nullable;
 
 public class ExampleCommand implements CommandSupplier {
     @SuppressWarnings("unused")
-    @Command(name = "example", description = "An example command")
+    @Command(name = "example", description = "An example command", commandContextType = {
+            CommandContextType.BOT_DM,
+            CommandContextType.GUILD
+    })
     public void exampleCommand(
             Context context,
-            @CommandOption(name = "target", description = "The Target") Member target,
+            @CommandOption(name = "target", description = "The Target") User target,
             @CommandOption(name = "message", description = "The Message", required = false) @Nullable String message
     ) {
         context.replyEphemeral(Component.text("Ok, imma tell ").append(Component.text(target.getDisplayName())));

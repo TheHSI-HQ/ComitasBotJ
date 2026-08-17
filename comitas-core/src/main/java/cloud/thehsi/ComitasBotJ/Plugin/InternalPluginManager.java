@@ -210,9 +210,12 @@ public class InternalPluginManager implements PluginManager {
         return pluginLoaderManager.lookupPlugin(plugin);
     }
 
-    private void unloadPlugins() {
+    private void unloadPlugins(boolean hard) {
         pluginLoaderManager.unloadPlugins();
-        commandRegistry.unregisterAll();
+        if (hard) {
+            logger.info("Unregistering all commands...");
+            commandRegistry.unregisterAll();
+        }
         scheduler.cancelAll();
         eventManager.clearEvents();
     }
@@ -220,7 +223,7 @@ public class InternalPluginManager implements PluginManager {
     @Override
     public void reloadSoft() {
         long reloadTime = System.currentTimeMillis();
-        unloadPlugins();
+        unloadPlugins(false);
         pluginLoaderManager.loadPlugins();
 
         // Fake the bot being ready, so plugins listening for it can react
@@ -232,7 +235,7 @@ public class InternalPluginManager implements PluginManager {
     @Override
     public void reloadHard() {
         long reloadTime = System.currentTimeMillis();
-        unloadPlugins();
+        unloadPlugins(true);
 
         try {
             Main.conf().load();

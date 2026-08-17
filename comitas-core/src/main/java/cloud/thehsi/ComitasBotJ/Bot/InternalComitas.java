@@ -64,7 +64,6 @@ public class InternalComitas implements InternalComitasImpl {
         }
 
         Properties token_props = new Properties();
-
         try (InputStream in = Files.newInputStream(token_path)) {
             token_props.load(in);
         } catch (IOException e) {

@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -90,12 +89,12 @@ public class DiscordAPI extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        MessageSentEvent messageSentEvent = new InternalMessageSentEvent(event);
+    public void onMessageReceived(@NotNull net.dv8tion.jda.api.events.message.MessageReceivedEvent event) {
+        MessageReceivedEvent messageReceivedEvent = new InternalMessageReceivedEvent(event);
 
-        eventManager.callEvent(messageSentEvent);
+        eventManager.callEvent(messageReceivedEvent);
 
-        if (messageSentEvent.isDelete()) event.getMessage().delete().queue(ignored -> {
+        if (messageReceivedEvent.isDelete()) event.getMessage().delete().queue(ignored -> {
         }, error -> {
         });
     }

@@ -3,7 +3,9 @@ package cloud.thehsi.ComitasBotJ.Discord.Commands;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Main;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.IntegrationType;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -17,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -108,7 +111,7 @@ public class InternalCommandRegistry implements CommandRegistry {
             arguments[i] = new CommandArgument<>(type, option.name(), option.description(), option.required());
         }
 
-        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), arguments, method, commandSupplier);
+        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), commandInfo.commandType(), commandInfo.commandContextType(), arguments, method, commandSupplier);
 
         register(command);
 
@@ -124,18 +127,34 @@ public class InternalCommandRegistry implements CommandRegistry {
     }
 
     public void unregisterAll() {
-        if (this.api == null) throw new RuntimeException("Command registration requested before ready");
+        if (this.api == null) throw new RuntimeException("Command un-registration requested before ready");
 
         for (Command command : api.getAPI().retrieveCommands().complete())
             command.delete().complete();
+
+        for (Guild guild : api.getAPI().getGuilds())
+            for (Command command : guild.retrieveCommands().complete())
+                command.delete().complete();
+
         api.getAPI().updateCommands().complete();
+
+        commands.clear();
     }
 
     void register(RegisteredCommand command) {
         if (this.api == null) throw new RuntimeException("Command registration requested before ready");
         SlashCommandData data = Commands.slash(command.name(), command.description());
 
-        data = data.setContexts(InteractionContextType.PRIVATE_CHANNEL, InteractionContextType.BOT_DM, InteractionContextType.GUILD);
+        data = data.setContexts(
+                Arrays.stream(command.commandContextTypes())
+                        .map(e -> InteractionContextType.fromKey(e.getKey()))
+                        .toArray(InteractionContextType[]::new)
+        );
+        data = data.setIntegrationTypes(
+                Arrays.stream(command.commandTypes())
+                        .map(e -> IntegrationType.fromKey(e.getKey()))
+                        .toArray(IntegrationType[]::new)
+        );
 
         for (CommandArgument<?> arg : command.arguments())
             if (arg.type() != CommandArgumentType.CONTEXT)
@@ -143,10 +162,8 @@ public class InternalCommandRegistry implements CommandRegistry {
                         arg.type().optionType(), arg.name(), arg.description(), arg.required())
                 );
 
-        this.api.getAPI().updateCommands()
-                .addCommands(data)
-                .complete();
+        this.api.getAPI().upsertCommand(data).complete();
     }
 
-    record RegisteredCommand(String name, String description, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
+    record RegisteredCommand(String name, String description, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
 }

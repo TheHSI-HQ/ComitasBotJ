@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
@@ -11,11 +12,14 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpload;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.temporal.TemporalAccessor;
 
 public class InternalUtilityBackend implements UtilityBackend {
@@ -64,5 +68,10 @@ public class InternalUtilityBackend implements UtilityBackend {
     @Override
     public @Nullable User getUserFromId(long id) {
         return new InternalUser(DiscordAPI.api().getUserById(id));
+    }
+
+    @Override
+    public AttachmentUpload uploadAttachment(Path path) throws IOException {
+        return new InternalAttachmentUpload(path);
     }
 }

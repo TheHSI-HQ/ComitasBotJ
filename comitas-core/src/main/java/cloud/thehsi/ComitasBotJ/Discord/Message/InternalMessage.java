@@ -5,21 +5,22 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageAttachment;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachment;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalMessageAttachment;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentUnparser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.MessageReference;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -67,6 +68,11 @@ public class InternalMessage implements Message {
     @Override
     public String getRawContent() {
         return message.getContentRaw();
+    }
+
+    @Override
+    public Component getContent() {
+        return ComponentUnparser.unparseComponent(getRawContent());
     }
 
     @Override
@@ -126,6 +132,28 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    public MessageData getData() {
+        MessageData messageData = new MessageData();
+
+        messageData.setContent(Component.raw(getRawContent()));
+        for (MessageEmbed embed : message.getEmbeds())
+            messageData.addEmbed(new InternalEmbed(embed));
+
+        for (net.dv8tion.jda.api.entities.Message.Attachment attachment : message.getAttachments())
+            messageData.addAttachment(new InternalAttachment(attachment));
+
+        return messageData;
+    }
+
+    @Override
+    public Embed[] getEmbeds() {
+        Embed[] embeds = new Embed[message.getEmbeds().size()];
+        for (int i = 0; i < message.getEmbeds().size(); i++)
+            embeds[i] = new InternalEmbed(message.getEmbeds().get(i));
+        return embeds;
+    }
+
+    @Override
     public @Nullable MyMessage forward(MessageChannel channel) {
         if (!(channel instanceof InternalMessageChannel internal))
             throw new IllegalArgumentException("MessageChannel was not created by Comitas");
@@ -145,39 +173,13 @@ public class InternalMessage implements Message {
 
     @Override
     public MyMessage reply(Component message) {
-        String msg = ComponentParser.parseComponent(message);
-
-        return new InternalMyMessage(this.message.reply(msg).complete());
+        return reply(message.toMessageData());
     }
 
     @Override
-    public MyMessage reply(Component message, Embed embed) {
-        String msg = ComponentParser.parseComponent(message);
-
-        if (!(embed instanceof InternalEmbed internal))
-            throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-        MessageEmbed messageEmbed = internal.embed();
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbed).build()) {
-            return new InternalMyMessage(this.message.reply(data).complete());
-        }
-    }
-
-    @Override
-    public MyMessage reply(Component message, Embed... embeds) {
-        String msg = ComponentParser.parseComponent(message);
-
-        MessageEmbed[] messageEmbeds = new MessageEmbed[embeds.length];
-
-        for (int i = 0; i < embeds.length; i++) {
-            if (!(embeds[i] instanceof InternalEmbed internal))
-                throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-
-            messageEmbeds[i] = internal.embed();
-        }
-
-        try (MessageCreateData data = new MessageCreateBuilder().setContent(msg).setEmbeds(messageEmbeds).build()) {
-            return new InternalMyMessage(this.message.reply(data).complete());
-        }
+    public MyMessage reply(MessageData messageData) {
+        return MessageDataParser.send(messageData, data -> new InternalMyMessage(
+                this.message.reply(data).complete())
+        );
     }
 }

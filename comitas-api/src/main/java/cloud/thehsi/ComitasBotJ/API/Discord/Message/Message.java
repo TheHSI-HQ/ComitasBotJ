@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
@@ -28,6 +29,13 @@ public interface Message {
      * @return The raw message content
      */
     String getRawContent();
+
+    /**
+     * Get the messages content parsed into a component
+     *
+     * @return The message content as a component tree
+     */
+    Component getContent();
 
     /**
      * Get the Message Author
@@ -83,6 +91,20 @@ public interface Message {
     List<MessageAttachment> getAttachments();
 
     /**
+     * Returns the MessageData of the message
+     *
+     * @return The MessageData
+     */
+    MessageData getData();
+
+    /**
+     * Returns an array of all embeds of the message
+     *
+     * @return The embeds
+     */
+    Embed[] getEmbeds();
+
+    /**
      * Forward the message to a {@link MessageChannel}
      *
      * @return The message with the forwarded message
@@ -108,20 +130,10 @@ public interface Message {
     MyMessage reply(Component message);
 
     /**
-     * Reply to the message in the same channel this message was send in with an Embed
+     * Reply to the message in the same channel this message was send in with message data
      *
-     * @param message The message to be sent
-     * @param embed   The embed to attach to this message
+     * @param messageData The message data
      * @return The message that was sent
      */
-    MyMessage reply(Component message, Embed embed);
-
-    /**
-     * Reply to the message in the same channel this message was send in with multiple Embeds
-     *
-     * @param message The message to be sent
-     * @param embeds  The embeds to attach to this message
-     * @return The message that was sent
-     */
-    MyMessage reply(Component message, Embed... embeds);
+    MyMessage reply(MessageData messageData);
 }

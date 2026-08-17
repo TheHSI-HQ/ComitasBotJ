@@ -149,7 +149,7 @@ Now that you know how the plugins work and how to install them, let's get the Bo
    ```java
    import cloud.thehsi.ComitasBotJ.API.Event.Listener;
    import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
-   import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageSentEvent;
+   import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
    import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
    
    
