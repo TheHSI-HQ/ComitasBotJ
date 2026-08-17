@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface MessageChannel extends Channel {
@@ -16,7 +17,7 @@ public interface MessageChannel extends Channel {
     MyMessage sendMessage(Component message);
 
     /**
-     * Send a Message in the Channel with an Embed
+     * Send a Message in the Channel using message data
      *
      * @param messageData The message data to be sent
      * @return The message that was sent
@@ -26,7 +27,8 @@ public interface MessageChannel extends Channel {
     /**
      * Gets the channel's guild
      *
-     * @return The channel's guild
+     * @return The channel's guild if present
      */
+    @Nullable
     Guild getGuild();
 }
