@@ -102,6 +102,7 @@ public class PluginLoaderManager {
             return;
 
         List<String> allowedPlugins = new ArrayList<>();
+        boolean nonWhitelistedFound = false;
 
         if (!Objects.equals(Main.conf().allowedPlugins.get(), "*"))
             allowedPlugins = List.of(Main.conf().allowedPlugins.get().split(","));
@@ -137,8 +138,35 @@ public class PluginLoaderManager {
                 );
 
                 if (!allowedPlugins.isEmpty())
-                    if (!allowedPlugins.contains(metadata.name()) && !allowedPlugins.contains(metadata.uuid().toString()))
+                    if (!allowedPlugins.contains(metadata.name()) && !allowedPlugins.contains(metadata.uuid().toString())) {
+                        if (!nonWhitelistedFound)
+                            logger.warn("""
+        {}
+        ╔══════════════════════════════════════════════════════════════════╗
+        ║                       PLUGIN SECURITY WARNING                    ║
+        ╚══════════════════════════════════════════════════════════════════╝
+
+        Plugin whitelist enforcement is enabled, and one or more plugins
+        in the plugins directory are not whitelisted. These plugins will
+        NOT be loaded.
+
+        If you did not intentionally place these plugins here, treat this
+        as a potential security issue. Review your access logs, deployment
+        history, filesystem changes, and other relevant audit logs to
+        determine how they got there.
+
+        Do NOT leave unrecognized or unwhitelisted plugins in the plugins
+        directory in a production environment. Remove them and investigate
+        their origin before continuing.
+
+        Whitelist only plugins that you explicitly trust and intend to run.
+
+        """, ConsoleColor.YELLOW);
+                        logger.warn("Plugin '{}' ({}) is not whitelisted and will be skipped because the plugin whitelist is enabled.",
+                                metadata.name(), metadata.jarName());
+                        nonWhitelistedFound = true;
                         continue;
+                    }
 
                 if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
                     logger.warn("Plugin {} is not using universal UUID formatting", metadata.name());

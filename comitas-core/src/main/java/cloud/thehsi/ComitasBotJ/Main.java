@@ -14,6 +14,7 @@ import picocli.CommandLine;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.Properties;
 
 @CommandLine.Command(
@@ -143,17 +144,28 @@ public class Main implements Runnable {
             System.exit(0);
         }
 
+        if (Objects.equals(conf().allowedPlugins.get(), "*")) {
+            logger.warn("""
+                        {}
+                        Plugin whitelist is not enabled.
+                
+                        For production environments, enabling the plugin whitelist is
+                        strongly recommended to prevent unexpected or untrusted plugins
+                        from being loaded.
+                        """, ConsoleColor.YELLOW);
+        }
+
         if (props.ignoreApiTarget())
             logger.warn("""
-                    {}
-                    Plugin compatibility checks are disabled.
-                    
-                    ComitasBotJ will load plugins regardless of their compatibility
-                    status. This feature is intended for development and testing only
-                    and must not be used in production environments.
-                    
-                    Proceed with caution.
-                    """, ConsoleColor.YELLOW);
+                        {}
+                        Plugin compatibility checks are disabled.
+                        
+                        ComitasBotJ will load plugins regardless of their compatibility
+                        status. This feature is intended for development and testing only
+                        and must not be used in production environments.
+                        
+                        Proceed with caution.
+                        """, ConsoleColor.YELLOW);
 
         if (props.safeMode() && !props().strictSafeMode())
             logger.warn("""
