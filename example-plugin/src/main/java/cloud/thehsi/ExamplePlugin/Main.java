@@ -1,11 +1,8 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ForumChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
-import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
@@ -44,15 +41,6 @@ public class Main extends Plugin implements Listener {
         Comitas.getPluginManager().getPersistentDataStorage();
 
         Comitas.getCommandRegistry().register(new ExampleCommand());
-
-        for (Guild guild : Comitas.getBot().getGuilds()) {
-            for (Channel channel : guild.getChannels()) {
-                if (!(channel instanceof ForumChannel fc))
-                    continue;
-                fc.createPost("Test", Component.text("This is a test"));
-                break;
-            }
-        }
     }
 
     @SuppressWarnings("unused")

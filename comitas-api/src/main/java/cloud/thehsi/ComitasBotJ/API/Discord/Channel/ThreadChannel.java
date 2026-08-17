@@ -15,4 +15,18 @@ public interface ThreadChannel extends MessageChannel {
      * Delete this Post
      */
     void delete();
+
+    /**
+     * Is this channel pinned
+     *
+     * @return Is this channel pinned
+     */
+    boolean isPinned();
+
+    /**
+     * Set the pin status of this thread
+     *
+     * @param pinned Should this channel be pinned
+     */
+    void setPinned(boolean pinned);
 }

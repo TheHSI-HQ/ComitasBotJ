@@ -31,4 +31,14 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     public void delete() {
         channel.delete().complete();
     }
+
+    @Override
+    public boolean isPinned() {
+        return channel.isPinned();
+    }
+
+    @Override
+    public void setPinned(boolean pinned) {
+        channel.getManager().setPinned(pinned).complete();
+    }
 }
