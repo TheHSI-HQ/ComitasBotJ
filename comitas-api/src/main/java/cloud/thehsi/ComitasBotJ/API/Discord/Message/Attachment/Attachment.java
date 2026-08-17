@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
@@ -48,4 +49,9 @@ public interface Attachment {
      * @return The attachment's url
      */
     String getURL();
+
+    /**
+     * Converts the attachment into {@link MessageData}
+     */
+    MessageData asMessageData();
 }

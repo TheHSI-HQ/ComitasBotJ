@@ -1,10 +1,14 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Used to create / upload an attachment.
+ */
 @SuppressWarnings("unused")
 public interface AttachmentUpload {
     static AttachmentUpload from(Path path) throws IOException {
@@ -52,4 +56,9 @@ public interface AttachmentUpload {
      * @return Description of this attachment
      */
     String getDescription();
+
+    /**
+     * Converts the attachment into {@link MessageData}
+     */
+    MessageData asMessageData();
 }

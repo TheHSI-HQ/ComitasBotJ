@@ -59,7 +59,7 @@ public class InternalContext implements Context {
 
     @Override
     public MyMessage reply(Component message, boolean ephemeral) {
-        return reply(message.toMessageData(), ephemeral);
+        return reply(message.asMessageData(), ephemeral);
     }
 
     @Override

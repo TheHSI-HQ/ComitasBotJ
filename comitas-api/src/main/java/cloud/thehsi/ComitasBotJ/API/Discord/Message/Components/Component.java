@@ -12,7 +12,10 @@ public class Component {
     private Style style = Style.RESET;
     private String content = "";
 
-    public MessageData toMessageData() {
+    /**
+     * Converts the component into {@link MessageData}
+     */
+    public MessageData asMessageData() {
         return new MessageData(this);
     }
 

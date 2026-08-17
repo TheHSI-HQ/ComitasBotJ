@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
@@ -76,5 +77,10 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public MessageData asMessageData() {
+        return new MessageData(this);
     }
 }

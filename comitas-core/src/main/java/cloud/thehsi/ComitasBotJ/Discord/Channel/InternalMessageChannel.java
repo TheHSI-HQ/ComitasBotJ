@@ -26,7 +26,7 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
 
     @Override
     public MyMessage sendMessage(Component message) {
-        return sendMessage(message.toMessageData());
+        return sendMessage(message.asMessageData());
     }
 
     @Override

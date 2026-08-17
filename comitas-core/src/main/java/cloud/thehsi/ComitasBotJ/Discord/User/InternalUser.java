@@ -51,7 +51,7 @@ public class InternalUser implements User {
 
     @Override
     public MyMessage sendDirectMessage(Component message) {
-        return sendDirectMessage(message.toMessageData());
+        return sendDirectMessage(message.asMessageData());
     }
 
     @Override

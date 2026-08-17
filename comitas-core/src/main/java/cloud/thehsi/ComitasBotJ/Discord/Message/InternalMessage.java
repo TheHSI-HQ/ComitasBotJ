@@ -192,7 +192,7 @@ public class InternalMessage implements Message {
 
     @Override
     public MyMessage reply(Component message) {
-        return reply(message.toMessageData());
+        return reply(message.asMessageData());
     }
 
     @Override

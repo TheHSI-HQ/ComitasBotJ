@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.io.ByteArrayOutputStream;
@@ -74,7 +75,14 @@ public class InternalAttachment implements Attachment {
         return attachment.getUrl();
     }
 
+    @Override
+    public MessageData asMessageData() {
+        return new MessageData().addAttachment(this);
+    }
+
     public Message.Attachment getAttachment() {
         return attachment;
     }
+
+
 }
