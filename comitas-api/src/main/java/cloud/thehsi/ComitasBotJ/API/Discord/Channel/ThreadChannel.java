@@ -17,6 +17,20 @@ public interface ThreadChannel extends MessageChannel {
     void delete();
 
     /**
+     * Is this channel opened ot closed
+     *
+     * @return Is this channel closed
+     */
+    boolean isClosed();
+
+    /**
+     * Should this channel be open or closed
+     *
+     * @param closed Should this channel be closed
+     */
+    void setClosed(boolean closed);
+
+    /**
      * Is this channel pinned
      *
      * @return Is this channel pinned

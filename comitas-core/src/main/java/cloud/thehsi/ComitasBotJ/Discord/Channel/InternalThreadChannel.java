@@ -33,6 +33,16 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
+    public boolean isClosed() {
+        return channel.isArchived();
+    }
+
+    @Override
+    public void setClosed(boolean closed) {
+        channel.getManager().setArchived(closed).complete();
+    }
+
+    @Override
     public boolean isPinned() {
         return channel.isPinned();
     }
