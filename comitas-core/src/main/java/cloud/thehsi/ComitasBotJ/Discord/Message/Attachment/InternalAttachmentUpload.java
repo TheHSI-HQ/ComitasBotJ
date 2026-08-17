@@ -22,6 +22,11 @@ public class InternalAttachmentUpload implements AttachmentUpload {
         data = Files.readAllBytes(path);
     }
 
+    public InternalAttachmentUpload(String filename, byte[] data) {
+        this.fileName = filename;
+        this.data = data;
+    }
+
     public InternalAttachmentUpload(InternalAttachment attachment) {
         this.fileName = attachment.getFileName();
         byte[] _data = null;

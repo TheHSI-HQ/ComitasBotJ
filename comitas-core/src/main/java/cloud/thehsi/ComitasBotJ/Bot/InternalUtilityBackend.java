@@ -74,4 +74,9 @@ public class InternalUtilityBackend implements UtilityBackend {
     public AttachmentUpload uploadAttachment(Path path) throws IOException {
         return new InternalAttachmentUpload(path);
     }
+
+    @Override
+    public AttachmentUpload uploadAttachment(String filename, byte[] data) {
+        return new InternalAttachmentUpload(filename, data);
+    }
 }

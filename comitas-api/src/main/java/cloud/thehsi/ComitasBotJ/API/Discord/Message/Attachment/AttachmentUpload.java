@@ -15,6 +15,10 @@ public interface AttachmentUpload {
         return Comitas.getUtilityBackend().uploadAttachment(path);
     }
 
+    static AttachmentUpload from(String filename, byte[] data) {
+        return Comitas.getUtilityBackend().uploadAttachment(filename, data);
+    }
+
     /**
      * Set if this attachment is a spoiler
      *

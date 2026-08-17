@@ -28,4 +28,5 @@ public interface UtilityBackend {
     @Nullable User getUserFromId(long id);
 
     AttachmentUpload uploadAttachment(Path path) throws IOException;
+    AttachmentUpload uploadAttachment(String filename, byte[] data);
 }
