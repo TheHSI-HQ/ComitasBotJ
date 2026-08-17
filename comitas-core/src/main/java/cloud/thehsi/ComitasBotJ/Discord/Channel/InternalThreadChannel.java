@@ -43,6 +43,16 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
+    public boolean isLocked() {
+        return channel.isLocked();
+    }
+
+    @Override
+    public void setLocked(boolean locked) {
+        channel.getManager().setLocked(locked).complete();
+    }
+
+    @Override
     public boolean isPinned() {
         return channel.isPinned();
     }
