@@ -19,11 +19,13 @@ public class ComponentParser {
         Component _component = Component.empty().append(new Component(component));
 
         for (Component c : _component.children()) {
-            int line_count = c.content().split("\n", -1).length; // -1 is required so "\n" -!> [] but ["", ""]
+            int line_count = c.content().split("\n", -1).length;
+
             for (String line : c.content().split("\n", -1)) {
                 line_count--;
 
-                // Extremely complicated BLACK MAGIC, so this: This is* a *test!!! becomes: This is *a* test!!!
+                // Extremely complicated BLACK MAGIC, so this:
+                // This is* a *test!!! becomes: This is *a* test!!!
                 int start = 0;
                 while (start < line.length() && Character.isWhitespace(line.charAt(start))) {
                     start++;
@@ -34,24 +36,53 @@ public class ComponentParser {
                     end--;
                 }
 
+                StyleDifference styleDifference = new StyleDifference(lastStyle, c.style());
+
+                // Close the previous component's formatting first.
+                currentLine = closeStyle(currentLine, styleDifference);
+
+                // Whitespace (trailing from the previous component, and this
+                // component's own leading whitespace) sits entirely outside
+                // formatting on both sides.
+                currentLine += pendingAppend;
                 currentLine += line.substring(0, start);
 
-                currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, c.style()), pendingAppend);
+                // Open this component's formatting.
+                currentLine = openStyle(currentLine, styleDifference);
+
+                // Add this component's actual content.
                 currentLine += line.substring(start, end);
 
+                // Save trailing whitespace so it can be emitted outside formatting.
                 pendingAppend = line.substring(end);
 
                 if (line_count > 0) {
-                    currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET), pendingAppend);
+                    // Close this component's formatting before emitting trailing whitespace.
+                    currentLine = closeStyle(
+                            currentLine,
+                            new StyleDifference(c.style(), Style.RESET)
+                    );
+
+                    currentLine += pendingAppend;
+                    pendingAppend = "";
+
                     lines.add(currentLine);
                     currentLine = "";
-                    pendingAppend = "";
                 }
             }
+
             lastStyle = c.style();
         }
 
-        currentLine = applyStyle(currentLine, new StyleDifference(lastStyle, Style.RESET), pendingAppend);
+        // Close the final component's formatting.
+        currentLine = closeStyle(
+                currentLine,
+                new StyleDifference(lastStyle, Style.RESET)
+        );
+
+        // Trailing whitespace must be outside the formatting.
+        currentLine += pendingAppend;
+
         lines.add(currentLine);
 
         return String.join("\n", lines);
@@ -68,16 +99,19 @@ public class ComponentParser {
         return line;
     }
 
-    private static String applyStyle(String line, StyleDifference styleDifference, String pendingAppend) {
+    private static String closeStyle(String line, StyleDifference styleDifference) {
         if (styleDifference.spoiler.isFalse()) line += "||";
         if (styleDifference.code.isFalse()) line += "`";
         if (styleDifference.strikethrough.isFalse()) line += "~~";
         if (styleDifference.underline.isFalse()) line += "__";
         if (styleDifference.italic.isFalse()) line += "*";
         if (styleDifference.bold.isFalse()) line += "**";
+        if (styleDifference.codeBlock.isFalse()) line += "\n```";
 
-        line += pendingAppend;
+        return line;
+    }
 
+    private static String openStyle(String line, StyleDifference styleDifference) {
         if (styleDifference.bold.isTrue()) line += "**";
         if (styleDifference.italic.isTrue()) line += "*";
         if (styleDifference.underline.isTrue()) line += "__";
@@ -98,7 +132,6 @@ public class ComponentParser {
         if (styleDifference.bulletPoints.isTrue())
             line = setLineType(line, false, false, false, false, false, true);
         if (styleDifference.codeBlock.isTrue()) line += "```";
-        if (styleDifference.codeBlock.isFalse()) line += "\n```";
 
         return line;
     }
