@@ -8,6 +8,7 @@ import java.lang.annotation.*;
 public @interface Command {
     String name();
     String description();
+    boolean nsfw() default false;
     CommandType[] commandType() default { CommandType.GUILD_INSTALL };
     CommandContextType[] commandContextType() default { CommandContextType.GUILD };
 }

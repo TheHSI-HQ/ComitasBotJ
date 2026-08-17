@@ -111,7 +111,7 @@ public class InternalCommandRegistry implements CommandRegistry {
             arguments[i] = new CommandArgument<>(type, option.name(), option.description(), option.required());
         }
 
-        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), commandInfo.commandType(), commandInfo.commandContextType(), arguments, method, commandSupplier);
+        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), commandInfo.nsfw(), commandInfo.commandType(), commandInfo.commandContextType(), arguments, method, commandSupplier);
 
         register(command);
 
@@ -156,6 +156,8 @@ public class InternalCommandRegistry implements CommandRegistry {
                         .toArray(IntegrationType[]::new)
         );
 
+        data = data.setNSFW(command.nsfw());
+
         for (CommandArgument<?> arg : command.arguments())
             if (arg.type() != CommandArgumentType.CONTEXT)
                 data = data.addOptions(new OptionData(
@@ -165,5 +167,5 @@ public class InternalCommandRegistry implements CommandRegistry {
         this.api.getAPI().upsertCommand(data).complete();
     }
 
-    record RegisteredCommand(String name, String description, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
+    record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
 }
