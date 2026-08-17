@@ -19,6 +19,13 @@ public interface Channel {
     Long getId();
 
     /**
+     * Is this channel NSFW
+     *
+     * @return The Is this channel nsfw
+     */
+    boolean isNSFW();
+
+    /**
      * Generates a Mention-String ({@code <#CHANNEÖID>}).
      * <p>
      * Putting this String in any Discord Message, will mention this Channel.
