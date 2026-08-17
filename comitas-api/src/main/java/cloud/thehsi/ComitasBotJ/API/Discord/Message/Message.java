@@ -20,6 +20,8 @@ public interface Message {
 
     /**
      * Checks if the message is deleted
+     *
+     * @return Has this message been deleted
      */
     boolean isDeleted();
 
@@ -57,6 +59,13 @@ public interface Message {
      * @return Is this a reply
      */
     boolean isReply();
+
+    /**
+     * Is this message a forward of another message
+     *
+     * @return Is this a forward
+     */
+    boolean isForwarded();
 
     /**
      * The message this message is a reply to

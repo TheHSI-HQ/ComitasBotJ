@@ -91,7 +91,22 @@ public class InternalMessage implements Message {
 
     @Override
     public boolean isReply() {
-        return getRepliedMessage() != null;
+        MessageReference ref = message.getMessageReference();
+
+        if (ref == null || ref.getMessageIdLong() == 0)
+            return false;
+
+        return ref.getType() == MessageReference.MessageReferenceType.DEFAULT;
+    }
+
+    @Override
+    public boolean isForwarded() {
+        MessageReference ref = message.getMessageReference();
+
+        if (ref == null || ref.getMessageIdLong() == 0)
+            return false;
+
+        return ref.getType() == MessageReference.MessageReferenceType.FORWARD;
     }
 
     @Override
