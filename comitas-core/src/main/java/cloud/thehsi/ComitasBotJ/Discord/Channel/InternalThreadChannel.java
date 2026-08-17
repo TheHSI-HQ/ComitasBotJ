@@ -61,4 +61,14 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     public void setPinned(boolean pinned) {
         channel.getManager().setPinned(pinned).complete();
     }
+
+    @Override
+    public String getTitle() {
+        return channel.getName();
+    }
+
+    @Override
+    public void setTitle(String title) {
+        channel.getManager().setName(title).complete();
+    }
 }

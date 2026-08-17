@@ -57,4 +57,18 @@ public interface ThreadChannel extends MessageChannel {
      * @param pinned Should this thread be pinned
      */
     void setPinned(boolean pinned);
+
+    /**
+     * Get the threads title
+     *
+     * @return Thread title
+     */
+    String getTitle();
+
+    /**
+     * Set the threads title
+     *
+     * @param title The new post title
+     */
+    void setTitle(String title);
 }
