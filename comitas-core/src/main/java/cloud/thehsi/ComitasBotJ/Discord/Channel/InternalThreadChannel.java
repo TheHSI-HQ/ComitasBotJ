@@ -2,8 +2,10 @@ package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ThreadChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,11 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
         if (channel instanceof GuildChannel guildChannel)
             return new InternalGuild(guildChannel.getGuild());
         return null;
+    }
+
+    @Override
+    public Message getInitialMessage() {
+        return new InternalMessage(channel.retrieveStartMessage().complete());
     }
 
     @Override

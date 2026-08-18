@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,13 @@ public interface ThreadChannel extends MessageChannel {
      * @return The thread's guild
      */
     Guild getGuild();
+
+    /**
+     * Get the message that started this thread
+     *
+     * @return The threads initial message
+     */
+    Message getInitialMessage();
 
     /**
      * List all member of this thread
