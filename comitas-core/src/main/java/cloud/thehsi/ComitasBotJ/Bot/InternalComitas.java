@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
+
 public class InternalComitas implements InternalComitasImpl {
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
@@ -124,6 +126,9 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public void init() {
+        getDebugLogger().debug("Initializing Comitas API");
+
+        getDebugLogger().debug("Checking and creating logs directory");
         File logsDir = new File("logs");
 
         if (!logsDir.exists() && !logsDir.mkdir()) {
@@ -132,10 +137,13 @@ public class InternalComitas implements InternalComitasImpl {
 
         logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
 
+        getDebugLogger().debug("Registering Shutdown Hook");
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
+        getDebugLogger().debug("Populating Secrets");
         populateSecrets();
 
+        getDebugLogger().debug("Validating Bot Token");
         if (bot_token.isBlank()) {
             logger.error("Missing Discord Bot Token (./tokens.secret)");
             System.exit(1);
@@ -143,14 +151,18 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Prepare EventManager
         logger.info("Loading API Integrations...");
+        getDebugLogger().debug("Initializing Event Manager");
         eventManager = new EventManager();
+        getDebugLogger().debug("Initializing Scheduler");
         scheduler = new InternalScheduler();
+        getDebugLogger().debug("Initializing Command Registry");
         commandRegistry = new InternalCommandRegistry();
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
         pluginLoaderManager = new PluginLoaderManager();
 
+        getDebugLogger().debug("Initializing Plugin Manager");
         pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
                 eventManager,
@@ -158,6 +170,7 @@ public class InternalComitas implements InternalComitasImpl {
                 commandRegistry
         );
 
+        getDebugLogger().debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
@@ -208,7 +221,7 @@ public class InternalComitas implements InternalComitasImpl {
             scheduler.cancelAll();
 
         if (eventManager != null)
-            eventManager.clearEvents();
+            eventManager.clearEventListeners();
 
         if (Main.conf() != null) {
             logger.info("Writing Updated Configuration...");

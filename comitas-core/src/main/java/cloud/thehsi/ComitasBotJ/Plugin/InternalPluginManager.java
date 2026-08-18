@@ -24,6 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
+
 public class InternalPluginManager implements PluginManager {
     private static final StackWalker STACK_WALKER =
             StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
@@ -41,9 +43,11 @@ public class InternalPluginManager implements PluginManager {
         this.scheduler = scheduler;
         this.commandRegistry = commandRegistry;
 
+        getDebugLogger().debug("Populating Plugin Loader Manager");
         this.pluginLoaderManager.initPluginManager(this);
         this.logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginManager");
 
+        getDebugLogger().debug("Starting Plugin Data Auto Save on 5 Minute interval");
         ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         exec.scheduleAtFixedRate(() -> {
             for (Plugin.PluginMetadata metadata : getAllPluginMetadata())
@@ -63,6 +67,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public Plugin getPlugin() {
+        getDebugLogger().debug("Fetching calling plugin...");
         return STACK_WALKER
                 .walk(frames -> frames
                         .map(StackWalker.StackFrame::getDeclaringClass)
@@ -78,6 +83,7 @@ public class InternalPluginManager implements PluginManager {
     public PersistentDataStorage getPersistentDataStorage() {
         Plugin plugin = getPlugin();
         Plugin.PluginMetadata metadata = lookupPlugin(plugin);
+        getDebugLogger().debug("{} requested persistant data storage.", metadata.name());
 
         populateDataStore(metadata.uuid());
 
@@ -91,13 +97,17 @@ public class InternalPluginManager implements PluginManager {
     }
 
     public void loadDataStore(UUID pluginUUID) {
+        getDebugLogger().debug("Loading data stores for {}.", pluginUUID);
         Path dataDirectory = Path.of("plugin_data");
         Path dataFile = dataDirectory.resolve(pluginUUID + ".dat");
 
         try {
+            //noinspection LoggingSimilarMessage
+            getDebugLogger().debug("Creating plugin_data directory if it doesn't exist.");
             Files.createDirectories(dataDirectory);
 
             if (Files.notExists(dataFile)) {
+                getDebugLogger().debug("Initializing empty data store for {}, as no ore-existing one was found.", pluginUUID);
                 pluginDataStores.put(
                         pluginUUID,
                         new InternalPersistentDataStorage()
@@ -106,13 +116,16 @@ public class InternalPluginManager implements PluginManager {
                 return;
             }
 
+            getDebugLogger().debug("Reading raw data store file of {}.", pluginUUID);
             byte[] serializedData = Files.readAllBytes(dataFile);
 
+            getDebugLogger().debug("Parsing read data into data store for {}.", pluginUUID);
             Map<String, InternalPersistentDataStorage.Entry> data =
                     PersistentDataSerializer.deserializeData(
                             serializedData
                     );
 
+            getDebugLogger().debug("Registering data store for {}.", pluginUUID);
             pluginDataStores.put(
                     pluginUUID,
                     new InternalPersistentDataStorage(data)
@@ -128,10 +141,12 @@ public class InternalPluginManager implements PluginManager {
     }
 
     public void saveDataStore(UUID pluginUUID) {
+        getDebugLogger().debug("Saving data store to disk for {}.", pluginUUID);
         InternalPersistentDataStorage dataStore =
                 pluginDataStores.get(pluginUUID);
 
         if (dataStore == null) {
+            getDebugLogger().debug("No data store found for {}, skipping.", pluginUUID);
             return;
         }
 
@@ -143,6 +158,7 @@ public class InternalPluginManager implements PluginManager {
                 pluginUUID + ".dat.tmp"
         );
 
+        getDebugLogger().debug("Serializing data store of {}.", pluginUUID);
         byte[] data =
                 PersistentDataSerializer.serializeData(
                         dataStore.getData()
@@ -152,15 +168,19 @@ public class InternalPluginManager implements PluginManager {
 
         while (true) {
             try {
+                //noinspection LoggingSimilarMessage
+                getDebugLogger().debug("Creating plugin_data directory if it doesn't exist.");
                 Files.createDirectories(directory);
 
                 // Write the complete data first
+                getDebugLogger().debug("Writing data store into temporary file for {}.", pluginUUID);
                 Files.write(
                         temporary,
                         data
                 );
 
                 // Only replace the real file after the write succeeds
+                getDebugLogger().debug("Overwriting data store file for {}.", pluginUUID);
                 Files.move(
                         temporary,
                         target,
@@ -189,6 +209,7 @@ public class InternalPluginManager implements PluginManager {
             }
 
             try {
+                getDebugLogger().debug("Waiting 1s to retry saving data for {}.", pluginUUID);
                 //noinspection BusyWait
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -216,44 +237,58 @@ public class InternalPluginManager implements PluginManager {
             logger.info("Unregistering all commands...");
             commandRegistry.unregisterAll();
         }
+        getDebugLogger().debug("Canceling all Schedulers");
         scheduler.cancelAll();
-        eventManager.clearEvents();
+        getDebugLogger().debug("Clearing all Events");
+        eventManager.clearEventListeners();
     }
 
     @Override
     public void reloadSoft() {
         long reloadTime = System.currentTimeMillis();
+        getDebugLogger().debug("Unloading Plugins in soft mode");
         unloadPlugins(false);
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
         // Fake the bot being ready, so plugins listening for it can react
-        if (discordAPI != null)
+        if (discordAPI != null) {
+            getDebugLogger().debug("Faking and Firing a BotReadyEvent");
             eventManager.callEvent(new InternalBotReadyEvent(discordAPI.getAPI().getSelfUser()));
+        }
         logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
     }
 
     @Override
     public void reloadHard() {
         long reloadTime = System.currentTimeMillis();
+        getDebugLogger().debug("Unloading Plugins in hard mode");
         unloadPlugins(true);
 
         try {
+            getDebugLogger().debug("Reloading Config");
             Main.conf().load();
         } catch (IOException e) {
             logger.warn("Error during config reload: ", e);
             logger.warn("Old config will be preserved");
         }
         try {
+            getDebugLogger().debug("Rewriting Config");
             Main.conf().save();
         } catch (IOException e) {
             logger.warn("Error during config save: ", e);
         }
 
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
         try {
-            if (discordAPI != null)
+            if (discordAPI != null) {
+                getDebugLogger().debug("Reconnecting DiscordAPI");
                 discordAPI.reconnect();
+            }
 
         } catch (InterruptedException e) {
             throw new RuntimeException("Reload aborted");

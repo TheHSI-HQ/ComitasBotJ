@@ -13,6 +13,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
+import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
+
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
     private final List<LoadedPlugin> plugins = new ArrayList<>();
@@ -48,6 +50,7 @@ public class PluginLoaderManager {
     public void loadBasePlugin() {
         if (basePlugin == null)
             try {
+                getDebugLogger().debug("Loading base plugin");
                 ClassLoader loader = getClass().getClassLoader();
 
                 Class<? extends Plugin> clazz =
@@ -84,6 +87,8 @@ public class PluginLoaderManager {
     public void loadPlugins() {
         if (!Main.props().strictSafeMode()) loadBasePlugin();
 
+        getDebugLogger().debug("Checking and creating plugins and plugin_data directories");
+
         File pluginDir = new File("plugins");
         File pluginDataDir = new File("plugin_data");
 
@@ -93,6 +98,7 @@ public class PluginLoaderManager {
 
         if (Main.props().strictSafeMode() || Main.props().safeMode() || !Main.conf().loadPlugins.get()) return;
 
+        getDebugLogger().debug("Listing all jar files from plugins");
         File[] jars = pluginDir.listFiles(
                 f -> f.getName().endsWith(".jar")
         );
@@ -103,35 +109,44 @@ public class PluginLoaderManager {
         List<String> allowedPlugins = new ArrayList<>();
         boolean nonWhitelistedFound = false;
 
+        getDebugLogger().debug("Parsing plugin whitelist");
         if (!Objects.equals(Main.conf().allowedPlugins.get(), "*"))
             allowedPlugins = List.of(Main.conf().allowedPlugins.get().split(","));
 
         for (File jar : jars) {
+            getDebugLogger().debug("Loading Plugin Jar File: {}", jar.getName());
             try {
+                getDebugLogger().debug("Creating URLClassLoader for: {}", jar.getName());
                 URLClassLoader loader =
                         new URLClassLoader(
                                 new URL[]{jar.toURI().toURL()},
                                 getClass().getClassLoader()
                         );
 
+                getDebugLogger().debug("Reading plugin.properties of: {}", jar.getName());
                 InputStream is =
                         loader.getResourceAsStream(
                                 "plugin.properties"
                         );
 
+                getDebugLogger().debug("Parsing plugin.properties for: {}", jar.getName());
                 Properties props = new Properties();
                 props.load(is);
+                getDebugLogger().debug("Parsed plugin.properties: {}", props);
 
                 String mainClass =
                         props.getProperty("main");
 
+                getDebugLogger().debug("Reflecting main class for: {}", jar.getName());
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
                                 .asSubclass(Plugin.class);
 
+                getDebugLogger().debug("Instancing main class for : {}", jar.getName());
                 Plugin plugin = clazz.getDeclaredConstructor()
                         .newInstance();
 
+                getDebugLogger().debug("Prepping internal plugin metadata for: {}", jar.getName());
                 Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
                         props, jar.getName()
                 );
@@ -167,12 +182,15 @@ public class PluginLoaderManager {
                         continue;
                     }
 
+                getDebugLogger().debug("Validating UUID ({}) for: {}", props.getProperty("uuid"), jar.getName());
                 if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
                     logger.warn("Plugin {} is not using universal UUID formatting", metadata.name());
 
+                getDebugLogger().debug("Validating name ({}) for: {}", metadata.name(), jar.getName());
                 if (metadata.name().contains(","))
                     logger.warn("Plugin {} is has an illegal character in its name [,]", metadata.name());
 
+                getDebugLogger().debug("Checking compatibility ({}) for: {}", props.getProperty("api-target"), jar.getName());
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
                     if (Main.props().ignoreApiTarget())
                         logger.warn("Plugin only supports {}, current version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
@@ -181,12 +199,15 @@ public class PluginLoaderManager {
                                 props.getProperty("api-target"), Comitas.getServerVersion()
                         );
 
+                getDebugLogger().debug("Adding {} as a loaded plugin", jar.getName());
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
                 logger.info("Loaded Plugin {} {}", metadata.name(), metadata.version());
 
+                getDebugLogger().debug("Loading datastore (plugin data) for: {}", jar.getName());
                 pluginManager.loadDataStore(metadata.uuid());
 
+                getDebugLogger().debug("Calling onEnable on: {}", jar.getName());
                 plugin.onEnable();
             } catch (PluginCompatibilityException e) {
                 logger.error("Incompatible plugin found: \"{}\":", jar.getName());

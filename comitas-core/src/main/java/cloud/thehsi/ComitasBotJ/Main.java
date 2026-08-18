@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ;
 
+import ch.qos.logback.classic.Level;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
@@ -29,6 +30,23 @@ public class Main implements Runnable {
     private static final InternalConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
     private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
+
+    public static Logger getDebugLogger() {
+        Class<?> caller = StackWalker.getInstance(
+                        StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .walk(frames -> frames
+                        .skip(1) // skip getDebugLogger()
+                        .findFirst()
+                        .map(StackWalker.StackFrame::getDeclaringClass)
+                        .orElseThrow());
+
+        ch.qos.logback.classic.Logger l =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(caller);
+
+        l.setLevel(debug ? Level.DEBUG : Level.INFO);
+        return l;
+    }
+
     // Properties
     private static StartupProperties props;
     private static ServerConfig.ParsedServerConfig conf;
@@ -57,6 +75,11 @@ public class Main implements Runnable {
             description = "List all plugins, regardless of whitelists, and exit."
     )
     private boolean listPlugins;
+    @CommandLine.Option(
+            names = {"--debug", "--verbose"},
+            description = "Enables verbose (debug) logging."
+    )
+    private static boolean debug;
 
     public static long getRuntimeMS() {
         return System.currentTimeMillis() - STARTUP_TIME;
@@ -96,6 +119,7 @@ public class Main implements Runnable {
     public void run() {
         logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
+        getDebugLogger().debug("Creating Startup Properties");
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
                 strictSafeMode, listPlugins
@@ -104,8 +128,11 @@ public class Main implements Runnable {
         // Load Configuration from ./server.properties
         logger.info("Loading Configuration...");
         try {
+            getDebugLogger().debug("Creating and Reading ServerConfig");
             ServerConfig rawServerConfig = new ServerConfig();
+            getDebugLogger().debug("Parsing ServerConfig");
             conf = rawServerConfig.asParsed();
+            getDebugLogger().debug("Rewriting ServerConfig");
             conf.load();
             conf.save();
         } catch (IOException e) {
@@ -113,10 +140,12 @@ public class Main implements Runnable {
             System.exit(1);
         }
 
+        getDebugLogger().debug("Computing config values");
         takeConfigActions();
 
         logger.info("Loaded {} configuration value(s).", conf.count());
 
+        getDebugLogger().debug("Initializing Comitas API");
         Comitas comitas = Comitas.getInstance();
         comitas.init(new InternalComitas(consoleCommandRegistry, consolePrompt));
 
@@ -124,6 +153,7 @@ public class Main implements Runnable {
             consolePrompt.run();
 
         try {
+            getDebugLogger().debug("Sleeping Main Process");
             Thread.currentThread().join();
         } catch (InterruptedException ignored) {
         }

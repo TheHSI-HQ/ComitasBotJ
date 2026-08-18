@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
+
 public class DiscordAPI extends ListenerAdapter {
     static JDA api;
     final EventManager eventManager;
@@ -60,6 +62,7 @@ public class DiscordAPI extends ListenerAdapter {
     }
 
     private void connect() {
+        getDebugLogger().debug("Connecting to Discord Bot");
         api = JDABuilder.createDefault(BOT_TOKEN)
                 .enableIntents(
                         GatewayIntent.GUILD_MEMBERS,
@@ -69,18 +72,28 @@ public class DiscordAPI extends ListenerAdapter {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .addEventListeners(this)
                 .build();
+
+        ch.qos.logback.classic.Logger jdaLogger =
+                (ch.qos.logback.classic.Logger)
+                        LoggerFactory.getLogger("net.dv8tion.jda");
+
+        jdaLogger.setLevel(((ch.qos.logback.classic.Logger) getDebugLogger()).getLevel());
     }
 
     public void reconnect() throws InterruptedException {
+        getDebugLogger().debug("Reconnecting to Discord Bot");
         if (api != null) {
+            getDebugLogger().debug("Shutting bot down.");
             api.shutdown();
 
-            if (!api.awaitShutdown(10, TimeUnit.SECONDS)) {
+            if (!api.awaitShutdown(15, TimeUnit.SECONDS)) {
+                getDebugLogger().debug("Bot shutdown exceeded timeout, forcing shutdown.");
                 api.shutdownNow();
             }
         }
 
         connect();
+        getDebugLogger().debug("Awaiting bot to be ready.");
         api.awaitReady();
     }
 
@@ -90,6 +103,7 @@ public class DiscordAPI extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull net.dv8tion.jda.api.events.message.MessageReceivedEvent event) {
+        getDebugLogger().debug("Firing a MessageReceivedEvent.");
         MessageReceivedEvent messageReceivedEvent = new InternalMessageReceivedEvent(event);
 
         eventManager.callEvent(messageReceivedEvent);
@@ -103,20 +117,24 @@ public class DiscordAPI extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         super.onSlashCommandInteraction(event);
 
+        getDebugLogger().debug("Command {} got ran, passingto registry.", event.getName());
         commandRegistry.handleCommand(event);
     }
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         super.onReady(event);
+        getDebugLogger().debug("Setting Bot Presence.");
 
         if (!Main.conf().botActivityName.get().isBlank())
             api.getPresence().setActivity(
                     Activity.watching(Main.conf().botActivityName.get())
             );
 
+        getDebugLogger().debug("Updating Command Registry Discord API reference.");
         commandRegistry.setDiscordApi(this);
 
+        getDebugLogger().debug("Firing a BotReadyEvent.");
         eventManager.callEvent(new InternalBotReadyEvent(
                 api.getSelfUser()
         ));
@@ -137,6 +155,8 @@ public class DiscordAPI extends ListenerAdapter {
             if (roleModificationLoopFixList.contains(
                     new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong()
                     ))) {
+                //noinspection LoggingSimilarMessage
+                getDebugLogger().debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
                 roleModificationLoopFixList.remove(new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong()));
                 continue;
             }
@@ -146,9 +166,11 @@ public class DiscordAPI extends ListenerAdapter {
                     new InternalRole(role)
             );
 
+            getDebugLogger().debug("Firing a UserRoleAddedEvent.");
             eventManager.callEvent(userRoleAddedEvent);
 
             if (userRoleAddedEvent.willUndo()) {
+                getDebugLogger().debug("Adding a RoleModificationLopeFix, as role addition was marked to be undone");
                 roleModificationLoopFixList.add(
                         new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong())
                 );
@@ -165,6 +187,8 @@ public class DiscordAPI extends ListenerAdapter {
             if (roleModificationLoopFixList.contains(
                     new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong()
                     ))) {
+                //noinspection LoggingSimilarMessage
+                getDebugLogger().debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
                 roleModificationLoopFixList.remove(new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong()));
                 continue;
             }
@@ -174,9 +198,11 @@ public class DiscordAPI extends ListenerAdapter {
                     new InternalRole(role)
             );
 
+            getDebugLogger().debug("Firing a UserRoleRemovedEvent.");
             eventManager.callEvent(userRoleRemovedEvent);
 
             if (userRoleRemovedEvent.willUndo()) {
+                getDebugLogger().debug("Adding a RoleModificationLopeFix, as role removal was marked to be undone");
                 roleModificationLoopFixList.add(
                         new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong())
                 );
@@ -189,8 +215,12 @@ public class DiscordAPI extends ListenerAdapter {
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
         if (event.getMember() == null) return;
 
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Retrieving Message for ReactionUpdatedEvent.");
         Message message = new InternalMessage(event.retrieveMessage().complete());
 
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Firing a ReactionUpdatedEvent.");
         eventManager.callEvent(new InternalReactionUpdatedEvent(
                 new InternalMember(event.getMember()),
                 message,
@@ -203,8 +233,12 @@ public class DiscordAPI extends ListenerAdapter {
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
         if (event.getMember() == null) return;
 
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Retrieving Message for ReactionUpdatedEvent.");
         Message message = new InternalMessage(event.retrieveMessage().complete());
 
+        //noinspection LoggingSimilarMessage
+        getDebugLogger().debug("Firing a ReactionUpdatedEvent.");
         eventManager.callEvent(new InternalReactionUpdatedEvent(
                 new InternalMember(event.getMember()),
                 message,

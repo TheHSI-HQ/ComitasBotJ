@@ -13,12 +13,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
+
 public class EventManager {
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".EventManager");
 
     private final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
 
     public void registerListener(Plugin plugin, Listener listener) {
+        getDebugLogger().debug("Registering Listener {}", listener.getClass());
         for (Method method : listener.getClass().getDeclaredMethods()) {
             if (!method.isAnnotationPresent(EventHandler.class))
                 continue;
@@ -39,6 +42,7 @@ public class EventManager {
             Class<? extends Event> eventClass =
                     (Class<? extends Event>) params[0];
 
+            getDebugLogger().debug("Resgistering Listener Method {}({}) of {}", method.getName(), eventClass.getName(), listener.getClass());
             listeners
                     .computeIfAbsent(eventClass, k -> new ArrayList<>())
                     .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, method));
@@ -56,6 +60,7 @@ public class EventManager {
         }
 
         if (eventClass == null) throw new RuntimeException("The called Event doesn't implement Event");
+        getDebugLogger().debug("Calling event {}", eventClass.getName());
 
         List<RegisteredListener> handlers =
                 listeners.get(eventClass);
@@ -63,8 +68,11 @@ public class EventManager {
         if (handlers == null)
             return;
 
+        getDebugLogger().debug("Found {} handlers for {}", handlers.size(), eventClass.getName());
+
         for (RegisteredListener handler : handlers) {
             try {
+                getDebugLogger().debug("Calling handler {} for {}", handler.method(), eventClass.getName());
                 handler.method().invoke(handler.listener(), event);
             } catch (InvocationTargetException e) {
                 Throwable cause = e.getCause();
@@ -80,7 +88,8 @@ public class EventManager {
         }
     }
 
-    public void clearEvents() {
+    public void clearEventListeners() {
+        getDebugLogger().debug("Clearing {} event listeners", listeners.size());
         listeners.clear();
     }
 
