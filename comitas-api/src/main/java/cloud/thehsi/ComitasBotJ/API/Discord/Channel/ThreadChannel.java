@@ -4,6 +4,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 @SuppressWarnings("unused")
 public interface ThreadChannel extends MessageChannel {
     /**
@@ -12,6 +14,27 @@ public interface ThreadChannel extends MessageChannel {
      * @return The thread's guild
      */
     Guild getGuild();
+
+    /**
+     * List all member of this thread
+     *
+     * @return A list of all thread members
+     */
+    List<Member> getMembers();
+
+    /**
+     * Add a member to the thread
+     *
+     * @param member The member to add
+     */
+    void addMember(Member member);
+
+    /**
+     * Remove a member from the thread
+     *
+     * @param member The member to remove
+     */
+    void removeMember(Member member);
 
     /**
      * Delete this thread

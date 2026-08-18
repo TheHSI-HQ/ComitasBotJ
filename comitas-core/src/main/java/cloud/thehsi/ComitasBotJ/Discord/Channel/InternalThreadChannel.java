@@ -8,6 +8,8 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class InternalThreadChannel extends InternalMessageChannel implements ThreadChannel {
     final net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel;
 
@@ -27,6 +29,27 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
         if (channel instanceof GuildChannel guildChannel)
             return new InternalGuild(guildChannel.getGuild());
         return null;
+    }
+
+    @Override
+    public List<Member> getMembers() {
+        return channel.retrieveThreadMembers().complete().stream()
+                .map(e -> (Member) new InternalMember(e.getMember()))
+                .toList();
+    }
+
+    @Override
+    public void addMember(Member member) {
+        if (!(member instanceof InternalMember internalMember))
+            throw new RuntimeException("Member is not associated with an internal member");
+        channel.addThreadMember(internalMember.member).complete();
+    }
+
+    @Override
+    public void removeMember(Member member) {
+        if (!(member instanceof InternalMember internalMember))
+            throw new RuntimeException("Member is not associated with an internal member");
+        channel.removeThreadMember(internalMember.member).complete();
     }
 
     @Override

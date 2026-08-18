@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class InternalMember extends InternalUser implements Member {
-    final net.dv8tion.jda.api.entities.Member member;
+    public final net.dv8tion.jda.api.entities.Member member;
 
     public InternalMember(net.dv8tion.jda.api.entities.Member member) {
         super(member.getUser());
