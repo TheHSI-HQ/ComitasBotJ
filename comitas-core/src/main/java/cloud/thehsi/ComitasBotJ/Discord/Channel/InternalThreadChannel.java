@@ -2,7 +2,9 @@ package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ThreadChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,5 +72,13 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     @Override
     public void setTitle(String title) {
         channel.getManager().setName(title).complete();
+    }
+
+    @Override
+    @Nullable
+    public Member getOriginalPoster() {
+        net.dv8tion.jda.api.entities.Member owner = channel.getOwner();
+        return owner == null ?
+            null : new InternalMember(owner);
     }
 }

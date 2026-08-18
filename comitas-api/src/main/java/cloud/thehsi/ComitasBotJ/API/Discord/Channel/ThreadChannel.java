@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface ThreadChannel extends MessageChannel {
@@ -71,4 +73,12 @@ public interface ThreadChannel extends MessageChannel {
      * @param title The new post title
      */
     void setTitle(String title);
+
+    /**
+     * Get the threads original poster (OP)
+     *
+     * @return Thread's Original Poster (if present)
+     */
+    @Nullable
+    Member getOriginalPoster();
 }
