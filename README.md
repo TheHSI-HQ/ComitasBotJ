@@ -83,8 +83,12 @@ java -jar comitas-core-<version>.jar
     ```
     
     Save the file and restart ComitasBotJ. Once the bot successfully connects to Discord, type `invite` into the bot's terminal and press **Enter**.
-    
+
     ComitasBotJ will generate an invite link. Open the link in your browser and follow the instructions to invite the bot to your Discord server.
+
+    > For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
+    >
+    > Only give the bot the permissions it actuall needs in case it gets compromised.
 
 
 ## Configuration

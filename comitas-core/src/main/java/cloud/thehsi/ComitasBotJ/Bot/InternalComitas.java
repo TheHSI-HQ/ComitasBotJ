@@ -130,19 +130,19 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public Scheduler getScheduler() {
-        if (DebugLogging.isActionEnabled()) debugLogger.debug("Scheduler was requested");
+        DebugLogging.action();
         return scheduler;
     }
 
     @Override
     public UtilityBackend getUtilityBackend() {
-        if (DebugLogging.isActionEnabled()) debugLogger.debug("UtilityBackend was requested");
+        DebugLogging.action();
         return utilityBackend;
     }
 
     @Override
     public Bot getBot() {
-        if (DebugLogging.isActionEnabled()) debugLogger.debug("Bot was requested");
+        DebugLogging.action();
         return bot;
     }
 
@@ -213,7 +213,7 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public void shutdown() {
-        if (DebugLogging.isActionEnabled()) debugLogger.debug("Shutdown was requested");
+        DebugLogging.action();
         onShutdown();
         System.exit(0);
     }

@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
@@ -14,6 +15,7 @@ import picocli.CommandLine;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -62,9 +64,12 @@ public class Main implements Runnable {
 
     @CommandLine.Option(
             names = { "--invite", "-i" },
-            description = "Generates an invite for the bot and exits."
+            description = "Generates an invite for the bot and exits.",
+            arity = "0..1",
+            fallbackValue = "8",
+            defaultValue = "0"
     )
-    private boolean generateInvite;
+    private long invitePermissions;
 
     @CommandLine.Option(
             names = { "--debug", "--verbose" },
@@ -116,7 +121,7 @@ public class Main implements Runnable {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating Startup Properties");
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
-                strictSafeMode, listPlugins, generateInvite
+                strictSafeMode, listPlugins, invitePermissions
         );
 
         // Load Configuration from ./server.properties
@@ -154,15 +159,26 @@ public class Main implements Runnable {
     }
 
     private void takeConfigActions() {
-        if (props().generateInvite()) {
+        if (props().invitePermissions() != 0) {
             logger.info("Generating invite...");
+
+            if (props.invitePermissions() == 8)
+                logger.warn("No permissions specified (or Administrator permission specified), granting Administator permission (8). Not recommended for production");
+
+            Permission[] permissions = Permission.fromLong(props().invitePermissions());
+            logger.info("Granting permissions: {}",
+                String.join(", ", Arrays.stream(permissions).map(Enum::name).toArray(String[]::new))
+            );
+
             logger.info(
-                    "Invitation Link: {}{}https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions=8{}",
+                    "Invitation Link: {}{}https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions={}{}",
                     ConsoleColor.BRIGHT_BLUE,
                     ConsoleColor.BOLD,
                     InternalComitas.minimalStartupAndFetchBotID(),
+                    Permission.asLong(permissions),
                     ConsoleColor.RESET
             );
+
             logger.info("Exiting...");
             System.exit(0);
         }

@@ -25,6 +25,13 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
+    public String toString() {
+        return "InternalMember{" +
+                "member=" + member +
+                '}';
+    }
+
+    @Override
     public User getUser() {
         return this;
     }

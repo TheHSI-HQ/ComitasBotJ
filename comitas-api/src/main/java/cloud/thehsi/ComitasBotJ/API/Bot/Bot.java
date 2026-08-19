@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,14 @@ public interface Bot {
      * @return The generated invitation look
      */
     String generateInvitationLink();
+
+    /**
+     * Generates an invitation link for the bot.
+     *
+     * @param permissions A list of permissions to grant the bot
+     * @return The generated invitation look
+     */
+    String generateInvitationLink(Permission... permissions);
 
     /**
      * Returns the bot's ID.
