@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ;
 
-import ch.qos.logback.classic.Level;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
@@ -30,22 +29,7 @@ public class Main implements Runnable {
     private static final InternalConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
     private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
-
-    public static Logger getDebugLogger() {
-        Class<?> caller = StackWalker.getInstance(
-                        StackWalker.Option.RETAIN_CLASS_REFERENCE)
-                .walk(frames -> frames
-                        .skip(1) // skip getDebugLogger()
-                        .findFirst()
-                        .map(StackWalker.StackFrame::getDeclaringClass)
-                        .orElseThrow());
-
-        ch.qos.logback.classic.Logger l =
-                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(caller);
-
-        l.setLevel(debug ? Level.DEBUG : Level.INFO);
-        return l;
-    }
+    private final Logger debugLogger = DebugLogging.getLogger();
 
     // Properties
     private static StartupProperties props;
@@ -75,11 +59,15 @@ public class Main implements Runnable {
             description = "List all plugins, regardless of whitelists, and exit."
     )
     private boolean listPlugins;
+
     @CommandLine.Option(
             names = {"--debug", "--verbose"},
-            description = "Enables verbose (debug) logging."
+            description = "Enables verbose logging. Optionally specify a debug level.",
+            arity = "0..1",
+            fallbackValue = "1",
+            defaultValue = "0"
     )
-    private static boolean debug;
+    public static int debugLevel;
 
     public static long getRuntimeMS() {
         return System.currentTimeMillis() - STARTUP_TIME;
@@ -119,7 +107,7 @@ public class Main implements Runnable {
     public void run() {
         logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
-        getDebugLogger().debug("Creating Startup Properties");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating Startup Properties");
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
                 strictSafeMode, listPlugins
@@ -128,11 +116,11 @@ public class Main implements Runnable {
         // Load Configuration from ./server.properties
         logger.info("Loading Configuration...");
         try {
-            getDebugLogger().debug("Creating and Reading ServerConfig");
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating and Reading ServerConfig");
             ServerConfig rawServerConfig = new ServerConfig();
-            getDebugLogger().debug("Parsing ServerConfig");
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsing ServerConfig");
             conf = rawServerConfig.asParsed();
-            getDebugLogger().debug("Rewriting ServerConfig");
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Rewriting ServerConfig");
             conf.load();
             conf.save();
         } catch (IOException e) {
@@ -140,12 +128,12 @@ public class Main implements Runnable {
             System.exit(1);
         }
 
-        getDebugLogger().debug("Computing config values");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Computing config values");
         takeConfigActions();
 
         logger.info("Loaded {} configuration value(s).", conf.count());
 
-        getDebugLogger().debug("Initializing Comitas API");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
         Comitas comitas = Comitas.getInstance();
         comitas.init(new InternalComitas(consoleCommandRegistry, consolePrompt));
 
@@ -153,7 +141,7 @@ public class Main implements Runnable {
             consolePrompt.run();
 
         try {
-            getDebugLogger().debug("Sleeping Main Process");
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Sleeping Main Process");
             Thread.currentThread().join();
         } catch (InterruptedException ignored) {
         }

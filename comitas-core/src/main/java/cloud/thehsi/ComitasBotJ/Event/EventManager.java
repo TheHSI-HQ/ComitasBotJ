@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +14,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
-
 public class EventManager {
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".EventManager");
+    private final Logger debugLogger = DebugLogging.getLogger();
 
     private final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
 
     public void registerListener(Plugin plugin, Listener listener) {
-        getDebugLogger().debug("Registering Listener {}", listener.getClass());
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Listener {}", listener.getClass());
         for (Method method : listener.getClass().getDeclaredMethods()) {
             if (!method.isAnnotationPresent(EventHandler.class))
                 continue;
@@ -42,7 +42,7 @@ public class EventManager {
             Class<? extends Event> eventClass =
                     (Class<? extends Event>) params[0];
 
-            getDebugLogger().debug("Resgistering Listener Method {}({}) of {}", method.getName(), eventClass.getName(), listener.getClass());
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resgistering Listener Method {}({}) of {}", method.getName(), eventClass.getName(), listener.getClass());
             listeners
                     .computeIfAbsent(eventClass, k -> new ArrayList<>())
                     .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, method));
@@ -60,7 +60,7 @@ public class EventManager {
         }
 
         if (eventClass == null) throw new RuntimeException("The called Event doesn't implement Event");
-        getDebugLogger().debug("Calling event {}", eventClass.getName());
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling event {}", eventClass.getName());
 
         List<RegisteredListener> handlers =
                 listeners.get(eventClass);
@@ -68,11 +68,11 @@ public class EventManager {
         if (handlers == null)
             return;
 
-        getDebugLogger().debug("Found {} handlers for {}", handlers.size(), eventClass.getName());
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Found {} handlers for {}", handlers.size(), eventClass.getName());
 
         for (RegisteredListener handler : handlers) {
             try {
-                getDebugLogger().debug("Calling handler {} for {}", handler.method(), eventClass.getName());
+                if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.method(), eventClass.getName());
                 handler.method().invoke(handler.listener(), event);
             } catch (InvocationTargetException e) {
                 Throwable cause = e.getCause();
@@ -89,7 +89,7 @@ public class EventManager {
     }
 
     public void clearEventListeners() {
-        getDebugLogger().debug("Clearing {} event listeners", listeners.size());
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing {} event listeners", listeners.size());
         listeners.clear();
     }
 

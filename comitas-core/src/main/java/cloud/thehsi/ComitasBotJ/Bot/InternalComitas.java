@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
@@ -32,9 +33,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static cloud.thehsi.ComitasBotJ.Main.getDebugLogger;
-
 public class InternalComitas implements InternalComitasImpl {
+    private final Logger debugLogger = DebugLogging.getLogger();
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
     private final ConsolePrompt consolePrompt;
@@ -105,16 +105,19 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public Scheduler getScheduler() {
+        if (DebugLogging.isActionEnabled()) debugLogger.debug("Scheduler was requested");
         return scheduler;
     }
 
     @Override
     public UtilityBackend getUtilityBackend() {
+        if (DebugLogging.isActionEnabled()) debugLogger.debug("UtilityBackend was requested");
         return utilityBackend;
     }
 
     @Override
     public Bot getBot() {
+        if (DebugLogging.isActionEnabled()) debugLogger.debug("Bot was requested");
         return bot;
     }
 
@@ -126,9 +129,9 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public void init() {
-        getDebugLogger().debug("Initializing Comitas API");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
 
-        getDebugLogger().debug("Checking and creating logs directory");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking and creating logs directory");
         File logsDir = new File("logs");
 
         if (!logsDir.exists() && !logsDir.mkdir()) {
@@ -137,13 +140,13 @@ public class InternalComitas implements InternalComitasImpl {
 
         logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
 
-        getDebugLogger().debug("Registering Shutdown Hook");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Shutdown Hook");
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
-        getDebugLogger().debug("Populating Secrets");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Populating Secrets");
         populateSecrets();
 
-        getDebugLogger().debug("Validating Bot Token");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating Bot Token");
         if (bot_token.isBlank()) {
             logger.error("Missing Discord Bot Token (./tokens.secret)");
             System.exit(1);
@@ -151,18 +154,18 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Prepare EventManager
         logger.info("Loading API Integrations...");
-        getDebugLogger().debug("Initializing Event Manager");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Event Manager");
         eventManager = new EventManager();
-        getDebugLogger().debug("Initializing Scheduler");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Scheduler");
         scheduler = new InternalScheduler();
-        getDebugLogger().debug("Initializing Command Registry");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Command Registry");
         commandRegistry = new InternalCommandRegistry();
 
         // Load Plugins from ./plugins
         logger.info("Loading Plugins...");
         pluginLoaderManager = new PluginLoaderManager();
 
-        getDebugLogger().debug("Initializing Plugin Manager");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Plugin Manager");
         pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
                 eventManager,
@@ -170,7 +173,7 @@ public class InternalComitas implements InternalComitasImpl {
                 commandRegistry
         );
 
-        getDebugLogger().debug("Loading Plugins");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
         logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
@@ -186,11 +189,13 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public void shutdown() {
+        if (DebugLogging.isActionEnabled()) debugLogger.debug("Shutdown was requested");
         onShutdown();
         System.exit(0);
     }
 
     private void onShutdown() {
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Marking as shutting down");
         if (!shuttingDown.compareAndSet(false, true)) return;
 
         Terminal terminal = consolePrompt.lineReader() != null
@@ -201,11 +206,13 @@ public class InternalComitas implements InternalComitasImpl {
         // Write straight to the terminal writer so we don't depend on
         // JLine's redraw state, which JLine's own shutdown hook may be
         // concurrently mutating.
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Setting Terminal Bypass");
         if (terminal != null) {
             TuiAppender.setBypassMode(true);
         }
 
         if (consolePrompt.lineReader() != null) {
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("FLushing Console Output");
             consolePrompt.lineReader().getTerminal().writer().flush();
         }
 
@@ -217,11 +224,15 @@ public class InternalComitas implements InternalComitasImpl {
             pluginLoaderManager.unloadPlugins();
         }
 
-        if (scheduler != null)
+        if (scheduler != null) {
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Canceling all Schedulers");
             scheduler.cancelAll();
+        }
 
-        if (eventManager != null)
+        if (eventManager != null) {
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Event Listeners");
             eventManager.clearEventListeners();
+        }
 
         if (Main.conf() != null) {
             logger.info("Writing Updated Configuration...");
@@ -236,14 +247,17 @@ public class InternalComitas implements InternalComitasImpl {
 
         if (terminal != null) {
             try {
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Flushing and closing Terminal");
                 terminal.writer().flush();
                 terminal.close(); // deterministically close BEFORE JLine's hook can race us
             } catch (Exception ignored) {
             }
         }
 
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Ending Logger");
         ((LoggerContext) LoggerFactory.getILoggerFactory()).stop();
 
+        if (DebugLogging.isBasicEnabled()) System.out.println("Running Shutdown hooks");
         for (Runnable callback : onShutdownCalls)
             callback.run();
     }
