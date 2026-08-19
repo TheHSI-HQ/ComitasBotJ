@@ -25,6 +25,7 @@ public interface ForumChannel extends Channel {
     /**
      * Create a forum post
      *
+     * @param title The thread title
      * @param message The initial message
      * @return The created forum post
      */
@@ -33,6 +34,7 @@ public interface ForumChannel extends Channel {
     /**
      * Create a forum post using message data
      *
+     * @param title The thread title
      * @param messageData The message data to be sent as the initial message
      * @return The created forum post
      */

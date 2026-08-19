@@ -50,7 +50,14 @@ public interface ThreadChannel extends MessageChannel {
     void delete();
 
     /**
-     * Is this thread opened ot closed
+     * Is this thread private or public
+     *
+     * @return Is this thread public
+     */
+    boolean isPublic();
+
+    /**
+     * Is this thread opened or closed
      *
      * @return Is this thread closed
      */

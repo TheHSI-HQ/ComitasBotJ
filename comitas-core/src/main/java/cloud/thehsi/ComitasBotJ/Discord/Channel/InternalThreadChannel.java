@@ -65,6 +65,11 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
+    public boolean isPublic() {
+        return channel.isPublic();
+    }
+
+    @Override
     public boolean isClosed() {
         return channel.isArchived();
     }
