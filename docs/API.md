@@ -114,11 +114,11 @@ Now that you know how the plugins work and how to install them, let's get the Bo
    class Listeners implements Listener {
    ```
 
-3. Create a new function, let's name it `onMessageSent`, annotate it with `@EventHandler` and give an argument of type `MessageSentEvent`
+3. Create a new function, let's name it `onMessageReceived`, annotate it with `@EventHandler` and give an argument of type `MessageReceivedEvent`
 
    ```java
    @EventHandler
-   private void onMessageSent(MessageSentEvent event) {
+   private void onMessageReceived(MessageReceivedEvent event) {
    }
    ```
    
@@ -155,7 +155,7 @@ Now that you know how the plugins work and how to install them, let's get the Bo
    
    public class Listeners implements Listener {
        @EventHandler
-       private void onMessageSent(MessageSentEvent event) {
+       private void onMessageReceived(MessageReceivedEvent event) {
            if (Comitas.getBot().isMeOrNull(event.getAuthor())) {
                 return;
            }

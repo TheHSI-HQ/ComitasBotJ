@@ -69,7 +69,7 @@ java -jar comitas-core-<version>.jar
 5. Start the Server
     
     ```bash
-    java -jar comitas-core-<version>.jar
+    java --enable-native-access=ALL-UNNAMED -jar comitas-core-<version>.jar
     ```
 
 6. Configure the Bot

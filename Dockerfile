@@ -18,4 +18,4 @@ COPY --from=builder /build/comitas-core/target/comitas-core-*.jar /srv/server.ja
 RUN touch /srv/server.properties
 RUN touch /srv/tokens.secret
 
-CMD ["java", "-jar", "server.jar"]
+CMD ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "server.jar"]
