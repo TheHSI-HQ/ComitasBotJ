@@ -106,7 +106,7 @@ public class DiscordAPI extends ListenerAdapter {
                         LoggerFactory.getLogger("net.dv8tion.jda");
 
         jdaLogger.setLevel(
-                DebugLogging.isActionEnabled() ? Level.DEBUG : Level.INFO
+                DebugLogging.isAPIEnabled() ? Level.DEBUG : Level.INFO
         );
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot");
