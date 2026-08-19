@@ -45,7 +45,7 @@ public class Main implements Runnable {
     )
     private boolean ignoreApiTarget;
     @CommandLine.Option(
-            names = "--safe-mode",
+            names = { "--safe-mode", "-s" },
             description = "Enable safe mode (No Plugin loading)."
     )
     private boolean safeMode;
@@ -55,13 +55,19 @@ public class Main implements Runnable {
     )
     private boolean strictSafeMode;
     @CommandLine.Option(
-            names = "--list-plugins",
-            description = "List all plugins, regardless of whitelists, and exit."
+            names = { "--list-plugins", "-l" },
+            description = "List all plugins, regardless of whitelists, and exits."
     )
     private boolean listPlugins;
 
     @CommandLine.Option(
-            names = {"--debug", "--verbose"},
+            names = { "--invite", "-i" },
+            description = "Generates an invite for the bot and exits."
+    )
+    private boolean generateInvite;
+
+    @CommandLine.Option(
+            names = { "--debug", "--verbose" },
             description = "Enables verbose logging. Optionally specify a debug level.",
             arity = "0..1",
             fallbackValue = "1",
@@ -110,7 +116,7 @@ public class Main implements Runnable {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating Startup Properties");
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
-                strictSafeMode, listPlugins
+                strictSafeMode, listPlugins, generateInvite
         );
 
         // Load Configuration from ./server.properties
@@ -148,6 +154,19 @@ public class Main implements Runnable {
     }
 
     private void takeConfigActions() {
+        if (props().generateInvite()) {
+            logger.info("Generating invite...");
+            logger.info(
+                    "Invitation Link: {}{}https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions=8{}",
+                    ConsoleColor.BRIGHT_BLUE,
+                    ConsoleColor.BOLD,
+                    InternalComitas.minimalStartupAndFetchBotID(),
+                    ConsoleColor.RESET
+            );
+            logger.info("Exiting...");
+            System.exit(0);
+        }
+
         if (props().listPlugins()) {
             logger.info("Loadable Plugins:");
             PluginLister.listAllPlugins();

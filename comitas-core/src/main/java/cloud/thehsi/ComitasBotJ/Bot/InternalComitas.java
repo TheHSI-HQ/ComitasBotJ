@@ -34,7 +34,8 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
-    private final Logger debugLogger = DebugLogging.getLogger();
+    private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
+    private static final Logger debugLogger = DebugLogging.getLogger();
     private final ConsoleCommandRegistry consoleCommandRegistry;
     private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
     private final ConsolePrompt consolePrompt;
@@ -44,16 +45,40 @@ public class InternalComitas implements InternalComitasImpl {
     private InternalPluginManager pluginManager;
     private InternalScheduler scheduler;
     private EventManager eventManager;
-    private Logger logger;
     private Bot bot;
-    private String bot_token;
+    private static String bot_token;
 
     public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry, ConsolePrompt consolePrompt) {
         this.consoleCommandRegistry = consoleCommandRegistry;
         this.consolePrompt = consolePrompt;
     }
 
-    private void populateSecrets() {
+    public static String minimalStartupAndFetchBotID() {
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Performing minimal startup to get Bot User ID");
+
+        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+            debugLogger.debug("Populating Secrets");
+        populateSecrets();
+
+        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+            debugLogger.debug("Validating Bot Token");
+        if (bot_token.isBlank()) {
+            //noinspection LoggingSimilarMessage
+            logger.error("Missing Discord Bot Token (./tokens.secret)");
+            System.exit(1);
+        }
+
+        if (DebugLogging.isBasicEnabled())
+            debugLogger.debug("Starting Bot...");
+        DiscordAPI api = DiscordAPI.performMinimalStartup(bot_token, true);
+        try {
+            return api.getAPI().getSelfUser().getId();
+        } finally {
+            api.getAPI().shutdown();
+        }
+    }
+
+    private static void populateSecrets() {
         Path token_path = Path.of("tokens.secret");
         File token_file = new File(token_path.toUri());
 
@@ -138,12 +163,11 @@ public class InternalComitas implements InternalComitasImpl {
             throw new RuntimeException("Couldn't create logs folder");
         }
 
-        logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
-
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Shutdown Hook");
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Populating Secrets");
+        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+            debugLogger.debug("Populating Secrets");
         populateSecrets();
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating Bot Token");

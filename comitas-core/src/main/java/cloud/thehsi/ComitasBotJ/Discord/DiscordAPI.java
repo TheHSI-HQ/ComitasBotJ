@@ -43,7 +43,7 @@ public class DiscordAPI extends ListenerAdapter {
     static JDA api;
     final EventManager eventManager;
     final InternalCommandRegistry commandRegistry;
-    private final Logger debugLogger = DebugLogging.getLogger();
+    private static final Logger debugLogger = DebugLogging.getLogger();
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
     final List<RoleModificationLoopFix> roleModificationLoopFixList = Collections.synchronizedList(new ArrayList<>());
     private final String BOT_TOKEN;
@@ -58,11 +58,57 @@ public class DiscordAPI extends ListenerAdapter {
         connect();
     }
 
+    private DiscordAPI() {
+        this.eventManager = null;
+        this.commandRegistry = null;
+        this.BOT_TOKEN = null;
+    }
+
     public static JDA api() {
         return api;
     }
 
+    public static DiscordAPI performMinimalStartup(String BOT_TOKEN, boolean silent) {
+        ch.qos.logback.classic.Logger jdaLogger =
+                (ch.qos.logback.classic.Logger)
+                        LoggerFactory.getLogger("net.dv8tion.jda");
+
+        if (DebugLogging.isAPIEnabled())
+            jdaLogger.setLevel(
+                    Level.DEBUG
+            );
+        else if (silent)
+            jdaLogger.setLevel(
+                    Level.WARN
+            );
+        else
+            jdaLogger.setLevel(
+                    Level.INFO
+            );
+
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot in minimal mode");
+
+        JDA api = JDABuilder.createLight(BOT_TOKEN).build();
+
+        try {
+            api.awaitReady();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        DiscordAPI.api = api;
+        return new DiscordAPI();
+    }
+
     private void connect() {
+        ch.qos.logback.classic.Logger jdaLogger =
+                (ch.qos.logback.classic.Logger)
+                        LoggerFactory.getLogger("net.dv8tion.jda");
+
+        jdaLogger.setLevel(
+                DebugLogging.isActionEnabled() ? Level.DEBUG : Level.INFO
+        );
+
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot");
         api = JDABuilder.createDefault(BOT_TOKEN)
                 .enableIntents(
@@ -73,14 +119,6 @@ public class DiscordAPI extends ListenerAdapter {
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .addEventListeners(this)
                 .build();
-
-        ch.qos.logback.classic.Logger jdaLogger =
-                (ch.qos.logback.classic.Logger)
-                        LoggerFactory.getLogger("net.dv8tion.jda");
-
-        jdaLogger.setLevel(
-                DebugLogging.isActionEnabled() ? Level.DEBUG : Level.INFO
-        );
     }
 
     public void reconnect() throws InterruptedException {
