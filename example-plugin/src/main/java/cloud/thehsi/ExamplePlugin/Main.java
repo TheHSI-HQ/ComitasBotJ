@@ -48,10 +48,10 @@ public class Main extends Plugin implements Listener {
     public void onMessage(MessageReceivedEvent event) {
         if (Comitas.getBot().isMeOrNull(event.getAuthor())) return;
 
-        PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
-
         if (event.getRawContent().startsWith("!hello")) {
-            Emoji thumbs_up = Emojis.THUMBSUP;
+            PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
+
+            Emoji thumbs_up = Emojis.THUMBSUP();
 
             Component thumbsUpEmoji = thumbs_up.asMessageEmbed();
 
@@ -79,6 +79,7 @@ public class Main extends Plugin implements Listener {
         }
 
         if (event.getRawContent().startsWith("!set")) {
+            PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
             String value = event.getRawContent().replaceFirst("!set ", "");
 
             Component c = Component.text("Set ", Style.ITALIC)
