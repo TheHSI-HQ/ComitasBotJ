@@ -13,7 +13,7 @@ public final class PersistentDataTypes {
 
         @Override
         public String deserialize(Object value) {
-            return (String) value;
+            return PersistentDataCoercion.coerce(value, String.class);
         }
 
         @Override
@@ -30,7 +30,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Integer deserialize(Object value) {
-            return (Integer) value;
+            return PersistentDataCoercion.coerce(value, Integer.class);
         }
 
         @Override
@@ -47,7 +47,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Long deserialize(Object value) {
-            return (Long) value;
+            return PersistentDataCoercion.coerce(value, Long.class);
         }
 
         @Override
@@ -64,7 +64,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Double deserialize(Object value) {
-            return (Double) value;
+            return PersistentDataCoercion.coerce(value, Double.class);
         }
 
         @Override
@@ -81,7 +81,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Byte deserialize(Object value) {
-            return (Byte) value;
+            return PersistentDataCoercion.coerce(value, Byte.class);
         }
 
         @Override
@@ -98,7 +98,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Short deserialize(Object value) {
-            return (Short) value;
+            return PersistentDataCoercion.coerce(value, Short.class);
         }
 
         @Override
@@ -115,7 +115,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Boolean deserialize(Object value) {
-            return (Boolean) value;
+            return PersistentDataCoercion.coerce(value, Boolean.class);
         }
 
         @Override
@@ -132,7 +132,7 @@ public final class PersistentDataTypes {
 
         @Override
         public byte[] deserialize(Object value) {
-            return ((byte[]) value).clone();
+            return PersistentDataCoercion.coerce(value, byte[].class);
         }
 
         @Override
@@ -149,7 +149,7 @@ public final class PersistentDataTypes {
 
         @Override
         public String[] deserialize(Object value) {
-            return ((String[]) value).clone();
+            return PersistentDataCoercion.coerce(value, String[].class);
         }
 
         @Override
@@ -166,7 +166,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Integer[] deserialize(Object value) {
-            return ((Integer[]) value).clone();
+            return PersistentDataCoercion.coerce(value, Integer[].class);
         }
 
         @Override
@@ -183,7 +183,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Long[] deserialize(Object value) {
-            return ((Long[]) value).clone();
+            return PersistentDataCoercion.coerce(value, Long[].class);
         }
 
         @Override
@@ -200,7 +200,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Double[] deserialize(Object value) {
-            return ((Double[]) value).clone();
+            return PersistentDataCoercion.coerce(value, Double[].class);
         }
 
         @Override
@@ -217,7 +217,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Short[] deserialize(Object value) {
-            return ((Short[]) value).clone();
+            return PersistentDataCoercion.coerce(value, Short[].class);
         }
 
         @Override
@@ -234,7 +234,7 @@ public final class PersistentDataTypes {
 
         @Override
         public Boolean[] deserialize(Object value) {
-            return ((Boolean[]) value).clone();
+            return PersistentDataCoercion.coerce(value, Boolean[].class);
         }
 
         @Override
