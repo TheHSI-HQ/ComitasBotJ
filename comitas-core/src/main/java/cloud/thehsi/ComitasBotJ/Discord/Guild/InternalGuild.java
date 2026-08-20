@@ -118,6 +118,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
+    @Nullable
     public Role getRoleById(long id) {
         net.dv8tion.jda.api.entities.Role role = guild.getRoleById(id);
         if (role == null)
@@ -126,6 +127,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
+    @Nullable
     public Role getRoleById(String id) {
         DebugLogging.action(id);
         net.dv8tion.jda.api.entities.Role role = guild.getRoleById(id);

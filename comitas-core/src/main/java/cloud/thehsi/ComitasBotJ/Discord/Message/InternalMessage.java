@@ -2,10 +2,10 @@ package cloud.thehsi.ComitasBotJ.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
@@ -38,6 +38,11 @@ public class InternalMessage implements Message {
     public InternalMessage(net.dv8tion.jda.api.entities.Message message, Runnable deletionCallback) {
         this.optionalDeletionCallback = deletionCallback;
         this.message = message;
+    }
+
+    @Override
+    public long getId() {
+        return message.getIdLong();
     }
 
     @Override

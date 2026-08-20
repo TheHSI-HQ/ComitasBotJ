@@ -3,11 +3,13 @@ package cloud.thehsi.ComitasBotJ.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageHistory;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessageHistory;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
@@ -45,6 +47,24 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     public MessageHistory getMessageHistory() {
         DebugLogging.action();
         return new InternalMessageHistory(channel.getHistory());
+    }
+
+    @Override
+    public @Nullable Message getMessageById(long id) {
+        DebugLogging.action(id);
+        net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
+        if (message == null)
+            return null;
+        return new InternalMessage(message);
+    }
+
+    @Override
+    public @Nullable Message getMessageById(String id) {
+        DebugLogging.action(id);
+        net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
+        if (message == null)
+            return null;
+        return new InternalMessage(message);
     }
 
     @Override

@@ -14,6 +14,13 @@ import java.util.List;
 @SuppressWarnings("unused")
 public interface Message {
     /**
+     * Retrieve the message Id
+     *
+     * @return Retrieve the message id
+     */
+    long getId();
+
+    /**
      * Delete the message
      */
     void delete();

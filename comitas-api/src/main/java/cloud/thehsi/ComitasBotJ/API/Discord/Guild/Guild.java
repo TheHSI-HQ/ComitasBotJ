@@ -108,6 +108,7 @@ public interface Guild {
      *
      * @return The role if existing.
      */
+    @Nullable
     Role getRoleById(long id);
 
     /**
@@ -115,6 +116,7 @@ public interface Guild {
      *
      * @return The role if existing.
      */
+    @Nullable
     Role getRoleById(String id);
 
     /**
