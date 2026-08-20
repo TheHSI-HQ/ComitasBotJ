@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.OnlineStatus;
@@ -11,6 +12,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 
 import java.awt.*;
 import java.util.List;
@@ -102,6 +104,41 @@ public class InternalMember extends InternalUser implements Member {
         return OnlineStatus.fromKey(member.getOnlineStatus(
                 net.dv8tion.jda.api.entities.ClientType.fromKey(clientType.getKey())
         ).getKey());
+    }
+
+    @Override
+    public void addRole(Role role) {
+        DebugLogging.action(role);
+        if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
+            throw new IllegalArgumentException("Role was not created by Comitas");
+        if (member.getRoles().stream().anyMatch(e -> e.getIdLong() == iRole.getIdLong()))
+            return;
+        member.getGuild().addRoleToMember(member, iRole).complete();
+    }
+
+    @Override
+    public void removeRole(Role role) {
+        DebugLogging.action(role);
+        if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
+            throw new IllegalArgumentException("Role was not created by Comitas");
+        if (member.getRoles().stream().noneMatch(e -> e.getIdLong() == iRole.getIdLong()))
+            return;
+        member.getGuild().removeRoleFromMember(member, iRole).complete();
+    }
+
+    @Override
+    public boolean hasRole(Role role) {
+        DebugLogging.action(role);
+        if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
+            throw new IllegalArgumentException("Role was not created by Comitas");
+        return member.getRoles().stream().noneMatch(e -> e.getIdLong() == iRole.getIdLong());
+    }
+
+    @Override
+    public List<Role> getRoles() {
+        return member.getRoles().stream()
+                .map(e -> (Role) new InternalRole(e))
+                .toList();
     }
 
     @Override

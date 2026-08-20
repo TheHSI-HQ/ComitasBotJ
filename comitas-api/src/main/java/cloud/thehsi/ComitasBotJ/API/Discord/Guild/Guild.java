@@ -104,6 +104,20 @@ public interface Guild {
     List<Role> getRoles();
 
     /**
+     * Returns a role based on its id.
+     *
+     * @return The role if existing.
+     */
+    Role getRoleById(long id);
+
+    /**
+     * Returns a role based on its id.
+     *
+     * @return The role if existing.
+     */
+    Role getRoleById(String id);
+
+    /**
      * Returns the member count of the guild.
      *
      * @return The member count of the guild.

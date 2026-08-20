@@ -118,6 +118,23 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
+    public Role getRoleById(long id) {
+        net.dv8tion.jda.api.entities.Role role = guild.getRoleById(id);
+        if (role == null)
+            return null;
+        return new InternalRole(role);
+    }
+
+    @Override
+    public Role getRoleById(String id) {
+        DebugLogging.action(id);
+        net.dv8tion.jda.api.entities.Role role = guild.getRoleById(id);
+        if (role == null)
+            return null;
+        return new InternalRole(role);
+    }
+
+    @Override
     public int getMemberCount() {
         DebugLogging.action();
         return guild.getMemberCount();

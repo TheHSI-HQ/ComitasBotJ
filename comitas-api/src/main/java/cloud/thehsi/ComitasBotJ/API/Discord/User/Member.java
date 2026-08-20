@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.User;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -74,6 +75,37 @@ public interface Member extends User {
      * @param clientType The client type to fetch the online status for
      */
     OnlineStatus getOnlineStatus(ClientType clientType);
+
+    /**
+     * Add a role to this member
+     *
+     * @param role The role to add
+     */
+    void addRole(Role role);
+
+
+    /**
+     * Remove a role from this member
+     *
+     * @param role The role to remove
+     */
+    void removeRole(Role role);
+
+
+    /**
+     * Does this memeber have that role
+     *
+     * @param role The role to query
+     * @return Does the member have this role
+     */
+    boolean hasRole(Role role);
+
+    /**
+     * Get all roles of this memeber
+     *
+     * @return A list of roles of this member
+     */
+    List<Role> getRoles();
 
     /**
      * Kick this member
