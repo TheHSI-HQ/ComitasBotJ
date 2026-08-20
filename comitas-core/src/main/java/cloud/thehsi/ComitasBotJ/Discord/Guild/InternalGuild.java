@@ -9,13 +9,12 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalForumChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
-import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -31,6 +30,20 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     public Long getId() {
         DebugLogging.action();
         return guild.getIdLong();
+    }
+
+    @Override
+    public @Nullable Channel getChannelById(Long id) {
+        DebugLogging.action();
+        return getChannelById(id.toString());
+    }
+
+    @Override
+    public @Nullable Channel getChannelById(String id) {
+        DebugLogging.action();
+        GuildChannel channel = guild.getChannelById(GuildChannel.class, id);
+        if (channel == null) return null;
+        return ChannelTypeResolver.resolve(channel);
     }
 
     @Override
@@ -126,15 +139,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     public List<Channel> getChannels() {
         DebugLogging.action();
         return guild.getChannels().stream()
-                .map(channel -> {
-                    // Channel Mapping
-                    if (channel instanceof ForumChannel cast)
-                        return new InternalForumChannel(cast);
-                    if (channel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel cast)
-                        return new InternalMessageChannel(cast);
-
-                    return new InternalChannel(channel);
-                }).map(e -> (Channel) e)
+                .map(ChannelTypeResolver::resolve)
                 .toList();
     }
 

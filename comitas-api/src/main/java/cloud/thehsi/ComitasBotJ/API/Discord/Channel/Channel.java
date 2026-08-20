@@ -12,6 +12,13 @@ public interface Channel {
     String getName();
 
     /**
+     * Returns the channel's Type.
+     *
+     * @return The channel's Type.
+     */
+    ChannelType getType();
+
+    /**
      * Returns the channel's ID.
      *
      * @return The channel's ID

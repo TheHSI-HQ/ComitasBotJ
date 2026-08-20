@@ -1,17 +1,25 @@
 package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.TagUsedOnIncorrectChannelException;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ThreadChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.Thread.InternalThreadTag;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class InternalThreadChannel extends InternalMessageChannel implements ThreadChannel {
     final net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel;
@@ -39,6 +47,72 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     public Message getInitialMessage() {
         DebugLogging.action();
         return new InternalMessage(channel.retrieveStartMessage().complete());
+    }
+
+    @Override
+    public Channel getParent() {
+        DebugLogging.action();
+        return ChannelTypeResolver.resolve(channel.getParentChannel());
+    }
+
+    @Override
+    public List<ThreadTag> getTags() {
+        DebugLogging.action();
+        return channel.getAppliedTags().stream()
+                .map(e -> (ThreadTag) new InternalThreadTag(e, channel.getIdLong()))
+                .toList();
+    }
+
+    @Override
+    public void addTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+        DebugLogging.action(tag);
+        List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
+        if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
+            throw new RuntimeException("ThreadTag was not created by ComitasBotJ");
+        if (channelId != channel.getIdLong())
+            throw new TagUsedOnIncorrectChannelException("This tag was created for channel " + channelId + " but used on " + channel.getId());
+        tags.add(iTag);
+
+        Set<String> knownTags = new HashSet<>();
+        tags = tags.stream()
+                .filter(e -> {
+                    if (knownTags.contains(e.getName()))
+                        return false;
+                    knownTags.add(e.getName());
+                    return true;
+                }).toList();
+
+        channel.getManager()
+                .setAppliedTags(tags)
+                .complete();
+    }
+
+    @Override
+    public void removeTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+        DebugLogging.action(tag);
+        List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
+        if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
+            throw new RuntimeException("ThreadTag was not created by ComitasBotJ");
+        if (channelId != channel.getIdLong())
+            throw new TagUsedOnIncorrectChannelException("This tag was created for channel " + channelId + " but used on " + channel.getId());
+
+        if (tags.stream().map(ForumTag::getName).anyMatch(iTag.getName()::equals))
+            tags.remove(iTag);
+
+        channel.getManager()
+                .setAppliedTags(tags)
+                .complete();
+    }
+
+    @Override
+    public boolean hasTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+        DebugLogging.action(tag);
+        List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
+        if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
+            throw new RuntimeException("ThreadTag was not created by ComitasBotJ");
+        if (channelId != channel.getIdLong())
+            throw new TagUsedOnIncorrectChannelException("This tag was created for channel " + channelId + " but used on " + channel.getId());
+        return tags.contains(iTag);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
@@ -22,6 +23,41 @@ public interface ThreadChannel extends MessageChannel {
      * @return The threads initial message
      */
     Message getInitialMessage();
+
+    /**
+     * Get the parent channel of this thread
+     *
+     * @return The threads parent channel
+     */
+    Channel getParent();
+
+    /**
+     * Lists all tags of this thread
+     *
+     * @return Every tag in this thread
+     */
+    List<ThreadTag> getTags();
+
+    /**
+     * Add a tag to this thread
+     *
+     * @param tag The tag to add
+     */
+    void addTag(ThreadTag tag);
+
+    /**
+     * Remove a tag from this thread
+     *
+     * @param tag The tag to remove
+     */
+    void removeTag(ThreadTag tag);
+
+    /**
+     * Does this thread have this tag
+     *
+     * @param tag The tag to look up
+     */
+    boolean hasTag(ThreadTag tag);
 
     /**
      * List all member of this thread

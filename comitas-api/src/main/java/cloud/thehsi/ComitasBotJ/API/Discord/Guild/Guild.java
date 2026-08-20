@@ -26,6 +26,24 @@ public interface Guild {
     Long getId();
 
     /**
+     * Get a channel in this guild by id
+     *
+     * @param id The channels id
+     * @return The channel if found
+     */
+    @Nullable
+    Channel getChannelById(Long id);
+
+    /**
+     * Get a channel in this guild by id
+     *
+     * @param id The channels id
+     * @return The channel if found
+     */
+    @Nullable
+    Channel getChannelById(String id);
+
+    /**
      * Returns the Default Channel of the guild.
      *
      * @return The default channel of this guild.

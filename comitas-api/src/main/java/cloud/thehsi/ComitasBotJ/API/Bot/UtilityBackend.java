@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Bot;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
@@ -29,4 +31,6 @@ public interface UtilityBackend {
 
     AttachmentUpload uploadAttachment(Path path) throws IOException;
     AttachmentUpload uploadAttachment(String filename, byte[] data);
+
+    ThreadTag createTagOnChannel(Channel channel, String tagName);
 }
