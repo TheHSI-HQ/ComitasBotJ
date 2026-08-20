@@ -86,10 +86,17 @@ java -jar comitas-core-<version>.jar
 
     ComitasBotJ will generate an invite link. Open the link in your browser and follow the instructions to invite the bot to your Discord server.
 
-    > For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
-    >
-    > Only give the bot the permissions it actuall needs in case it gets compromised.
+> [!IMPORTANT]
+> For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
+>
+> Only give the bot permissions it actuall needs, in case it gets compromised.
 
+## Security
+
+> [!WARNING]
+> **DO NOT INSTALL PLUGINS FROM UNTRUSTED SOURCES**
+>
+> ComitasBotJ doesnt *yet* sandbox / isolate plugins in any way, so any plugin has the ability to run any command or modify any files, as long as the user running ComitasBotJ has the required access
 
 ## Configuration
 
