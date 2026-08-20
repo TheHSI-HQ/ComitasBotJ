@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Plugin.PersistentData;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 public class PersistentDataSerializer {
     private static final Gson GSON = new GsonBuilder()
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
             .create();
 
     public static String serializeData(
