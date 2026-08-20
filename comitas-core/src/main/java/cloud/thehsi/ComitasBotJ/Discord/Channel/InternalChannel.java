@@ -3,8 +3,14 @@ package cloud.thehsi.ComitasBotJ.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ChannelType;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
+import net.dv8tion.jda.api.entities.channel.attribute.IMemberContainer;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class InternalChannel implements Channel {
     public final net.dv8tion.jda.api.entities.channel.Channel channel;
@@ -44,5 +50,15 @@ public class InternalChannel implements Channel {
     public Component mention() {
         DebugLogging.action();
         return Component.raw(channel.getAsMention());
+    }
+
+    @Override
+    public @Nullable List<Member> getMembers() {
+        if (!(channel instanceof IMemberContainer iMemberContainer))
+            return null;
+
+        return iMemberContainer.getMembers().stream()
+                .map(e -> (Member) new InternalMember(e))
+                .toList();
     }
 }

@@ -1,6 +1,10 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 @SuppressWarnings("unused")
 public interface Channel {
@@ -40,4 +44,12 @@ public interface Channel {
      * @return The generated Mention-Component
      */
     Component mention();
+
+    /**
+     * Get the members of this channel if present
+     *
+     * @return The channel members if present
+     */
+    @Nullable
+    List<Member> getMembers();
 }
