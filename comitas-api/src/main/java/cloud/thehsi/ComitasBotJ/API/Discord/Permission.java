@@ -87,4 +87,11 @@ public enum Permission {
                 .filter(e -> (permission & e.permission) != 0)
                 .toArray(Permission[]::new);
     }
+
+    @Override
+    public String toString() {
+        return "Permission{" +
+                "name=" + name() +
+                '}';
+    }
 }
