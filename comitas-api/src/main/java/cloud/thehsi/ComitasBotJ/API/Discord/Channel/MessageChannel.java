@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageHistory;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +24,13 @@ public interface MessageChannel extends Channel {
      * @return The message that was sent
      */
     MyMessage sendMessage(MessageData messageData);
+
+    /**
+     * Retrieve a list of every message sent in this channel
+     *
+     * @return A list of all message in this channel
+     */
+    MessageHistory getMessageHistory();
 
     /**
      * Gets the channel's guild

@@ -216,4 +216,12 @@ public class InternalMessage implements Message {
                 this.message.reply(data).complete())
         );
     }
+
+    @Override
+    public String toString() {
+        return "InternalMessage{" +
+                "author=" + getAuthor() +
+                ", content=" + getRawContent() +
+                '}';
+    }
 }

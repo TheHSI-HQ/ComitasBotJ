@@ -4,9 +4,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageHistory;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessageHistory;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -37,6 +39,12 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.channel.sendMessage(data).complete()
         ));
+    }
+
+    @Override
+    public MessageHistory getMessageHistory() {
+        DebugLogging.action();
+        return new InternalMessageHistory(channel.getHistory());
     }
 
     @Override
