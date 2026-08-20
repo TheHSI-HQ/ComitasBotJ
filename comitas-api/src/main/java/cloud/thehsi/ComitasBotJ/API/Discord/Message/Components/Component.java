@@ -231,7 +231,7 @@ public class Component {
     /**
      * Append a emoji to this component.
      *
-     * @param emoji EMoji to be appended
+     * @param emoji Emoji to be appended
      * @return The component.
      */
     public Component append(Emoji emoji) {

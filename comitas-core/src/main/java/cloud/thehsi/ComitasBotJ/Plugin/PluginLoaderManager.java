@@ -5,12 +5,12 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Sandbox.SandboxPluginClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
@@ -117,9 +117,9 @@ public class PluginLoaderManager {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugin Jar File: {}", jar.getName());
             try {
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating URLClassLoader for: {}", jar.getName());
-                URLClassLoader loader =
-                        new URLClassLoader(
-                                new URL[]{jar.toURI().toURL()},
+                SandboxPluginClassLoader loader =
+                        new SandboxPluginClassLoader(
+                                jar.toURI().toURL(),
                                 getClass().getClassLoader()
                         );
 
