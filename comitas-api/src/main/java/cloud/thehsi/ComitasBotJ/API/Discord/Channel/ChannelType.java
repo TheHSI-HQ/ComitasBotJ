@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 import java.util.Arrays;
 
 public enum ChannelType {
+    TEXT(MessageChannel.class),
     MESSAGE(MessageChannel.class),
     FORUM(ForumChannel.class),
     THREAD(ThreadChannel.class),
@@ -41,7 +42,8 @@ public enum ChannelType {
 
     public boolean isMessage() {
         return switch (this) {
-            case MESSAGE,
+            case TEXT,
+                 MESSAGE,
                  FORUM,
                  THREAD,
                  GUILD_NEWS_THREAD,
