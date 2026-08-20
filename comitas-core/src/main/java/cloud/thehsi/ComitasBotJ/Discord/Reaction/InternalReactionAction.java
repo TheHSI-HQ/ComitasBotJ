@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Reaction;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.ReactionAction;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 
 @SuppressWarnings("ClassCanBeRecord")
 public class InternalReactionAction implements ReactionAction {
@@ -18,16 +19,19 @@ public class InternalReactionAction implements ReactionAction {
 
     @Override
     public boolean isIncrease() {
+        DebugLogging.action();
         return this.direction;
     }
 
     @Override
     public boolean isDecrease() {
+        DebugLogging.action();
         return !this.direction;
     }
 
     @Override
     public boolean isRemoved() {
+        DebugLogging.action();
         return this.removed;
     }
 }

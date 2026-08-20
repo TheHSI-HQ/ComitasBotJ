@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
@@ -39,31 +40,37 @@ public class InternalContext implements Context {
 
     @Override
     public Member sender() {
+        DebugLogging.action();
         return sender;
     }
 
     @Override
     public MessageChannel channel() {
+        DebugLogging.action();
         return channel;
     }
 
     @Override
     public Guild guild() {
+        DebugLogging.action();
         return guild;
     }
 
     @Override
     public String commandName() {
+        DebugLogging.action();
         return commandName;
     }
 
     @Override
     public MyMessage reply(Component message, boolean ephemeral) {
+        DebugLogging.action(message, ephemeral);
         return reply(message.asMessageData(), ephemeral);
     }
 
     @Override
     public MyMessage reply(MessageData messageData, boolean ephemeral) {
+        DebugLogging.action(messageData, ephemeral);
         if (used)
             if (!ephemeral) {
                 logger.warn("[{}] This interaction has already been acknowledged or replied to, using channel.sendMessage(message, embeds) instead", commandName());
@@ -80,21 +87,25 @@ public class InternalContext implements Context {
 
     @Override
     public MyMessage reply(Component message) {
+        DebugLogging.action(message);
         return reply(message, false);
     }
 
     @Override
     public MyMessage reply(MessageData messageData) {
+        DebugLogging.action(messageData);
         return reply(messageData, false);
     }
 
     @Override
     public MyMessage replyEphemeral(Component message) {
+        DebugLogging.action(message);
         return reply(message, true);
     }
 
     @Override
     public MyMessage replyEphemeral(MessageData messageData) {
+        DebugLogging.action(messageData);
         return reply(messageData, true);
     }
 }

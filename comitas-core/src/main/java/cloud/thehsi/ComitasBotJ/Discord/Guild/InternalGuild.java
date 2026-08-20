@@ -8,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Invite;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalForumChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
@@ -22,16 +23,19 @@ import java.util.List;
 public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements Guild {
     @Override
     public String getName() {
+        DebugLogging.action();
         return guild.getName();
     }
 
     @Override
     public Long getId() {
+        DebugLogging.action();
         return guild.getIdLong();
     }
 
     @Override
     public MessageChannel getDefaultChannel() {
+        DebugLogging.action();
         net.dv8tion.jda.api.entities.channel.middleman.GuildChannel defaultChannel = guild.getDefaultChannel();
 
         if (defaultChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) {
@@ -45,16 +49,19 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public @Nullable String getIconUrl() {
+        DebugLogging.action();
         return guild.getIconUrl();
     }
 
     @Override
     public @Nullable String getBannerUrl() {
+        DebugLogging.action();
         return guild.getBannerUrl();
     }
 
     @Override
     public @Nullable Member getMember(User user) {
+        DebugLogging.action(user);
         net.dv8tion.jda.api.entities.User iUser = ((InternalUser) user).user;
         net.dv8tion.jda.api.entities.Member iMember = guild.getMember(iUser);
 
@@ -63,6 +70,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Invite> getInvites() {
+        DebugLogging.action();
         return guild.retrieveInvites().complete().stream()
                 .map(e -> (Invite) new InternalInvite(e))
                 .toList();
@@ -70,6 +78,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Ban> getBans() {
+        DebugLogging.action();
         return guild.retrieveBanList().complete().stream()
                 .map(e -> (Ban) (new InternalBan(
                         new InternalUser(e.getUser()),
@@ -81,6 +90,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Member> getMembers() {
+        DebugLogging.action();
         return guild.getMembers().stream()
                 .map(e -> (Member) new InternalMember(e))
                 .toList();
@@ -88,6 +98,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public List<Role> getRoles() {
+        DebugLogging.action();
         return guild.getRoles().stream()
                 .map(e -> (Role) new InternalRole(e))
                 .toList();
@@ -95,21 +106,25 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public int getMemberCount() {
+        DebugLogging.action();
         return guild.getMemberCount();
     }
 
     @Override
     public String getDescription() {
+        DebugLogging.action();
         return guild().getDescription();
     }
 
     @Override
     public boolean isCommunity() {
+        DebugLogging.action();
         return guild.getFeatures().contains("COMMUNITY");
     }
 
     @Override
     public List<Channel> getChannels() {
+        DebugLogging.action();
         return guild.getChannels().stream()
                 .map(channel -> {
                     // Channel Mapping
@@ -125,41 +140,49 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     public void kick(Member member) {
+        DebugLogging.action(member);
         member.kick();
     }
 
     @Override
     public void kick(Member member, String reason) {
+        DebugLogging.action(member, reason);
         member.kick(reason);
     }
 
     @Override
     public Ban ban(Member member) {
+        DebugLogging.action(member);
         return member.ban();
     }
 
     @Override
     public Ban ban(Member member, String reason) {
+        DebugLogging.action(member, reason);
         return member.ban(reason);
     }
 
     @Override
     public Ban ban(Member member, int deletionPeriodHours) {
+        DebugLogging.action(member, deletionPeriodHours);
         return member.ban(deletionPeriodHours);
     }
 
     @Override
     public Ban ban(Member member, String reason, int deletionPeriodHours) {
+        DebugLogging.action(member, reason, deletionPeriodHours);
         return member.ban(reason, deletionPeriodHours);
     }
 
     @Override
     public void unban(User user) {
+        DebugLogging.action(user);
         guild.unban(((InternalUser) user).user).complete();
     }
 
     @Override
     public boolean amIMember() {
+        DebugLogging.action();
         return guild().isMember(guild().getJDA().getSelfUser());
     }
 }

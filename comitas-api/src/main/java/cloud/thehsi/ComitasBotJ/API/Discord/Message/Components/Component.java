@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -260,5 +261,14 @@ public class Component {
         for (Component child : children)
             this.append(child);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "Component{" +
+                "children=" + Arrays.deepToString(children.toArray()) +
+                ", style=" + style +
+                ", content='" + content + '\'' +
+                '}';
     }
 }

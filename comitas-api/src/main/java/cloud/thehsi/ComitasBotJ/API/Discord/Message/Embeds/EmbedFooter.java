@@ -31,4 +31,12 @@ public class EmbedFooter {
     public String imageUrl() {
         return imageUrl;
     }
+
+    @Override
+    public String toString() {
+        return "EmbedFooter{" +
+                "text='" + text + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                '}';
+    }
 }

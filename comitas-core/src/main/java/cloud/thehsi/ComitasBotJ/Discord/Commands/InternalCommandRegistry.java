@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Commands;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.entities.Guild;
@@ -74,6 +75,7 @@ public class InternalCommandRegistry implements CommandRegistry {
 
     @Override
     public void register(CommandSupplier commandSupplier) {
+        DebugLogging.action(commandSupplier);
         for (Method method : commandSupplier.getClass().getMethods()) {
             if (!method.isAnnotationPresent(cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command.class)) continue;
 

@@ -8,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 
@@ -33,16 +34,19 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public User getUser() {
+        DebugLogging.action();
         return this;
     }
 
     @Override
     public Guild getGuild() {
+        DebugLogging.action();
         return new InternalGuild(member.getGuild());
     }
 
     @Override
     public Color getPrimaryColor() {
+        DebugLogging.action();
         return member.getRoles().stream()
                 .map(role -> role.getColors().getPrimary())
                 .filter(Objects::nonNull)
@@ -52,6 +56,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public Color getSecondaryColor() {
+        DebugLogging.action();
         return member.getRoles().stream()
                 .map(role -> role.getColors().getSecondary())
                 .filter(Objects::nonNull)
@@ -61,6 +66,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public Color getTertiaryColor() {
+        DebugLogging.action();
         return member.getRoles().stream()
                 .map(role -> role.getColors().getTertiary())
                 .filter(Objects::nonNull)
@@ -70,6 +76,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public String getLoggableName() {
+        DebugLogging.action();
         Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
 
         return ConsoleColor.of(color) + getDisplayName() + ConsoleColor.RESET;
@@ -77,6 +84,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public List<Permission> getPermissions() {
+        DebugLogging.action();
         return member.getPermissions().stream()
                 .map(e -> Permission.fromValue(e.name()))
                 .toList();
@@ -84,11 +92,13 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public OnlineStatus getOnlineStatus() {
+        DebugLogging.action();
         return OnlineStatus.fromKey(member.getOnlineStatus().getKey());
     }
 
     @Override
     public OnlineStatus getOnlineStatus(ClientType clientType) {
+        DebugLogging.action(clientType);
         return OnlineStatus.fromKey(member.getOnlineStatus(
                 net.dv8tion.jda.api.entities.ClientType.fromKey(clientType.getKey())
         ).getKey());
@@ -96,16 +106,19 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public void kick() {
+        DebugLogging.action();
         member.kick().complete();
     }
 
     @Override
     public void kick(String reason) {
+        DebugLogging.action(reason);
         member.kick().reason(reason).complete();
     }
 
     @Override
     public Ban ban() {
+        DebugLogging.action();
         member.ban(0, TimeUnit.SECONDS).complete();
 
         return new InternalBan(getUser(), null, getGuild());
@@ -113,6 +126,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public Ban ban(String reason) {
+        DebugLogging.action(reason);
         member.ban(0, TimeUnit.SECONDS).reason(reason).complete();
 
         return new InternalBan(getUser(), reason, getGuild());
@@ -120,6 +134,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public Ban ban(int deletionPeriodHours) {
+        DebugLogging.action(deletionPeriodHours);
         member.ban(deletionPeriodHours, TimeUnit.HOURS).complete();
 
         return new InternalBan(getUser(), null, getGuild());
@@ -127,6 +142,7 @@ public class InternalMember extends InternalUser implements Member {
 
     @Override
     public Ban ban(String reason, int deletionPeriodHours) {
+        DebugLogging.action(reason, deletionPeriodHours);
         member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).complete();
 
         return new InternalBan(getUser(), reason, getGuild());

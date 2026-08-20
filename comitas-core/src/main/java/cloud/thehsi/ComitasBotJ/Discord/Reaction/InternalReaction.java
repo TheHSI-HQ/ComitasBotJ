@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -21,6 +22,7 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
 
     @Override
     public List<Member> getReactors() {
+        DebugLogging.action();
         Guild guild = reaction.getGuild();
 
         return reaction.retrieveUsers().stream()
@@ -32,11 +34,13 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
 
     @Override
     public int getCount() {
+        DebugLogging.action();
         return reaction.retrieveUsers().complete().size();
     }
 
     @Override
     public boolean haveIReacted() {
+        DebugLogging.action();
         for (User user : reaction.retrieveUsers().complete())
             if (user.getIdLong() == reaction.getJDA().getSelfUser().getIdLong())
                 return true;
@@ -46,26 +50,31 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
 
     @Override
     public boolean exists() {
+        DebugLogging.action();
         return !reaction.retrieveUsers().complete().isEmpty();
     }
 
     @Override
     public void clear() {
+        DebugLogging.action();
         reaction.clearReactions().complete();
     }
 
     @Override
     public void react() {
+        DebugLogging.action();
         message.react(new InternalEmoji(reaction.getEmoji()));
     }
 
     @Override
     public void unreact() {
+        DebugLogging.action();
         message.unreact(new InternalEmoji(reaction.getEmoji()));
     }
 
     @Override
     public void removeReaction(Member member) {
+        DebugLogging.action(member);
         reaction.removeReaction(((InternalUser) member.getUser()).user).complete();
     }
 }

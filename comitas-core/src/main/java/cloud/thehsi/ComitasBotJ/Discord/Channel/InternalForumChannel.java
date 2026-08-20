@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ThreadChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -31,6 +32,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     @Override
     @Nullable
     public Guild getGuild() {
+        DebugLogging.action();
         if (channel instanceof GuildChannel guildChannel)
             return new InternalGuild(guildChannel.getGuild());
         return null;
@@ -38,6 +40,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
 
     @Override
     public List<ThreadChannel> getPosts() {
+        DebugLogging.action();
         return channel.getThreadChannels().stream()
                 .map(e -> (ThreadChannel) new InternalThreadChannel(e))
                 .toList();
@@ -45,11 +48,13 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
 
     @Override
     public ThreadChannel createPost(String title, Component message) {
+        DebugLogging.action(title, message);
         return createPost(title, message.asMessageData());
     }
 
     @Override
     public ThreadChannel createPost(String title, MessageData messageData) {
+        DebugLogging.action(title, messageData);
         AtomicReference<InternalThreadChannel> result = new AtomicReference<>();
         MessageDataParser.parse(messageData, data -> {
             try (MessageCreateData createData = new MessageCreateBuilder()

@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Console;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
 
     @Override
     public void register(ConsoleCommandExecutor executor, @Nullable String description, String... aliases) {
+        DebugLogging.action(executor, description, aliases);
         consoleCommands.add(
                 new ConsoleCommand(aliases, Comitas.getPluginManager().getPlugin(), description, executor)
         );
@@ -51,6 +53,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
 
     @Override
     public List<ConsoleCommand> registeredCommands() {
+        DebugLogging.action();
         return new ArrayList<>(consoleCommands);
     }
 }

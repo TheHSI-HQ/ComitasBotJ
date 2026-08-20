@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedFooter;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedTitle;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -64,6 +65,7 @@ public class InternalEmbed implements Embed {
 
     @Override
     public MessageData asMessageData() {
+        DebugLogging.action();
         return new MessageData(this);
     }
 }

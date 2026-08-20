@@ -78,14 +78,14 @@ public class DebugLogging {
             LOGGER.debug("{}#{}() was called with arguments {}",
                     callee.getClassName(),
                     callee.getMethodName(),
-                    java.util.Arrays.toString(args));
+                    java.util.Arrays.deepToString(args));
             return;
         }
 
         LOGGER.debug("{}#{}() was called with arguments {} by {}#{} at line {}",
                 callee.getClassName(),
                 callee.getMethodName(),
-                java.util.Arrays.toString(args),
+                java.util.Arrays.deepToString(args),
                 caller.getClassName(),
                 caller.getMethodName(),
                 callee.getLineNumber());

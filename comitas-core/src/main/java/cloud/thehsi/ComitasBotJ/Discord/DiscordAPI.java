@@ -149,7 +149,7 @@ public class DiscordAPI extends ListenerAdapter {
 
         eventManager.callEvent(messageReceivedEvent);
 
-        if (messageReceivedEvent.isDelete()) event.getMessage().delete().queue(ignored -> {
+        if (messageReceivedEvent.markedForDeletion()) event.getMessage().delete().queue(ignored -> {
         }, error -> {
         });
     }

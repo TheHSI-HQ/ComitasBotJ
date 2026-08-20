@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
@@ -26,11 +27,13 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
 
     @Override
     public MyMessage sendMessage(Component message) {
+        DebugLogging.action(message);
         return sendMessage(message.asMessageData());
     }
 
     @Override
     public MyMessage sendMessage(MessageData messageData) {
+        DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.channel.sendMessage(data).complete()
         ));
@@ -39,6 +42,7 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     @Override
     @Nullable
     public Guild getGuild() {
+        DebugLogging.action();
         if (channel instanceof GuildChannel guildChannel)
             return new InternalGuild(guildChannel.getGuild());
         return null;

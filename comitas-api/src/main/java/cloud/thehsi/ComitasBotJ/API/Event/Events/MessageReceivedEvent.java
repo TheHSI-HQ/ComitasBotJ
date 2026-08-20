@@ -16,7 +16,7 @@ public interface MessageReceivedEvent extends Event {
      *
      * @return The messages deletion status
      */
-    boolean isDelete();
+    boolean markedForDeletion();
 
     /**
      * Mark / Unmark the message for deletion

@@ -43,4 +43,13 @@ public class EmbedAuthor {
     public String imageUrl() {
         return imageUrl;
     }
+
+    @Override
+    public String toString() {
+        return "EmbedAuthor{" +
+                "name='" + name + '\'' +
+                ", url='" + url + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                '}';
+    }
 }

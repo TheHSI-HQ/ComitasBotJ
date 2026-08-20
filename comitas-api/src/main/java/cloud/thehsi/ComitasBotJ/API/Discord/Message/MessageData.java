@@ -76,5 +76,15 @@ public class MessageData {
     public MessageData(AttachmentUpload... attachments) {
         this.attachmentUploads.addAll(Arrays.stream(attachments).toList());
     }
+
+    @Override
+    public String toString() {
+        return "MessageData{" +
+                "content=" + content +
+                ", embeds=" + embeds +
+                ", attachments=" + attachments +
+                ", attachmentUploads=" + attachmentUploads +
+                '}';
+    }
 }
 

@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachment;
@@ -41,6 +42,7 @@ public class InternalMessage implements Message {
 
     @Override
     public void delete() {
+        DebugLogging.action();
         deleted = true;
 
         if (optionalDeletionCallback != null)
@@ -51,6 +53,7 @@ public class InternalMessage implements Message {
 
     @Override
     public boolean isDeleted() {
+        DebugLogging.action();
         if (deleted) return true;
 
         // Validate the message still exists
@@ -65,17 +68,20 @@ public class InternalMessage implements Message {
 
     @Override
     public String getRawContent() {
+        DebugLogging.action();
         return message.getContentRaw();
     }
 
     @Override
     public Component getContent() {
+        DebugLogging.action();
         return ComponentUnparser.unparseComponent(getRawContent());
     }
 
     @Override
     @Nullable
     public Member getAuthor() {
+        DebugLogging.action();
         net.dv8tion.jda.api.entities.Member member = message.getMember();
         if (member == null)
             return null;
@@ -85,6 +91,7 @@ public class InternalMessage implements Message {
     @Override
     @Nullable
     public MessageChannel getChannel() {
+        DebugLogging.action();
         if (!message.hasChannel())
             return null;
 
@@ -93,6 +100,7 @@ public class InternalMessage implements Message {
 
     @Override
     public boolean isReply() {
+        DebugLogging.action();
         MessageReference ref = message.getMessageReference();
 
         if (ref == null || ref.getMessageIdLong() == 0)
@@ -103,6 +111,7 @@ public class InternalMessage implements Message {
 
     @Override
     public boolean isForwarded() {
+        DebugLogging.action();
         MessageReference ref = message.getMessageReference();
 
         if (ref == null || ref.getMessageIdLong() == 0)
@@ -113,6 +122,7 @@ public class InternalMessage implements Message {
 
     @Override
     public @Nullable Message getRepliedMessage() {
+        DebugLogging.action();
         MessageReference ref = message.getMessageReference();
 
         if (ref == null || ref.getMessageIdLong() == 0)
@@ -123,6 +133,7 @@ public class InternalMessage implements Message {
 
     @Override
     public List<Reaction> getReactions() {
+        DebugLogging.action();
         return message.getReactions().stream()
                 .map(e -> (Reaction) new InternalReaction(e, this))
                 .toList();
@@ -130,16 +141,19 @@ public class InternalMessage implements Message {
 
     @Override
     public void react(Emoji emoji) {
+        DebugLogging.action(emoji);
         message.addReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override
     public void unreact(Emoji emoji) {
+        DebugLogging.action(emoji);
         message.removeReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override
     public List<MessageAttachment> getAttachments() {
+        DebugLogging.action();
         return message.getAttachments().stream()
                 .map(e -> (MessageAttachment) new InternalMessageAttachment(e, message))
                 .toList();
@@ -147,6 +161,7 @@ public class InternalMessage implements Message {
 
     @Override
     public MessageData getData() {
+        DebugLogging.action();
         MessageData messageData = new MessageData();
 
         messageData.setContent(Component.raw(getRawContent()));
@@ -161,6 +176,7 @@ public class InternalMessage implements Message {
 
     @Override
     public Embed[] getEmbeds() {
+        DebugLogging.action();
         Embed[] embeds = new Embed[message.getEmbeds().size()];
         for (int i = 0; i < message.getEmbeds().size(); i++)
             embeds[i] = new InternalEmbed(message.getEmbeds().get(i));
@@ -169,6 +185,7 @@ public class InternalMessage implements Message {
 
     @Override
     public @Nullable MyMessage forward(MessageChannel channel) {
+        DebugLogging.action(channel);
         if (!(channel instanceof InternalMessageChannel internal))
             throw new IllegalArgumentException("MessageChannel was not created by Comitas");
 
@@ -177,6 +194,7 @@ public class InternalMessage implements Message {
 
     @Override
     public @Nullable MyMessage asMyMessage() {
+        DebugLogging.action();
         Member author = getAuthor();
         if (author == null) return null;
 
@@ -187,11 +205,13 @@ public class InternalMessage implements Message {
 
     @Override
     public MyMessage reply(Component message) {
+        DebugLogging.action(message);
         return reply(message.asMessageData());
     }
 
     @Override
     public MyMessage reply(MessageData messageData) {
+        DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.message.reply(data).complete())
         );

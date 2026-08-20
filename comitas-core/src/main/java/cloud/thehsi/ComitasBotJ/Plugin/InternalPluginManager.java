@@ -58,16 +58,19 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public Integer countPlugins() {
+        DebugLogging.action();
         return pluginLoaderManager.count();
     }
 
     @Override
     public List<Plugin.PluginMetadata> getAllPluginMetadata() {
+        DebugLogging.action();
         return pluginLoaderManager.pluginMetadataList();
     }
 
     @Override
     public Plugin getPlugin() {
+        DebugLogging.action();
         if (DebugLogging.isActionEnabled()) debugLogger.debug("Fetching calling plugin...");
         return STACK_WALKER
                 .walk(frames -> frames
@@ -82,6 +85,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public PersistentDataStorage getPersistentDataStorage() {
+        DebugLogging.action();
         Plugin plugin = getPlugin();
         Plugin.PluginMetadata metadata = lookupPlugin(plugin);
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("{} requested persistant data storage.", metadata.name());
@@ -229,6 +233,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
+        DebugLogging.action(plugin);
         return pluginLoaderManager.lookupPlugin(plugin);
     }
 
@@ -246,6 +251,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public void reloadSoft() {
+        DebugLogging.action();
         long reloadTime = System.currentTimeMillis();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Unloading Plugins in soft mode");
         unloadPlugins(false);
@@ -263,6 +269,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public void reloadHard() {
+        DebugLogging.action();
         long reloadTime = System.currentTimeMillis();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Unloading Plugins in hard mode");
         unloadPlugins(true);
@@ -301,6 +308,7 @@ public class InternalPluginManager implements PluginManager {
 
     @Override
     public void registerEvents(Plugin plugin, Listener listener) {
+        DebugLogging.action(plugin, listener);
         eventManager.registerListener(plugin, listener);
     }
 

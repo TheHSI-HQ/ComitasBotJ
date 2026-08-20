@@ -31,4 +31,12 @@ public class EmbedTitle {
     public String url() {
         return url;
     }
+
+    @Override
+    public String toString() {
+        return "EmbedTitle{" +
+                "text='" + text + '\'' +
+                ", url='" + url + '\'' +
+                '}';
+    }
 }

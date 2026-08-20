@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Plugin.PersistentData;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataType;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
             PersistentDataType<T> type,
             T value
     ) {
+        DebugLogging.action(key, type, value);
         data.put(
                 key,
                 new Entry(
@@ -37,6 +39,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
             String key,
             PersistentDataType<T> type
     ) {
+        DebugLogging.action(key, type);
         Entry value = data.get(key);
 
         if (value == null) {
@@ -48,11 +51,13 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
 
     @Override
     public boolean has(String key) {
+        DebugLogging.action(key);
         return data.containsKey(key);
     }
 
     @Override
     public <T> boolean has(String key, PersistentDataType<T> type) {
+        DebugLogging.action(key, type);
         Entry value = data.get(key);
 
         if (value == null)
@@ -63,10 +68,12 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
 
     @Override
     public void remove(String key) {
+        DebugLogging.action(key);
         data.remove(key);
     }
 
     public Map<String, Entry> getData() {
+        DebugLogging.action();
         return this.data;
     }
 

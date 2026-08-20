@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +21,7 @@ public class InternalAttachment implements Attachment {
 
     @Override
     public CompletableFuture<String> getHash() {
+        DebugLogging.action();
         return attachment.getProxy().download().thenApply(input -> {
             try (InputStream is = input) {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -39,6 +41,7 @@ public class InternalAttachment implements Attachment {
 
     @Override
     public CompletableFuture<byte[]> getContent() {
+        DebugLogging.action();
         return attachment.getProxy().download().thenApply(input -> {
             try (InputStream is = input) {
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -56,33 +59,37 @@ public class InternalAttachment implements Attachment {
 
     @Override
     public boolean isSpoiler() {
+        DebugLogging.action();
         return attachment.isSpoiler();
     }
 
     @Override
     public String getDescription() {
+        DebugLogging.action();
         return attachment.getDescription();
     }
 
 
     @Override
     public String getFileName() {
+        DebugLogging.action();
         return attachment.getFileName();
     }
 
     @Override
     public String getURL() {
+        DebugLogging.action();
         return attachment.getUrl();
     }
 
     @Override
     public MessageData asMessageData() {
+        DebugLogging.action();
         return new MessageData().addAttachment(this);
     }
 
     public Message.Attachment getAttachment() {
+        DebugLogging.action();
         return attachment;
     }
-
-
 }

@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
@@ -53,39 +54,46 @@ public class InternalAttachmentUpload implements AttachmentUpload {
 
     @Override
     public AttachmentUpload setSpoiler(boolean spoiler) {
+        DebugLogging.action(spoiler);
         this.spoiler = spoiler;
         return this;
     }
 
     @Override
     public AttachmentUpload setFileName(String fileName) {
+        DebugLogging.action(fileName);
         this.fileName = fileName;
         return this;
     }
 
     @Override
     public AttachmentUpload setDescription(String description) {
+        DebugLogging.action(description);
         this.description = description;
         return this;
     }
 
     @Override
     public boolean isSpoiler() {
+        DebugLogging.action();
         return spoiler;
     }
 
     @Override
     public String getFileName() {
+        DebugLogging.action();
         return fileName;
     }
 
     @Override
     public String getDescription() {
+        DebugLogging.action();
         return description;
     }
 
     @Override
     public MessageData asMessageData() {
+        DebugLogging.action();
         return new MessageData(this);
     }
 }

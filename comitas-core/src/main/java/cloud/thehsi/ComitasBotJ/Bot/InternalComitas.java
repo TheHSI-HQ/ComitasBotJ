@@ -110,21 +110,25 @@ public class InternalComitas implements InternalComitasImpl {
 
     @Override
     public String getServerVersion() {
+        DebugLogging.action();
         return Main.getServerVersion();
     }
 
     @Override
     public PluginManager getPluginManager() {
+        DebugLogging.action();
         return pluginManager;
     }
 
     @Override
     public CommandRegistry getCommandRegistry() {
+        DebugLogging.action();
         return commandRegistry;
     }
 
     @Override
     public ConsoleCommandRegistry getConsoleCommandRegistry() {
+        DebugLogging.action();
         return consoleCommandRegistry;
     }
 

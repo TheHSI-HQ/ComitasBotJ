@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.LoggerContext;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
@@ -43,6 +44,7 @@ public class ConsolePrompt {
     }
 
     public void run() {
+        if (DebugLogging.isBasicEnabled()) DebugLogging.getLogger().debug("Starting console prompt thread");
         Thread consoleThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -53,6 +55,8 @@ public class ConsolePrompt {
 
                         String command = parts.removeFirst();
                         String[] args = parts.toArray(new String[0]);
+
+                        if (DebugLogging.isBasicEnabled()) DebugLogging.getLogger().debug("Parsed command: {} with args: {}", command, args);
 
                         if (!registry.runCommand(command, args))
                             logger.error("Unknown command: {}", command);

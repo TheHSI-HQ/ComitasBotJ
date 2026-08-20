@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 
 public class InternalMyMessage extends InternalMessage implements MyMessage {
@@ -16,12 +17,14 @@ public class InternalMyMessage extends InternalMessage implements MyMessage {
 
     @Override
     public void setContent(Component content) {
+        DebugLogging.action(content);
         String msg = ComponentParser.parseComponent(content);
         message.editMessage(msg).complete();
     }
 
     @Override
     public void setMessageData(MessageData messageData) {
+        DebugLogging.action(messageData);
         MessageDataParser.parse(messageData, parsedMessageData -> {
             message.editMessage(parsedMessageData.message()).complete();
             message.editMessageEmbeds(parsedMessageData.messageEmbeds()).complete();
