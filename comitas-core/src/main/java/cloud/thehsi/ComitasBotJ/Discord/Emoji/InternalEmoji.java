@@ -11,7 +11,7 @@ public record InternalEmoji(net.dv8tion.jda.api.entities.emoji.Emoji emoji) impl
     }
 
     @Override
-    public Component asMessageEmbed() {
+    public Component asComponent() {
         DebugLogging.action();
         return Component.raw(emoji.getAsReactionCode());
     }

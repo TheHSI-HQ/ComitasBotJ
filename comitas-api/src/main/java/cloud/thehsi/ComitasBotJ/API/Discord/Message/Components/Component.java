@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Components;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 
 import java.time.Instant;
@@ -224,6 +225,17 @@ public class Component {
     public Component style(Style style) {
         if (style == null) style = Style.RESET;
         this.style = style;
+        return this;
+    }
+
+    /**
+     * Append a emoji to this component.
+     *
+     * @param emoji EMoji to be appended
+     * @return The component.
+     */
+    public Component append(Emoji emoji) {
+        this.children.add(emoji.asComponent());
         return this;
     }
 

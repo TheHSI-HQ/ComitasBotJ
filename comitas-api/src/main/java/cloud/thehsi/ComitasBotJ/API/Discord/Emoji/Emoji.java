@@ -41,7 +41,7 @@ public interface Emoji {
      *
      * @return The emoji component
      */
-    Component asMessageEmbed();
+    Component asComponent();
 
     /**
      * Get the emoji name

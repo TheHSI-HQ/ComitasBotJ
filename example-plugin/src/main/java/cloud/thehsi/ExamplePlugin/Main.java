@@ -1,7 +1,6 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
@@ -51,17 +50,13 @@ public class Main extends Plugin implements Listener {
         if (event.getRawContent().startsWith("!hello")) {
             PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 
-            Emoji thumbs_up = Emojis.THUMBSUP();
-
-            Component thumbsUpEmoji = thumbs_up.asMessageEmbed();
-
             Embed embed = new EmbedBuilder()
                     .setTitle("Hello " + event.getAuthor().getDisplayName())
                     .setDescription(
                             Component.text("Best Regards from " )
                                     .append(Component.text(Comitas.getBot().getDisplayName(), Style.BOLD, Style.UNDERLINE))
                                     .append(" ")
-                                    .append(thumbsUpEmoji)
+                                    .append(Emojis.THUMBSUP())
                     )
                     .setAuthor(new EmbedAuthor(Comitas.getBot().getDisplayName(), "https://www.thehsi.cloud/", "https://www.thehsi.cloud/logo.png"))
                     .setColor(new Color(151, 45, 231))
