@@ -8,27 +8,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record InternalBan(User user, @Nullable String reason, Guild guild) implements Ban {
-
     @Override
     public void unban() {
         DebugLogging.action();
-        guild().unban(user);
+        getGuild().unban(user);
     }
 
     @Override
-    public User user() {
+    public User getUser() {
         DebugLogging.action();
         return user;
     }
 
     @Override
-    public @Nullable String reason() {
+    public @Nullable String getReason() {
         DebugLogging.action();
         return reason;
     }
 
     @Override
-    public Guild guild() {
+    public Guild getGuild() {
         DebugLogging.action();
         return guild;
     }

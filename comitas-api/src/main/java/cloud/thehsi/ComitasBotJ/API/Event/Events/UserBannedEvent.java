@@ -1,8 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface UserBannedEvent extends Event, UndoableEvent {
@@ -21,10 +21,9 @@ public interface UserBannedEvent extends Event, UndoableEvent {
     Guild getGuild();
 
     /**
-     * Get the abn reason
+     * Get the ban
      *
-     * @return The ban reason
+     * @return The ban
      */
-    @Nullable
-    String getReason();
+    Ban getBan();
 }

@@ -55,6 +55,12 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
+    public Message getMessage() {
+        DebugLogging.action();
+        return message;
+    }
+
+    @Override
     public void clear() {
         DebugLogging.action();
         reaction.clearReactions().complete();
