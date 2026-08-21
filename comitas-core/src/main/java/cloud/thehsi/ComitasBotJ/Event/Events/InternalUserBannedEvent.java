@@ -8,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -41,6 +42,7 @@ public class InternalUserBannedEvent extends InternalUndoableEvent implements Us
     }
 
     @Override
+    @Nullable
     public String getReason() {
         return reason;
     }
