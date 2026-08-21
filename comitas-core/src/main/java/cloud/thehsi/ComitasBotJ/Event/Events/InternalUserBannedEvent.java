@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserBannedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
@@ -18,8 +19,9 @@ import java.util.Objects;
 public class InternalUserBannedEvent extends InternalUndoableEvent implements UserBannedEvent {
     final GuildBanEvent event;
     final Ban ban;
+    final EventOrigin eventOrigin;
 
-    public InternalUserBannedEvent(GuildBanEvent event) {
+    public InternalUserBannedEvent(GuildBanEvent event, EventOrigin origin) {
         this.event = event;
         String reason = event.getGuild().retrieveAuditLogs()
                 .type(ActionType.BAN)
@@ -32,6 +34,7 @@ public class InternalUserBannedEvent extends InternalUndoableEvent implements Us
                 .findFirst()
                 .orElse(null);
         this.ban = new InternalBan(getUser(), reason, getGuild());
+        this.eventOrigin = origin;
     }
 
     @Override
@@ -50,5 +53,10 @@ public class InternalUserBannedEvent extends InternalUndoableEvent implements Us
     public Ban getBan() {
         DebugLogging.action();
         return ban;
+    }
+
+    @Override
+    public EventOrigin getOrigin() {
+        return eventOrigin;
     }
 }

@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.ReactionUpdatedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 
@@ -14,14 +15,16 @@ public final class InternalReactionUpdatedEvent extends InternalUndoableEvent im
     private final Message message;
     private final Reaction reaction;
     private final ReactionAction reactionAction;
+    private final EventOrigin eventOrigin;
 
     public InternalReactionUpdatedEvent(Member member, Message message,
                                         Reaction reaction,
-                                        ReactionAction reactionAction) {
+                                        ReactionAction reactionAction, EventOrigin origin) {
         this.member = member;
         this.message = message;
         this.reaction = reaction;
         this.reactionAction = reactionAction;
+        this.eventOrigin = origin;
     }
 
     @Override
@@ -73,4 +76,8 @@ public final class InternalReactionUpdatedEvent extends InternalUndoableEvent im
                 "reactionAction=" + reactionAction + ']';
     }
 
+    @Override
+    public EventOrigin getOrigin() {
+        return eventOrigin;
+    }
 }

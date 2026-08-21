@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserChangeGuildDisplayNameEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 
@@ -10,13 +11,15 @@ public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoa
     private final Guild guild;
     private final String oldName;
     private final String newName;
+    private final EventOrigin eventOrigin;
 
     public InternalUserChangeGuildDisplayNameEvent(Member member, Guild guild, String oldName,
-                                                   String newName) {
+                                                   String newName, EventOrigin origin) {
         this.member = member;
         this.guild = guild;
         this.oldName = oldName;
         this.newName = newName;
+        this.eventOrigin = origin;
     }
 
     @Override
@@ -51,4 +54,8 @@ public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoa
                 "newName=" + newName + ']';
     }
 
+    @Override
+    public EventOrigin getOrigin() {
+        return eventOrigin;
+    }
 }
