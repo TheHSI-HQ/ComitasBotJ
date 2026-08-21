@@ -14,6 +14,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessageHistory;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import org.jetbrains.annotations.Nullable;
 
 public class InternalMessageChannel extends InternalChannel implements MessageChannel {
@@ -52,19 +53,31 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     @Override
     public @Nullable Message getMessageById(long id) {
         DebugLogging.action(id);
-        net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
-        if (message == null)
-            return null;
-        return new InternalMessage(message);
+        try {
+            net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
+            if (message == null)
+                return null;
+            return new InternalMessage(message);
+        } catch (ErrorResponseException e) {
+            if (e.getErrorCode() == 10008) // Unknown Message
+                return null;
+            throw e;
+        }
     }
 
     @Override
     public @Nullable Message getMessageById(String id) {
         DebugLogging.action(id);
-        net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
-        if (message == null)
-            return null;
-        return new InternalMessage(message);
+        try {
+            net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();
+            if (message == null)
+                return null;
+            return new InternalMessage(message);
+        } catch (ErrorResponseException e) {
+            if (e.getErrorCode() == 10008) // Unknown Message
+                return null;
+            throw e;
+        }
     }
 
     @Override

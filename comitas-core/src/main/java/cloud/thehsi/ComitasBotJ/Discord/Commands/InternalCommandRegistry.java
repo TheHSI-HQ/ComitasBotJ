@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.requests.RestAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,12 +132,16 @@ public class InternalCommandRegistry implements CommandRegistry {
     public void unregisterAll() {
         if (this.api == null) throw new RuntimeException("Command un-registration requested before ready");
 
+        List<RestAction<Void>> allFutures = new ArrayList<>();
+
         for (Command command : api.getAPI().retrieveCommands().complete())
-            command.delete().complete();
+            allFutures.add(command.delete());
 
         for (Guild guild : api.getAPI().getGuilds())
             for (Command command : guild.retrieveCommands().complete())
-                command.delete().complete();
+                allFutures.add(command.delete());
+
+        RestAction.allOf(allFutures).complete();
 
         api.getAPI().updateCommands().complete();
 
