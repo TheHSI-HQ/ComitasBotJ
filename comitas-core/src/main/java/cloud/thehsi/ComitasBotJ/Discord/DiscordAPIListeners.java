@@ -26,6 +26,8 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -301,6 +303,25 @@ public class DiscordAPIListeners extends ListenerAdapter {
                 event.getOldNickname(),
                 event.getNewNickname()
         ));
+    }
+
+    @Override
+    public void onMessageDelete(@NotNull MessageDeleteEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a MessageDeletedEvent.");
+        eventManager.callEvent(new InternalMessageDeletedEvent(event));
+    }
+
+    @Override
+    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a MessageEditedEvent.");
+        MessageEditedEvent messageEditedEvent = new InternalMessageEditedEvent(event);
+
+        eventManager.callEvent(messageEditedEvent);
+
+        if (messageEditedEvent.markedForDeletion()) event.getMessage().delete().queue(ignored -> {
+        }, error -> {
+        });
+        super.onMessageUpdate(event);
     }
 
     private void addUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
