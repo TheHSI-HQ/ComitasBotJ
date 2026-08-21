@@ -89,6 +89,7 @@ public class DiscordAPI {
                 )
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .setChunkingFilter(ChunkingFilter.ALL)
+                .setEventPassthrough(true)
                 .addEventListeners(listeners)
                 .build();
     }

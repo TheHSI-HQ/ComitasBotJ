@@ -16,6 +16,7 @@ import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
@@ -42,7 +43,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final InternalCommandRegistry commandRegistry;
     boolean firstStartup = true;
 
-    final List<RoleModificationLoopFix> roleModificationLoopFixList = Collections.synchronizedList(new ArrayList<>());
+    final List<UndoLoopFix> undoLoopFixList = Collections.synchronizedList(new ArrayList<>());
 
     public DiscordAPIListeners(DiscordAPI api, EventManager eventManager, InternalCommandRegistry commandRegistry) {
         this.eventManager = eventManager;
@@ -90,12 +91,12 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
         for (Role role : event.getRoles()) {
-            if (roleModificationLoopFixList.contains(
-                    new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong()
-                    ))) {
+            if (undoLoopFixList.contains(
+                    UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong())
+            )) {
                 if (DebugLogging.isEventEnabled()) //noinspection LoggingSimilarMessage
                     debugLogger.debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
-                roleModificationLoopFixList.remove(new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong()));
+                undoLoopFixList.remove(UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong()));
                 continue;
             }
 
@@ -110,8 +111,8 @@ public class DiscordAPIListeners extends ListenerAdapter {
             if (userRoleAddedEvent.willUndo()) {
                 if (DebugLogging.isEventEnabled())
                     debugLogger.debug("Adding a RoleModificationLopeFix, as role addition was marked to be undone");
-                roleModificationLoopFixList.add(
-                        new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong())
+                undoLoopFixList.add(
+                        UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong())
                 );
                 event.getGuild().removeRoleFromMember(event.getUser(), role).queue(ignored -> {
                 }, error -> {
@@ -123,12 +124,12 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
         for (Role role : event.getRoles()) {
-            if (roleModificationLoopFixList.contains(
-                    new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong()
-                    ))) {
+            if (undoLoopFixList.contains(
+                    UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong())
+            )) {
                 if (DebugLogging.isEventEnabled()) //noinspection LoggingSimilarMessage
                     debugLogger.debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
-                roleModificationLoopFixList.remove(new RoleModificationLoopFix(false, event.getUser().getIdLong(), role.getIdLong()));
+                undoLoopFixList.remove(UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong()));
                 continue;
             }
 
@@ -143,8 +144,8 @@ public class DiscordAPIListeners extends ListenerAdapter {
             if (userRoleRemovedEvent.willUndo()) {
                 if (DebugLogging.isEventEnabled())
                     debugLogger.debug("Adding a RoleModificationLopeFix, as role removal was marked to be undone");
-                roleModificationLoopFixList.add(
-                        new RoleModificationLoopFix(true, event.getUser().getIdLong(), role.getIdLong())
+                undoLoopFixList.add(
+                        UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong())
                 );
                 event.getGuild().addRoleToMember(event.getUser(), role).queue();
             }
@@ -213,17 +214,32 @@ public class DiscordAPIListeners extends ListenerAdapter {
         eventManager.callEvent(new InternalUserLeaveGuildEvent(event));
     }
 
-    record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
+    @Override
+    public void onGuildBan(@NotNull GuildBanEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserBannedEvent.");
+
+        eventManager.callEvent(new InternalUserBannedEvent(event));
+    }
+
+    record UndoLoopFix(String identifier) {
+        public static UndoLoopFix create(Object... args) {
+            StringBuilder _identifier = new StringBuilder();
+            for (Object arg : args) {
+                _identifier.append(arg.hashCode()).append(";");
+            }
+            return new UndoLoopFix(_identifier.toString());
+        }
+
         @Override
         public boolean equals(Object o) {
             if (o == null || getClass() != o.getClass()) return false;
-            RoleModificationLoopFix that = (RoleModificationLoopFix) o;
-            return add == that.add && affectedUser == that.affectedUser && affectedRole == that.affectedRole;
+            UndoLoopFix that = (UndoLoopFix) o;
+            return Objects.equals(identifier, that.identifier);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(add, affectedUser, affectedRole);
+            return identifier.hashCode();
         }
     }
 }

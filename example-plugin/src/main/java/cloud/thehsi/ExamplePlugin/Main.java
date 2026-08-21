@@ -12,6 +12,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.UserBannedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserJoinGuildEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
@@ -41,6 +42,11 @@ public class Main extends Plugin implements Listener {
         Comitas.getPluginManager().getPersistentDataStorage();
 
         Comitas.getCommandRegistry().register(new ExampleCommand());
+    }
+
+    @EventHandler
+    public void test(UserBannedEvent event) {
+        System.out.println(event.getReason());
     }
 
     @EventHandler(priority = EventPriority.LOW)
