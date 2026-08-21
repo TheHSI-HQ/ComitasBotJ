@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public interface UserChangeGuildDisplayNameEvent extends Event {
+public interface UserChangeGuildDisplayNameEvent extends Event, UndoableEvent {
     /**
      * Get the member who changed their nickname
      *

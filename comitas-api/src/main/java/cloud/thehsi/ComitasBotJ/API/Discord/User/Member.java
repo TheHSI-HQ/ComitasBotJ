@@ -145,4 +145,11 @@ public interface Member extends User {
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      */
     Ban ban(String reason, int deletionPeriodHours);
+
+    /**
+     * Overwrite the members display name
+     *
+     * @param displayName The new display name, or null to reset to default (global)
+     */
+    void setDisplayName(@Nullable String displayName);
 }

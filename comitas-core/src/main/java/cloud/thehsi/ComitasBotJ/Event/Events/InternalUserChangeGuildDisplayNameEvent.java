@@ -5,8 +5,20 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserChangeGuildDisplayNameEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 
-public record InternalUserChangeGuildDisplayNameEvent(Member member, Guild guild, String oldName,
-                                                      String newName) implements UserChangeGuildDisplayNameEvent {
+public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoableEvent implements UserChangeGuildDisplayNameEvent {
+    private final Member member;
+    private final Guild guild;
+    private final String oldName;
+    private final String newName;
+
+    public InternalUserChangeGuildDisplayNameEvent(Member member, Guild guild, String oldName,
+                                                   String newName) {
+        this.member = member;
+        this.guild = guild;
+        this.oldName = oldName;
+        this.newName = newName;
+    }
+
     @Override
     public Member getMember() {
         DebugLogging.action();
@@ -30,4 +42,13 @@ public record InternalUserChangeGuildDisplayNameEvent(Member member, Guild guild
         DebugLogging.action();
         return oldName;
     }
+
+    public String toString() {
+        return "InternalUserChangeGuildDisplayNameEvent[" +
+                "member=" + member + ", " +
+                "guild=" + guild + ", " +
+                "oldName=" + oldName + ", " +
+                "newName=" + newName + ']';
+    }
+
 }

@@ -35,6 +35,7 @@ import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,19 +262,6 @@ public class DiscordAPIListeners extends ListenerAdapter {
         }
     }
 
-    private boolean resolveUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
-        StringBuilder identifier = new StringBuilder(clazz.getName());
-        for (Object arg : args) {
-            identifier.append(";").append(arg.hashCode());
-        }
-        if (undoLoopFixList.remove(identifier.toString())) {
-            if (DebugLogging.isEventEnabled())
-                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public void onUserUpdateName(@NotNull UserUpdateNameEvent event) {
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeUserNameEvent.");
@@ -296,13 +284,23 @@ public class DiscordAPIListeners extends ListenerAdapter {
 
     @Override
     public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
-        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeGuildDisplayNameEvent.");
-        eventManager.callEvent(new InternalUserChangeGuildDisplayNameEvent(
+        if (resolveUndoLoopPrevention(UserChangeGuildDisplayNameEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong(), event.getNewNickname()))
+            return;
+
+        UserChangeGuildDisplayNameEvent userChangeGuildDisplayNameEvent = new InternalUserChangeGuildDisplayNameEvent(
                 new InternalMember(event.getMember()),
                 new InternalGuild(event.getGuild()),
                 event.getOldNickname(),
                 event.getNewNickname()
-        ));
+        );
+
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeGuildDisplayNameEvent.");
+        eventManager.callEvent(userChangeGuildDisplayNameEvent);
+
+        if (userChangeGuildDisplayNameEvent.willUndo()) {
+            addUndoLoopPrevention(UserChangeGuildDisplayNameEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong(), event.getOldNickname());
+            event.getGuild().modifyNickname(event.getMember(), event.getOldNickname()).queue();
+        }
     }
 
     @Override
@@ -324,14 +322,30 @@ public class DiscordAPIListeners extends ListenerAdapter {
         super.onMessageUpdate(event);
     }
 
+    /*
+     * Helpers
+     */
+
+    private boolean resolveUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
+        StringBuilder identifier = new StringBuilder(clazz.getName());
+        for (@Nullable Object arg : args) {
+            identifier.append(";").append(arg == null ? "null" : arg.hashCode());
+        }
+        if (undoLoopFixList.remove(identifier.toString())) {
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
+            return true;
+        }
+        return false;
+    }
+
     private void addUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
         StringBuilder identifier = new StringBuilder(clazz.getName());
-        for (Object arg : args) {
-            identifier.append(";").append(arg.hashCode());
+        for (@Nullable Object arg : args) {
+            identifier.append(";").append(arg == null ? "null" : arg.hashCode());
         }
         if (DebugLogging.isEventEnabled())
             debugLogger.debug("Adding a UndoLoopFix, as event {} was marked to be undone", clazz.getSimpleName());
-        System.out.println(identifier);
         undoLoopFixList.add(identifier.toString());
     }
 }

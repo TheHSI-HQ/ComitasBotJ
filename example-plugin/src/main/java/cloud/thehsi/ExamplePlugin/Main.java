@@ -12,6 +12,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.UserChangeGuildDisplayNameEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserJoinGuildEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
@@ -19,6 +20,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class Main extends Plugin implements Listener {
     @Override
@@ -26,6 +28,12 @@ public class Main extends Plugin implements Listener {
         getLogger().info("Hello World from Example Plugin");
 
         Comitas.getPluginManager().registerEvents(this, this);
+    }
+
+    @EventHandler
+    private void test2(UserChangeGuildDisplayNameEvent event) {
+        if (Objects.requireNonNullElse(event.getNewDisplayName(), "").startsWith("!"))
+            event.undo();
     }
 
     @Override

@@ -13,6 +13,7 @@ import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -183,5 +184,10 @@ public class InternalMember extends InternalUser implements Member {
         member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).complete();
 
         return new InternalBan(getUser(), reason, getGuild());
+    }
+
+    @Override
+    public void setDisplayName(@Nullable String displayName) {
+        member.getGuild().modifyNickname(member, displayName).complete();
     }
 }
