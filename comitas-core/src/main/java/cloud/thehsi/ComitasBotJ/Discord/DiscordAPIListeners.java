@@ -16,6 +16,8 @@ import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -36,10 +38,11 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPIListeners");
     final Logger debugLogger = DebugLogging.getLogger();
     final DiscordAPI api;
-    final List<RoleModificationLoopFix> roleModificationLoopFixList = Collections.synchronizedList(new ArrayList<>());
     final EventManager eventManager;
     final InternalCommandRegistry commandRegistry;
     boolean firstStartup = true;
+
+    final List<RoleModificationLoopFix> roleModificationLoopFixList = Collections.synchronizedList(new ArrayList<>());
 
     public DiscordAPIListeners(DiscordAPI api, EventManager eventManager, InternalCommandRegistry commandRegistry) {
         this.eventManager = eventManager;
@@ -194,6 +197,20 @@ public class DiscordAPIListeners extends ListenerAdapter {
         if (messageReceivedEvent.markedForDeletion()) event.getMessage().delete().queue(ignored -> {
         }, error -> {
         });
+    }
+
+    @Override
+    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserJoinGuildEvent.");
+
+        eventManager.callEvent(new InternalUserJoinGuildEvent(event));
+    }
+
+    @Override
+    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserLeaveGuildEvent.");
+
+        eventManager.callEvent(new InternalUserLeaveGuildEvent(event));
     }
 
     record RoleModificationLoopFix(boolean add, long affectedUser, long affectedRole) {
