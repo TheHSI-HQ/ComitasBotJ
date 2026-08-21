@@ -48,7 +48,7 @@ public interface Reaction {
      *
      * @return The reaction's message
      */
-    Message message();
+    Message getMessage();
 
     /**
      * Reset this Reaction

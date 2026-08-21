@@ -17,21 +17,21 @@ public enum ReactionAction {
     /**
      * @return Did this {@link ReactionAction} increase the reaction count?
      */
-    boolean isIncrease() {
+    public boolean isIncrease() {
         return this.direction;
     }
 
     /**
      * @return Did this {@link ReactionAction} decrease the reaction count?
      */
-    boolean isDecrease() {
+    public boolean isDecrease() {
         return !this.direction;
     }
 
     /**
      * @return Did this {@link ReactionAction} remove the reaction?
      */
-    boolean isRemoved() {
+    public boolean isRemoved() {
         return this.removed;
     }
 }
