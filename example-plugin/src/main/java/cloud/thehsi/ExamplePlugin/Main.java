@@ -12,6 +12,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.UserJoinGuildEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
@@ -40,6 +41,18 @@ public class Main extends Plugin implements Listener {
         Comitas.getPluginManager().getPersistentDataStorage();
 
         Comitas.getCommandRegistry().register(new ExampleCommand());
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onUserJoinGuildEvent(UserJoinGuildEvent event) {
+        event.getGuild().getDefaultChannel().sendMessage(
+                Emojis.WAVE().asComponent()
+                        .append(" Hello ")
+                        .append(event.getMember().mention())
+                        .append(", welcome to ")
+                        .append(event.getGuild().getName())
+                        .append("!")
+        );
     }
 
     @SuppressWarnings("unused")
@@ -80,7 +93,7 @@ public class Main extends Plugin implements Listener {
             Component c = Component.text("Set ", Style.ITALIC)
                     .append(Component.text("message", Style.CODE))
                     .append(Component.text(" to ", Style.ITALIC))
-                    .append(Component.text(event.getRawContent().replaceFirst("!set ", ""), Style.CODE));
+                    .append(Component.text(value, Style.CODE));
 
             event.reply(c);
             storage.set("message", PersistentDataTypes.STRING, value);

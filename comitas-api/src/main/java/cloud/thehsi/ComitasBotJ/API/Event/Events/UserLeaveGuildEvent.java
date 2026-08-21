@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.Nullable;
@@ -20,4 +21,11 @@ public interface UserLeaveGuildEvent extends Event {
      */
     @Nullable
     Member getMember();
+
+    /**
+     * The guild, who the member left
+     *
+     * @return The guild, who the member left
+     */
+    Guild getGuild();
 }
