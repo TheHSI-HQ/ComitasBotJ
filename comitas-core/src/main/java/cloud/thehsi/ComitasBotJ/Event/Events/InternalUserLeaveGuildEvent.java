@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserLeaveGuildEvent;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -13,11 +14,13 @@ import org.jetbrains.annotations.Nullable;
 public record InternalUserLeaveGuildEvent(GuildMemberRemoveEvent event) implements UserLeaveGuildEvent {
     @Override
     public User getUser() {
+        DebugLogging.action();
         return new InternalUser(event.getUser());
     }
 
     @Override
     public @Nullable Member getMember() {
+        DebugLogging.action();
         if (event.getMember() == null)
             return null;
         return new InternalMember(event.getMember());
@@ -25,6 +28,7 @@ public record InternalUserLeaveGuildEvent(GuildMemberRemoveEvent event) implemen
 
     @Override
     public Guild getGuild() {
+        DebugLogging.action();
         return new InternalGuild(event.getGuild());
     }
 }

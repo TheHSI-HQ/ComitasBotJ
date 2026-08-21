@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserBannedEvent;
+import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -35,16 +36,19 @@ public class InternalUserBannedEvent extends InternalUndoableEvent implements Us
 
     @Override
     public User getUser() {
+        DebugLogging.action();
         return new InternalUser(event.getUser());
     }
 
     @Override
     public Guild getGuild() {
+        DebugLogging.action();
         return new InternalGuild(event.getGuild());
     }
 
     @Override
     public Ban getBan() {
+        DebugLogging.action();
         return ban;
     }
 }
