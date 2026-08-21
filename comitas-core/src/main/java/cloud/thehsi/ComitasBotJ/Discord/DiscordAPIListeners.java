@@ -24,10 +24,13 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -267,6 +270,37 @@ public class DiscordAPIListeners extends ListenerAdapter {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onUserUpdateName(@NotNull UserUpdateNameEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeUserNameEvent.");
+        eventManager.callEvent(new InternalUserChangeUserNameEvent(
+                new InternalUser(event.getUser()),
+                event.getOldName(),
+                event.getNewName()
+        ));
+    }
+
+    @Override
+    public void onUserUpdateGlobalName(@NotNull UserUpdateGlobalNameEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeGlobalDisplayNameEvent.");
+        eventManager.callEvent(new InternalUserChangeGlobalDisplayNameEvent(
+                new InternalUser(event.getUser()),
+                event.getOldGlobalName(),
+                event.getNewGlobalName()
+        ));
+    }
+
+    @Override
+    public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserChangeGuildDisplayNameEvent.");
+        eventManager.callEvent(new InternalUserChangeGuildDisplayNameEvent(
+                new InternalMember(event.getMember()),
+                new InternalGuild(event.getGuild()),
+                event.getOldNickname(),
+                event.getNewNickname()
+        ));
     }
 
     private void addUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {

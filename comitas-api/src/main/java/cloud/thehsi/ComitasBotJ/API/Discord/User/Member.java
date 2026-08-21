@@ -14,7 +14,7 @@ public interface Member extends User {
     /**
      * Returns this member as a member.
      *
-     * @return The member
+     * @return The member as a user
      */
     User getUser();
 
