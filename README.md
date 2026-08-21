@@ -96,7 +96,8 @@ java -jar comitas-core-<version>.jar
 > [!WARNING]
 > **DO NOT INSTALL PLUGINS FROM UNTRUSTED SOURCES**
 >
-> ComitasBotJ doesnt *yet* sandbox / isolate plugins in any way, so any plugin has the ability to run any command or modify any files, as long as the user running ComitasBotJ has the required access
+> ComitasBotJ doesn't *yet* sandbox / isolate plugins in any way, so any plugin has the ability to run any command or
+> modify any files, as long as the user running ComitasBotJ has the required access
 
 ## Configuration
 

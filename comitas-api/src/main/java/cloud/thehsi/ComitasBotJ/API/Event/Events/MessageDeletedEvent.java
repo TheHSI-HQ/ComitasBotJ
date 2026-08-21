@@ -9,7 +9,7 @@ public interface MessageDeletedEvent extends Event {
     /**
      * Get the id of the deleted message
      *
-     * @return The Message Id
+     * @return The Message id
      */
     long getId();
 

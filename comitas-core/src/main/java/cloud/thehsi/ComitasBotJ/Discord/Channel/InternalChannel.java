@@ -14,7 +14,7 @@ import java.util.List;
 
 public class InternalChannel implements Channel {
     public final net.dv8tion.jda.api.entities.channel.Channel channel;
-    ChannelType channelType;
+    final ChannelType channelType;
 
     public InternalChannel(net.dv8tion.jda.api.entities.channel.Channel channel) {
         this.channel = channel;

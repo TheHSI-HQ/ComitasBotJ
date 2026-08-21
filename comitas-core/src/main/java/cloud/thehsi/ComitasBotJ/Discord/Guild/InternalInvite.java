@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 
@@ -18,9 +19,14 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     }
 
     @Override
+    @Nullable
     public Channel getChannel() {
         DebugLogging.action();
-        return new InternalChannel((net.dv8tion.jda.api.entities.channel.Channel) invite().getChannel());
+        net.dv8tion.jda.api.entities.Invite.Channel channel = invite().getChannel();
+        if (channel == null)
+            return null;
+
+        return new InternalChannel((net.dv8tion.jda.api.entities.channel.Channel) channel);
     }
 
     @Override
@@ -63,6 +69,12 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     public OffsetDateTime getTimeCreated() {
         DebugLogging.action();
         return invite().getTimeCreated();
+    }
+
+    @Override
+    public OffsetDateTime getExpiryTime() {
+        DebugLogging.action();
+        return invite().getTimeCreated().plusSeconds(invite.getMaxAge());
     }
 
     @Override
