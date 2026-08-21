@@ -1,12 +1,12 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
-import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.ReactionAction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 
 @SuppressWarnings("unused")
-public interface ReactionUpdatedEvent extends Event {
+public interface ReactionUpdatedEvent extends Event, UndoableEvent {
     /**
      * Get the Member who Reacted
      *

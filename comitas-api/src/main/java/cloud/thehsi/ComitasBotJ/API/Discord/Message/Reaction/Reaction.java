@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.API.Discord.Reaction;
+package cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;

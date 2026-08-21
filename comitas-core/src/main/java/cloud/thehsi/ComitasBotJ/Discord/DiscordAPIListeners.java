@@ -1,22 +1,25 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleAddedEvent;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
-import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
-import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReactionAction;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
+import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
+import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
@@ -33,7 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class DiscordAPIListeners extends ListenerAdapter {
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPIListeners");
@@ -43,7 +46,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final InternalCommandRegistry commandRegistry;
     boolean firstStartup = true;
 
-    final List<UndoLoopFix> undoLoopFixList = Collections.synchronizedList(new ArrayList<>());
+    final List<String> undoLoopFixList = Collections.synchronizedList(new ArrayList<>());
 
     public DiscordAPIListeners(DiscordAPI api, EventManager eventManager, InternalCommandRegistry commandRegistry) {
         this.eventManager = eventManager;
@@ -91,14 +94,8 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
         for (Role role : event.getRoles()) {
-            if (undoLoopFixList.contains(
-                    UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong())
-            )) {
-                if (DebugLogging.isEventEnabled()) //noinspection LoggingSimilarMessage
-                    debugLogger.debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
-                undoLoopFixList.remove(UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong()));
+            if (resolveUndoLoopPrevention(UserRoleAddedEvent.class, event.getUser().getIdLong(), role.getIdLong()))
                 continue;
-            }
 
             UserRoleAddedEvent userRoleAddedEvent = new InternalUserRoleAddedEvent(
                     new InternalMember(event.getMember()),
@@ -109,11 +106,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
             eventManager.callEvent(userRoleAddedEvent);
 
             if (userRoleAddedEvent.willUndo()) {
-                if (DebugLogging.isEventEnabled())
-                    debugLogger.debug("Adding a RoleModificationLopeFix, as role addition was marked to be undone");
-                undoLoopFixList.add(
-                        UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong())
-                );
+                addUndoLoopPrevention(UserRoleRemovedEvent.class, event.getUser().getIdLong(), role.getIdLong());
                 event.getGuild().removeRoleFromMember(event.getUser(), role).queue(ignored -> {
                 }, error -> {
                 });
@@ -124,14 +117,8 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
         for (Role role : event.getRoles()) {
-            if (undoLoopFixList.contains(
-                    UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong())
-            )) {
-                if (DebugLogging.isEventEnabled()) //noinspection LoggingSimilarMessage
-                    debugLogger.debug("Ignoring event for role {}, prevented by RoleModificationLoopFix", role.getName());
-                undoLoopFixList.remove(UndoLoopFix.create(false, event.getUser().getIdLong(), role.getIdLong()));
+            if (resolveUndoLoopPrevention(UserRoleRemovedEvent.class, event.getUser().getIdLong(), role.getIdLong()))
                 continue;
-            }
 
             UserRoleRemovedEvent userRoleRemovedEvent = new InternalUserRoleRemovedEvent(
                     new InternalMember(event.getMember()),
@@ -142,11 +129,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
             eventManager.callEvent(userRoleRemovedEvent);
 
             if (userRoleRemovedEvent.willUndo()) {
-                if (DebugLogging.isEventEnabled())
-                    debugLogger.debug("Adding a RoleModificationLopeFix, as role removal was marked to be undone");
-                undoLoopFixList.add(
-                        UndoLoopFix.create(true, event.getUser().getIdLong(), role.getIdLong())
-                );
+                addUndoLoopPrevention(UserRoleAddedEvent.class, event.getUser().getIdLong(), role.getIdLong());
                 event.getGuild().addRoleToMember(event.getUser(), role).queue();
             }
         }
@@ -156,36 +139,48 @@ public class DiscordAPIListeners extends ListenerAdapter {
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
         if (event.getMember() == null) return;
 
-        if (DebugLogging.isEventEnabled()) //noinspection LoggingSimilarMessage
-            debugLogger.debug("Retrieving Message for ReactionUpdatedEvent.");
-        Message message = new InternalMessage(event.retrieveMessage().complete());
+        InternalMessage message = new InternalMessage(event.retrieveMessage().complete());
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(new InternalReactionUpdatedEvent(
+        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
                 new InternalMember(event.getMember()),
                 message,
                 new InternalReaction(event.getReaction(), message),
-                InternalReactionAction.INCREASED
-        ));
+                ReactionAction.INCREASED
+        );
+
+        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
+            debugLogger.debug("Firing a ReactionUpdatedEvent.");
+        eventManager.callEvent(reactionUpdatedEvent);
+
+        if (reactionUpdatedEvent.willUndo()) {
+            addUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
+            message.message.removeReaction(event.getReaction().getEmoji(), event.getMember().getUser()).queue();
+        }
     }
 
     @Override
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
         if (event.getMember() == null) return;
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
-            debugLogger.debug("Retrieving Message for ReactionUpdatedEvent.");
+        if (resolveUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName()))
+            return;
+
         Message message = new InternalMessage(event.retrieveMessage().complete());
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(new InternalReactionUpdatedEvent(
+        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
                 new InternalMember(event.getMember()),
                 message,
                 new InternalReaction(event.getReaction(), message),
-                event.getReaction().retrieveUsers().complete().isEmpty() ? InternalReactionAction.REMOVED : InternalReactionAction.DECREASED
-        ));
+                event.getReaction().retrieveUsers().complete().isEmpty() ? ReactionAction.REMOVED : ReactionAction.DECREASED
+        );
+
+        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
+            debugLogger.debug("Firing a ReactionUpdatedEvent.");
+        eventManager.callEvent(reactionUpdatedEvent);
+
+        if (reactionUpdatedEvent.willUndo()) {
+            logger.warn("Cannot undo ReactionUpdatedEvent with a ReactionAction of DECREASED / REMOVED");
+        }
     }
 
     @Override
@@ -216,30 +211,72 @@ public class DiscordAPIListeners extends ListenerAdapter {
 
     @Override
     public void onGuildBan(@NotNull GuildBanEvent event) {
+        if (resolveUndoLoopPrevention(UserBannedEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong()))
+            return;
+
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserBannedEvent.");
 
-        eventManager.callEvent(new InternalUserBannedEvent(event));
+        UserBannedEvent userBannedEvent = new InternalUserBannedEvent(event);
+
+        eventManager.callEvent(userBannedEvent);
+
+        if (userBannedEvent.willUndo()) {
+            addUndoLoopPrevention(UserUnbannedEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong());
+            event.getGuild().unban(event.getUser()).queue();
+        }
     }
 
-    record UndoLoopFix(String identifier) {
-        public static UndoLoopFix create(Object... args) {
-            StringBuilder _identifier = new StringBuilder();
-            for (Object arg : args) {
-                _identifier.append(arg.hashCode()).append(";");
-            }
-            return new UndoLoopFix(_identifier.toString());
-        }
+    @Override
+    public void onGuildUnban(@NotNull GuildUnbanEvent event) {
+        if (resolveUndoLoopPrevention(UserUnbannedEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong()))
+            return;
 
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            UndoLoopFix that = (UndoLoopFix) o;
-            return Objects.equals(identifier, that.identifier);
-        }
+        UserUnbannedEvent userUnbannedEvent = new InternalUserUnbannedEvent(event);
 
-        @Override
-        public int hashCode() {
-            return identifier.hashCode();
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserUnbannedEvent.");
+        eventManager.callEvent(userUnbannedEvent);
+
+        if (userUnbannedEvent.willUndo()) {
+            addUndoLoopPrevention(UserBannedEvent.class, event.getUser().getIdLong(), event.getGuild().getIdLong());
+            event.getGuild().ban(event.getUser(), 0, TimeUnit.SECONDS).queue();
         }
+    }
+
+    @Override
+    public void onGuildAuditLogEntryCreate(@NotNull GuildAuditLogEntryCreateEvent event) {
+        //noinspection SwitchStatementWithTooFewBranches // Will be expanded later
+        switch (event.getEntry().getType()) {
+            case ActionType.KICK:
+                if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserKickedEvent.");
+                eventManager.callEvent(new InternalUserKickedEvent(
+                        new InternalUser(event.getEntry().getUser()),
+                        new InternalGuild(event.getGuild())
+                ));
+                break;
+        }
+    }
+
+    private boolean resolveUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
+        StringBuilder identifier = new StringBuilder(clazz.getName());
+        for (Object arg : args) {
+            identifier.append(";").append(arg.hashCode());
+        }
+        if (undoLoopFixList.remove(identifier.toString())) {
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
+            return true;
+        }
+        return false;
+    }
+
+    private void addUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
+        StringBuilder identifier = new StringBuilder(clazz.getName());
+        for (Object arg : args) {
+            identifier.append(";").append(arg.hashCode());
+        }
+        if (DebugLogging.isEventEnabled())
+            debugLogger.debug("Adding a UndoLoopFix, as event {} was marked to be undone", clazz.getSimpleName());
+        System.out.println(identifier);
+        undoLoopFixList.add(identifier.toString());
     }
 }

@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
-import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.Nullable;
 

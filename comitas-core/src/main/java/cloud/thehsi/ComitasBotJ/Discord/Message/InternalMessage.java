@@ -8,7 +8,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
-import cloud.thehsi.ComitasBotJ.API.Discord.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
@@ -17,7 +17,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachment;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalMessageAttachment;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentUnparser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
-import cloud.thehsi.ComitasBotJ.Discord.Reaction.InternalReaction;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReference;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class InternalMessage implements Message {
-    final net.dv8tion.jda.api.entities.Message message;
+    public final net.dv8tion.jda.api.entities.Message message;
     private boolean deleted = false;
 
     private Runnable optionalDeletionCallback = null;
