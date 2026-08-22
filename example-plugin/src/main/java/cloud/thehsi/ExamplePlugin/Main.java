@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedBuilder;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedField;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
@@ -73,6 +74,10 @@ public class Main extends Plugin implements Listener {
                     )
                     .setAuthor(new EmbedAuthor(Comitas.getBot().getDisplayName(), "https://www.thehsi.cloud/", "https://www.thehsi.cloud/logo.png"))
                     .setColor(new Color(151, 45, 231))
+                    .addField(new EmbedField(
+                            Component.text("Bot Created By:"),
+                            Component.link("https://github.com/TheHSI-HQ/", "TheHSI")
+                    ))
                     .build();
 
             event.reply(new MessageData(embed));

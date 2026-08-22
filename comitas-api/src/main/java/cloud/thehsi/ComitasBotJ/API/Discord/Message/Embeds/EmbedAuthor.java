@@ -30,17 +30,17 @@ public class EmbedAuthor {
     }
 
     @Nullable
-    public String name() {
+    public String getName() {
         return name;
     }
 
     @Nullable
-    public String url() {
+    public String getUrl() {
         return url;
     }
 
     @Nullable
-    public String imageUrl() {
+    public String getImageUrl() {
         return imageUrl;
     }
 

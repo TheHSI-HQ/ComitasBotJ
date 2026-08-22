@@ -5,6 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 
 import java.awt.*;
 import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class EmbedBuilder {
@@ -17,6 +19,7 @@ public class EmbedBuilder {
     private EmbedTitle title = null;
     private TemporalAccessor timestamp = null;
     private String url = null;
+    private final List<EmbedField> fields = new ArrayList<>();
 
     /**
      * Sets the embeds author.
@@ -151,6 +154,17 @@ public class EmbedBuilder {
     }
 
     /**
+     * Add a field.
+     *
+     * @param field The field to add
+     * @return The embed builder.
+     */
+    public EmbedBuilder addField(EmbedField field) {
+        this.fields.add(field);
+        return this;
+    }
+
+    /**
      * Builds the embed
      *
      * @return The build embed.
@@ -165,7 +179,8 @@ public class EmbedBuilder {
                 thumbnail,
                 title,
                 timestamp,
-                url
+                url,
+                fields
         );
     }
 }

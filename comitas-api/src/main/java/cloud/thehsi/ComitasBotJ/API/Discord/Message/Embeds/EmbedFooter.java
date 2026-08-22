@@ -23,12 +23,12 @@ public class EmbedFooter {
     }
 
     @Nullable
-    public String text() {
+    public String getText() {
         return text;
     }
 
     @Nullable
-    public String imageUrl() {
+    public String getImageUrl() {
         return imageUrl;
     }
 

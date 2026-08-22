@@ -23,12 +23,12 @@ public class EmbedTitle {
     }
 
     @Nullable
-    public String text() {
+    public String getText() {
         return text;
     }
 
     @Nullable
-    public String url() {
+    public String getUrl() {
         return url;
     }
 

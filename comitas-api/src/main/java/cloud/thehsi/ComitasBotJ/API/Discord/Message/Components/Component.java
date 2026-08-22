@@ -100,7 +100,7 @@ public class Component {
      */
     public static Component link(String link, String label) {
         Component c = new Component();
-        c.content = "[%s](%s)".formatted(link, label);
+        c.content = "[%s](%s)".formatted(label, link);
         return c;
     }
 

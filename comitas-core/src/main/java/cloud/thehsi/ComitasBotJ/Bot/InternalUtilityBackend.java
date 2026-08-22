@@ -7,18 +7,15 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedAuthor;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedFooter;
-import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedTitle;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.Thread.InternalThreadTag;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
-import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpload;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
@@ -36,8 +33,8 @@ import java.util.List;
 
 public class InternalUtilityBackend implements UtilityBackend {
     @Override
-    public Embed createEmbed(EmbedAuthor author, Color color, Component description, EmbedFooter footer, String image, String thumbnail, EmbedTitle title, TemporalAccessor timestamp, String url) {
-        DebugLogging.action(author, color, description, footer, image, thumbnail, title, timestamp, url);
+    public Embed createEmbed(EmbedAuthor author, Color color, Component description, EmbedFooter footer, String image, String thumbnail, EmbedTitle title, TemporalAccessor timestamp, String url, List<EmbedField> fields) {
+        DebugLogging.action(author, color, description, footer, image, thumbnail, title, timestamp, url, fields);
         return new InternalEmbed(
                 author,
                 color,
@@ -47,7 +44,8 @@ public class InternalUtilityBackend implements UtilityBackend {
                 thumbnail,
                 title,
                 timestamp,
-                url
+                url,
+                fields
         );
     }
 
