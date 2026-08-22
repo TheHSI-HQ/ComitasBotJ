@@ -171,7 +171,7 @@ public class InternalCommandRegistry implements CommandRegistry {
                         arg.type().optionType(), arg.name(), arg.description(), arg.required())
                 );
 
-        this.api.getAPI().upsertCommand(data).complete();
+        this.api.getAPI().upsertCommand(data).queue();
     }
 
     record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
