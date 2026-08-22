@@ -262,15 +262,6 @@ public class InternalComitas implements InternalComitasImpl {
             eventManager.clearEventListeners();
         }
 
-        if (Main.conf() != null) {
-            logger.info("Writing Updated Configuration...");
-            try {
-                Main.conf().save();
-            } catch (Exception e) {
-                logger.error(e.getLocalizedMessage());
-            }
-        }
-
         logger.info("Bye!");
 
         if (terminal != null) {
