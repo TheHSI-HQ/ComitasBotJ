@@ -20,10 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class InternalCommandRegistry implements CommandRegistry {
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".CommandRegistry");
@@ -130,21 +127,27 @@ public class InternalCommandRegistry implements CommandRegistry {
     }
 
     public void unregisterAll() {
-        if (this.api == null) throw new RuntimeException("Command un-registration requested before ready");
+        if (api == null)
+            throw new IllegalStateException("Command un-registration requested before ready");
 
-        List<RestAction<Void>> allFutures = new ArrayList<>();
+        var jda = api.getAPI();
 
-        for (Command command : api.getAPI().retrieveCommands().complete())
-            allFutures.add(command.delete());
+        List<RestAction<List<Command>>> retrieveActions = new ArrayList<>();
+        retrieveActions.add(jda.retrieveCommands());
 
-        for (Guild guild : api.getAPI().getGuilds())
-            for (Command command : guild.retrieveCommands().complete())
-                allFutures.add(command.delete());
+        for (Guild guild : jda.getGuilds())
+            retrieveActions.add(guild.retrieveCommands());
 
-        RestAction.allOf(allFutures).complete();
+        RestAction.allOf(retrieveActions).flatMap(results -> {
+            List<RestAction<Void>> deleteActions = results.stream()
+                    .flatMap(Collection::stream)
+                    .map(Command::delete)
+                    .toList();
 
-        api.getAPI().updateCommands().complete();
+            return RestAction.allOf(deleteActions);
+        }).complete();
 
+        jda.updateCommands().complete();
         commands.clear();
     }
 
