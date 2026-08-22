@@ -3,8 +3,12 @@ package cloud.thehsi.ComitasBotJ.API.Bot;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -15,6 +19,7 @@ public interface Bot {
      *
      * @return The bot's Username.
      */
+    @NotNull
     String getUserName();
 
     /**
@@ -22,6 +27,7 @@ public interface Bot {
      *
      * @return The bot's Display Name
      */
+    @NotNull
     String getDisplayName();
 
     /**
@@ -29,6 +35,7 @@ public interface Bot {
      *
      * @return The generated invitation look
      */
+    @NotNull
     String generateInvitationLink();
 
     /**
@@ -37,6 +44,7 @@ public interface Bot {
      * @param permissions A list of permissions to grant the bot
      * @return The generated invitation look
      */
+    @NotNull
     String generateInvitationLink(Permission... permissions);
 
     /**
@@ -44,6 +52,7 @@ public interface Bot {
      *
      * @return The bot's ID
      */
+    @NotNull
     Long getId();
 
     /**
@@ -69,6 +78,8 @@ public interface Bot {
      *
      * @return A List of Guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Guild> getGuilds();
 
     /**
@@ -88,4 +99,34 @@ public interface Bot {
      */
     @Contract("null -> true")
     boolean isMeOrNull(@Nullable Member member);
+
+    /**
+     * Get the bot's activity
+     *
+     * @return The bot's activity
+     */
+    @Nullable
+    Activity getActivity();
+
+    /**
+     * Set the bot's activity
+     *
+     * @param activity The bot's new activity
+     */
+    void setActivity(@Nullable Activity activity);
+
+    /**
+     * Get the bot's online status
+     *
+     * @return The bot's status
+     */
+    @NotNull
+    OnlineStatus getOnlineStatus();
+
+    /**
+     * Set the bot's online status
+     *
+     * @param onlineStatus The bot's new online status
+     */
+    void setOnlineStatus(@NotNull OnlineStatus onlineStatus);
 }

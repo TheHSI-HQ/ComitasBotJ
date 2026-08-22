@@ -1,4 +1,4 @@
-package cloud.thehsi.ComitasBotJ.API.Discord.User;
+package cloud.thehsi.ComitasBotJ.API.Discord.User.Presence;
 
 public enum OnlineStatus {
     ONLINE("online"),

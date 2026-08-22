@@ -3,11 +3,15 @@ package cloud.thehsi.ComitasBotJ.Bot;
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.SelfUser;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -17,31 +21,31 @@ public record InternalBot(SelfUser bot) implements Bot {
     static final Logger debugLogger = DebugLogging.getLogger();
 
     @Override
-    public String getUserName() {
+    public @NotNull String getUserName() {
         DebugLogging.action();
         return bot.getName();
     }
 
     @Override
-    public String getDisplayName() {
+    public @NotNull String getDisplayName() {
         DebugLogging.action();
         return bot.getEffectiveName();
     }
 
     @Override
-    public String generateInvitationLink() {
+    public @NotNull String generateInvitationLink() {
         DebugLogging.action();
         return bot.getJDA().getInviteUrl(Permission.ADMINISTRATOR);
     }
 
     @Override
-    public String generateInvitationLink(cloud.thehsi.ComitasBotJ.API.Discord.Permission... permissions) {
+    public @NotNull String generateInvitationLink(cloud.thehsi.ComitasBotJ.API.Discord.Permission... permissions) {
         DebugLogging.action((Object) permissions);
         return bot.getJDA().getInviteUrl(Permission.getPermissions(cloud.thehsi.ComitasBotJ.API.Discord.Permission.asLong(permissions)));
     }
 
     @Override
-    public Long getId() {
+    public @NotNull Long getId() {
         DebugLogging.action();
         return bot.getIdLong();
     }
@@ -65,7 +69,7 @@ public record InternalBot(SelfUser bot) implements Bot {
     }
 
     @Override
-    public List<Guild> getGuilds() {
+    public @NotNull List<Guild> getGuilds() {
         DebugLogging.action();
         return bot.getJDA().getGuilds().stream().map(e -> (Guild) new InternalGuild(e)).toList();
     }
@@ -82,5 +86,43 @@ public record InternalBot(SelfUser bot) implements Bot {
         DebugLogging.action(member);
         if (member == null) return true;
         else return member.isMe();
+    }
+
+    @Override
+    public @Nullable Activity getActivity() {
+        DebugLogging.action();
+        net.dv8tion.jda.api.entities.Activity activity = bot.getJDA().getPresence().getActivity();
+        if (activity == null)
+            return null;
+        return Activity.of(
+                ActivityType.fromKey(activity.getType().getKey()),
+                activity.getName(),
+                activity.getUrl()
+        );
+    }
+
+    @Override
+    public void setActivity(@Nullable Activity activity) {
+        DebugLogging.action(activity);
+        if (activity == null)
+            bot.getJDA().getPresence().setActivity(null);
+        else
+            bot.getJDA().getPresence().setActivity(net.dv8tion.jda.api.entities.Activity.of(
+                    net.dv8tion.jda.api.entities.Activity.ActivityType.fromKey(activity.getType().getKey()),
+                    activity.getName(),
+                    activity.getUrl()
+            ));
+    }
+
+    @Override
+    public @NotNull OnlineStatus getOnlineStatus() {
+        DebugLogging.action();
+        return OnlineStatus.fromKey(bot.getJDA().getPresence().getStatus().getKey());
+    }
+
+    @Override
+    public void setOnlineStatus(@NotNull OnlineStatus onlineStatus) {
+        DebugLogging.action(onlineStatus);
+        bot.getJDA().getPresence().setStatus(net.dv8tion.jda.api.OnlineStatus.fromKey(onlineStatus.getKey()));
     }
 }

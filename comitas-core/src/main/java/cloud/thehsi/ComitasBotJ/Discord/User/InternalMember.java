@@ -5,15 +5,19 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
-import cloud.thehsi.ComitasBotJ.API.Discord.User.OnlineStatus;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ClientType;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.awt.*;
 import java.util.List;
@@ -36,13 +40,13 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public User getUser() {
+    public @NotNull User getUser() {
         DebugLogging.action();
         return this;
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return new InternalGuild(member.getGuild());
     }
@@ -78,7 +82,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public String getLoggableName() {
+    public @NotNull String getLoggableName() {
         DebugLogging.action();
         Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
 
@@ -86,7 +90,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public List<Permission> getPermissions() {
+    public @NotNull List<Permission> getPermissions() {
         DebugLogging.action();
         return member.getPermissions().stream()
                 .map(e -> Permission.fromValue(e.name()))
@@ -94,13 +98,13 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public OnlineStatus getOnlineStatus() {
+    public @NotNull OnlineStatus getOnlineStatus() {
         DebugLogging.action();
         return OnlineStatus.fromKey(member.getOnlineStatus().getKey());
     }
 
     @Override
-    public OnlineStatus getOnlineStatus(ClientType clientType) {
+    public @NotNull OnlineStatus getOnlineStatus(ClientType clientType) {
         DebugLogging.action(clientType);
         return OnlineStatus.fromKey(member.getOnlineStatus(
                 net.dv8tion.jda.api.entities.ClientType.fromKey(clientType.getKey())
@@ -108,7 +112,19 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public void addRole(Role role) {
+    @Unmodifiable
+    public @NotNull List<Activity> getActivities() {
+        DebugLogging.action();
+        return member.getActivities().stream()
+                .map(e -> Activity.of(
+                        ActivityType.fromKey(e.getType().getKey()),
+                        e.getName(),
+                        e.getUrl()
+                )).toList();
+    }
+
+    @Override
+    public void addRole(@NotNull Role role) {
         DebugLogging.action(role);
         if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
             throw new IllegalArgumentException("Role was not created by Comitas");
@@ -118,7 +134,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public void removeRole(Role role) {
+    public void removeRole(@NotNull Role role) {
         DebugLogging.action(role);
         if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
             throw new IllegalArgumentException("Role was not created by Comitas");
@@ -128,7 +144,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public boolean hasRole(Role role) {
+    public boolean hasRole(@NotNull Role role) {
         DebugLogging.action(role);
         if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
             throw new IllegalArgumentException("Role was not created by Comitas");
@@ -136,7 +152,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public List<Role> getRoles() {
+    public @NotNull List<Role> getRoles() {
         return member.getRoles().stream()
                 .map(e -> (Role) new InternalRole(e))
                 .toList();
@@ -149,13 +165,13 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public void kick(String reason) {
+    public void kick(@NotNull String reason) {
         DebugLogging.action(reason);
         member.kick().reason(reason).complete();
     }
 
     @Override
-    public Ban ban() {
+    public @NotNull Ban ban() {
         DebugLogging.action();
         member.ban(0, TimeUnit.SECONDS).complete();
 
@@ -163,7 +179,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public Ban ban(String reason) {
+    public @NotNull Ban ban(@NotNull String reason) {
         DebugLogging.action(reason);
         member.ban(0, TimeUnit.SECONDS).reason(reason).complete();
 
@@ -171,7 +187,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public Ban ban(int deletionPeriodHours) {
+    public @NotNull Ban ban(int deletionPeriodHours) {
         DebugLogging.action(deletionPeriodHours);
         member.ban(deletionPeriodHours, TimeUnit.HOURS).complete();
 
@@ -179,7 +195,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public Ban ban(String reason, int deletionPeriodHours) {
+    public @NotNull Ban ban(@NotNull String reason, int deletionPeriodHours) {
         DebugLogging.action(reason, deletionPeriodHours);
         member.ban(deletionPeriodHours, TimeUnit.HOURS).reason(reason).complete();
 
