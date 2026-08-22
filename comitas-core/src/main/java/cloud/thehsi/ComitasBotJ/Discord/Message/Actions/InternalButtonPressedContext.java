@@ -25,11 +25,11 @@ public class InternalButtonPressedContext extends InternalInteractionContext imp
     private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Message.Action.ButtonPressedContext");
     boolean used = false;
 
-    public InternalButtonPressedContext(ButtonInteractionEvent event) {
+    public InternalButtonPressedContext(ButtonInteractionEvent event, String id) {
         super(event.getInteraction());
 
         this.interaction = event.getInteraction();
-        this.id = event.getButton().getCustomId();
+        this.id = id;
         this.myMessage = new InternalMyMessage(event.getMessage());
         this.channel = new InternalMessageChannel(event.getChannel());
     }
