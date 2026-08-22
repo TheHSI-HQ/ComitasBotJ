@@ -277,15 +277,15 @@ public class InternalPluginManager implements PluginManager {
         try {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reloading Config");
             Main.conf().load();
+            try {
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Rewriting Config");
+                Main.conf().save();
+            } catch (IOException e) {
+                logger.warn("Error during config save: ", e);
+            }
         } catch (IOException e) {
             logger.warn("Error during config reload: ", e);
             logger.warn("Old config will be preserved");
-        }
-        try {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Rewriting Config");
-            Main.conf().save();
-        } catch (IOException e) {
-            logger.warn("Error during config save: ", e);
         }
 
 

@@ -100,7 +100,7 @@ public class DiscordAPI {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Shutting bot down.");
             api.shutdown();
 
-            if (!api.awaitShutdown(15, TimeUnit.SECONDS)) {
+            if (!api.awaitShutdown(30, TimeUnit.SECONDS)) {
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Bot shutdown exceeded timeout, forcing shutdown.");
                 api.shutdownNow();
             }
