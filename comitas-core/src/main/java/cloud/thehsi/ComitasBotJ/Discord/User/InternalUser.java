@@ -7,11 +7,12 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
+import org.jetbrains.annotations.NotNull;
 
 public class InternalUser implements User {
     public final net.dv8tion.jda.api.entities.User user;
 
-    public InternalUser(net.dv8tion.jda.api.entities.User user) {
+    public InternalUser(@NotNull net.dv8tion.jda.api.entities.User user) {
         this.user = user;
     }
 
@@ -58,13 +59,13 @@ public class InternalUser implements User {
     }
 
     @Override
-    public MyMessage sendDirectMessage(Component message) {
+    public MyMessage sendDirectMessage(@NotNull Component message) {
         DebugLogging.action(message);
         return sendDirectMessage(message.asMessageData());
     }
 
     @Override
-    public MyMessage sendDirectMessage(MessageData messageData) {
+    public MyMessage sendDirectMessage(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(user.openPrivateChannel()
                 .flatMap(channel -> channel.sendMessage(data))

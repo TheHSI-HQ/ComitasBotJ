@@ -45,7 +45,7 @@ public class InternalCommandRegistry implements CommandRegistry {
         if (command == null) return;
 
         Object[] args = new Object[command.method().getParameters().length];
-        Context context = new InternalContext(
+        CommandRanContext commandRanContext = new InternalCommandRanContext(
                 event
         );
 
@@ -53,7 +53,7 @@ public class InternalCommandRegistry implements CommandRegistry {
         for (int i = 0; i < command.method().getParameters().length; i++) {
             CommandArgument<?> argument = command.arguments()[i];
             if (argument.type() == CommandArgumentType.CONTEXT)
-                args[i] = context;
+                args[i] = commandRanContext;
             else {
                 args[i] = null;
                 for (OptionMapping option : options) {
@@ -68,9 +68,9 @@ public class InternalCommandRegistry implements CommandRegistry {
         try {
             command.method().invoke(command.commandSupplier(), (Object[]) args);
         } catch (InvocationTargetException e) {
-            logger.error("Error whilst executing command {}", context.commandName(), e.getCause());
+            logger.error("Error whilst executing command {}", commandRanContext.getCommandName(), e.getCause());
         } catch (Exception e) {
-            logger.error("Error whilst invoking command {}", context.commandName(), e);
+            logger.error("Error whilst invoking command {}", commandRanContext.getCommandName(), e);
         }
     }
 
@@ -91,10 +91,10 @@ public class InternalCommandRegistry implements CommandRegistry {
         for (int i = 0; i < method.getParameters().length; i++) {
             Parameter parameter = method.getParameters()[i];
 
-            if (!parameter.isAnnotationPresent(CommandOption.class) && parameter.getType() != Context.class)
+            if (!parameter.isAnnotationPresent(CommandOption.class) && parameter.getType() != CommandRanContext.class)
                 throw new RuntimeException("Error whilst loading command " + commandInfo.name() + ", argument " + parameter.getName() + " isn't annotated or Context!");
 
-            if (parameter.getType() == Context.class) {
+            if (parameter.getType() == CommandRanContext.class) {
                 arguments[i] = new CommandArgument<>(
                         CommandArgumentType.CONTEXT, null, null, true
                 );

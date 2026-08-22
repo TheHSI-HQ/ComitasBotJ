@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ActionRowComponent;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
@@ -15,6 +16,7 @@ public class MessageData {
     final List<Embed> embeds = new ArrayList<>();
     final List<Attachment> attachments = new ArrayList<>();
     final List<AttachmentUpload> attachmentUploads = new ArrayList<>();
+    final List<ActionRowComponent> actionRowComponents = new ArrayList<>();
 
     public MessageData setContent(Component content) {
         this.content = content;
@@ -23,6 +25,11 @@ public class MessageData {
 
     public MessageData addEmbed(Embed embed) {
         this.embeds.add(embed);
+        return this;
+    }
+
+    public MessageData addActionRowComponent(ActionRowComponent actionRowComponent) {
+        this.actionRowComponents.add(actionRowComponent);
         return this;
     }
 
@@ -36,20 +43,24 @@ public class MessageData {
         return this;
     }
 
-    public Component content() {
+    public Component getContent() {
         return content;
     }
 
-    public List<Embed> embeds() {
+    public List<Embed> getEmbeds() {
         return embeds;
     }
 
-    public List<AttachmentUpload> attachmentUploads() {
+    public List<AttachmentUpload> getAttachmentUploads() {
         return attachmentUploads;
     }
 
-    public List<Attachment> attachments() {
+    public List<Attachment> getAttachments() {
         return attachments;
+    }
+
+    public List<ActionRowComponent> getActionRowComponents() {
+        return actionRowComponents;
     }
 
     public MessageData() {
@@ -84,6 +95,7 @@ public class MessageData {
                 ", embeds=" + embeds +
                 ", attachments=" + attachments +
                 ", attachmentUploads=" + attachmentUploads +
+                ", actionRowComponents=" + actionRowComponents +
                 '}';
     }
 }

@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.TagNameNotUniqueException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonStyle;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
@@ -14,6 +17,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.Thread.InternalThreadTag;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.InternalButton;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpload;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -30,6 +34,7 @@ import java.nio.file.Path;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class InternalUtilityBackend implements UtilityBackend {
     @Override
@@ -77,13 +82,17 @@ public class InternalUtilityBackend implements UtilityBackend {
     @Override
     public @Nullable User getUserFromId(String id) {
         DebugLogging.action(id);
-        return new InternalUser(DiscordAPI.api().getUserById(id));
+        net.dv8tion.jda.api.entities.User user = DiscordAPI.api().getUserById(id);
+        return user == null ?
+                null : new InternalUser(user);
     }
 
     @Override
     public @Nullable User getUserFromId(long id) {
         DebugLogging.action(id);
-        return new InternalUser(DiscordAPI.api().getUserById(id));
+        net.dv8tion.jda.api.entities.User user = DiscordAPI.api().getUserById(id);
+        return user == null ?
+                null : new InternalUser(user);
     }
 
     @Override
@@ -126,5 +135,17 @@ public class InternalUtilityBackend implements UtilityBackend {
             return null;
 
         return new InternalThreadTag(found.getFirst(), channel.getId());
+    }
+
+    @Override
+    public Button createActionButton(String idOrUrl, String label, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback) {
+        DebugLogging.action(idOrUrl, label, buttonStyle, callback);
+        return new InternalButton(idOrUrl, label, buttonStyle, callback);
+    }
+
+    @Override
+    public Button createActionButton(String idOrUrl, Emoji emoji, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback) {
+        DebugLogging.action(idOrUrl, emoji, buttonStyle, callback);
+        return new InternalButton(idOrUrl, emoji, buttonStyle, callback);
     }
 }

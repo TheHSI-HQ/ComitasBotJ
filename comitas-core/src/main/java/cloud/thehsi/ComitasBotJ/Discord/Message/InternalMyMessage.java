@@ -25,10 +25,6 @@ public class InternalMyMessage extends InternalMessage implements MyMessage {
     @Override
     public void setMessageData(MessageData messageData) {
         DebugLogging.action(messageData);
-        MessageDataParser.parse(messageData, parsedMessageData -> {
-            message.editMessage(parsedMessageData.message()).complete();
-            message.editMessageEmbeds(parsedMessageData.messageEmbeds()).complete();
-            message.editMessageAttachments(parsedMessageData.attachedFiles()).complete();
-        });
+        MessageDataParser.edit(message, messageData);
     }
 }

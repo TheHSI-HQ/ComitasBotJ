@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.ButtonCallbackManager;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
@@ -27,6 +28,7 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -43,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPIListeners extends ListenerAdapter {
@@ -249,7 +252,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
             case ActionType.KICK:
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserKickedEvent.");
                 eventManager.callEvent(new InternalUserKickedEvent(
-                        new InternalUser(event.getEntry().getUser()),
+                        new InternalUser(Objects.requireNonNull(event.getEntry().getUser())),
                         new InternalGuild(event.getGuild())
                 ));
                 break;
@@ -312,6 +315,13 @@ public class DiscordAPIListeners extends ListenerAdapter {
         }, error -> {
         });
         super.onMessageUpdate(event);
+    }
+
+    @Override
+    public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
+        ButtonCallbackManager.runCallback(event);
+
+        super.onButtonInteraction(event);
     }
 
     /*

@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Bot;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonStyle;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
@@ -14,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.temporal.TemporalAccessor;
 import java.util.List;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public interface UtilityBackend {
@@ -31,4 +35,8 @@ public interface UtilityBackend {
     AttachmentUpload uploadAttachment(String filename, byte[] data);
 
     ThreadTag createTagOnChannel(Channel channel, String tagName);
+
+    Button createActionButton(String idOrUrl, String label, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback);
+
+    Button createActionButton(String idOrUrl, Emoji emoji, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback);
 }

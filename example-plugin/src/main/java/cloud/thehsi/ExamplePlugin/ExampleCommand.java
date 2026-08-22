@@ -13,15 +13,18 @@ public class ExampleCommand implements CommandSupplier {
             CommandContextType.GUILD
     })
     public void exampleCommand(
-            Context context,
+            CommandRanContext commandRanContext,
             @CommandOption(name = "target", description = "The Target") User target,
             @CommandOption(name = "message", description = "The Message", required = false) @Nullable String message
     ) {
-        context.replyEphemeral(Component.text("Ok, imma tell ").append(Component.text(target.getDisplayName())));
+        commandRanContext.replyEphemeral(Component.text("Ok, imma tell ").append(Component.text(target.getDisplayName())));
+
+        if (commandRanContext.getChannel() == null)
+            return;
 
         if (message != null)
-            context.channel().sendMessage(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
+            commandRanContext.getChannel().sendMessage(target.mention().append(Component.text(", im supposed to tell you: ")).append(Component.text(message).style(Style.CODE)));
         else
-            context.channel().sendMessage(Component.text("Hi ").append(target.mention()));
+            commandRanContext.getChannel().sendMessage(Component.text("Hi ").append(target.mention()));
     }
 }

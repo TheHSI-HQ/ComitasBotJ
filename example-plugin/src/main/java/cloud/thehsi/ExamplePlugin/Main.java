@@ -2,6 +2,7 @@ package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
@@ -80,7 +81,11 @@ public class Main extends Plugin implements Listener {
                     ))
                     .build();
 
-            event.reply(new MessageData(embed));
+            Button button = Button.primary("test", "Test Button", e -> e.reply(
+                    Component.text("You pressed the test button")
+            ));
+
+            event.reply(new MessageData(embed).addActionRowComponent(button));
 
             if (storage.has("message", PersistentDataTypes.STRING))
                 event.reply(

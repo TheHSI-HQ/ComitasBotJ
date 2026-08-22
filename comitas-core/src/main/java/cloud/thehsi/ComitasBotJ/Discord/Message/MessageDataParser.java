@@ -2,15 +2,22 @@ package cloud.thehsi.ComitasBotJ.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.ButtonCallbackManager;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.IActionRowComponent;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.InternalButton;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachment;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpload;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.AttachedFile;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,47 +29,49 @@ import java.util.function.Function;
 public class MessageDataParser {
     private MessageDataParser() {}
 
-    public record ParsedMessageData(String message, MessageEmbed[] messageEmbeds, List<AttachedFile> attachedFiles) {
-        public List<FileUpload> fileUploads() {
-            return attachedFiles.stream()
-                    .filter(e -> e instanceof FileUpload)
-                    .map(e -> (FileUpload) e)
-                    .toList();
-        }
-    }
-
     public static void parse(MessageData messageData, Consumer<ParsedMessageData> consumer) {
-        String msg = ComponentParser.parseComponent(messageData.content());
+        String msg = ComponentParser.parseComponent(messageData.getContent());
 
-        MessageEmbed[] messageEmbeds = new MessageEmbed[messageData.embeds().size()];
-
-        for (int i = 0; i < messageData.embeds().size(); i++)
-            if (!(messageData.embeds().get(i) instanceof InternalEmbed internal))
-                throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
-            else
-                messageEmbeds[i] = internal.embed();
+        MessageEmbed[] messageEmbeds = messageData.getEmbeds().stream()
+                .map(e -> {
+                    if (!(e instanceof InternalEmbed internal))
+                        throw new IllegalArgumentException("Embed was not created using the EmbedBuilder");
+                    return internal.embed();
+                }).toArray(MessageEmbed[]::new);
 
         List<AttachedFile> attachedFiles = new ArrayList<>();
 
-        for (int i = 0; i < messageData.attachmentUploads().size(); i++) {
-            if (!(messageData.attachmentUploads().get(i) instanceof InternalAttachmentUpload internal))
+        messageData.getAttachmentUploads().forEach(e -> {
+            if (!(e instanceof InternalAttachmentUpload internal))
                 throw new IllegalArgumentException("AttachmentUpload was not created using the AttachmentUpload::from");
 
             attachedFiles.add(internal.asFileUpload());
-        }
+        });
 
-        for (int i = 0; i < messageData.attachments().size(); i++) {
-            if (!(messageData.attachments().get(i) instanceof InternalAttachment internal))
+        messageData.getAttachments().forEach(e -> {
+            if (!(e instanceof InternalAttachment internal))
                 throw new IllegalArgumentException("Attachment was not created by Comitas");
 
             attachedFiles.add(internal.getAttachment());
-        }
+        });
+
+        List<ActionRowChildComponent> actionRowChildComponents = messageData.getActionRowComponents().stream()
+                .map(e -> {
+                    if (!(e instanceof IActionRowComponent internal))
+                        throw new IllegalArgumentException("ActionRowElement was not created by Comitas");
+
+                    if (e instanceof InternalButton button)
+                        ButtonCallbackManager.registerCallback(button);
+
+                    return internal.getAsActionRowChildComponent();
+                }).toList();
 
         try {
             ParsedMessageData parsedMessageData = new ParsedMessageData(
                     msg,
                     messageEmbeds,
-                    attachedFiles
+                    attachedFiles,
+                    actionRowChildComponents
             );
             consumer.accept(parsedMessageData);
         } finally {
@@ -82,6 +91,11 @@ public class MessageDataParser {
             try (MessageCreateData createData = new MessageCreateBuilder()
                     .setContent(data.message())
                     .setEmbeds(data.messageEmbeds())
+                    .setComponents(
+                            data.actionRowChildComponents().isEmpty()
+                                    ? List.of()
+                                    : List.of(ActionRow.of(data.actionRowChildComponents()))
+                    )
                     .setFiles(data.fileUploads())
                     .build()) {
 
@@ -90,5 +104,28 @@ public class MessageDataParser {
         });
 
         return result.get();
+    }
+
+    public static void edit(Message message, MessageData messageData) {
+        parse(messageData, data -> message.editMessage(MessageEditBuilder.fromMessage(message)
+                .setContent(data.message())
+                .setEmbeds(data.messageEmbeds())
+                .setComponents(
+                        data.actionRowChildComponents().isEmpty()
+                                ? List.of()
+                                : List.of(ActionRow.of(data.actionRowChildComponents()))
+                )
+                .setAttachments(data.attachedFiles())
+                .build()).complete());
+    }
+
+    public record ParsedMessageData(String message, MessageEmbed[] messageEmbeds, List<AttachedFile> attachedFiles,
+                                    List<ActionRowChildComponent> actionRowChildComponents) {
+        public List<FileUpload> fileUploads() {
+            return attachedFiles.stream()
+                    .filter(e -> e instanceof FileUpload)
+                    .map(e -> (FileUpload) e)
+                    .toList();
+        }
     }
 }

@@ -15,8 +15,6 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -132,15 +130,11 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     public ThreadChannel createPost(String title, MessageData messageData) {
         DebugLogging.action(title, messageData);
         AtomicReference<InternalThreadChannel> result = new AtomicReference<>();
-        MessageDataParser.parse(messageData, data -> {
-            try (MessageCreateData createData = new MessageCreateBuilder()
-                    .setContent(data.message())
-                    .setEmbeds(data.messageEmbeds())
-                    .setFiles(data.fileUploads())
-                    .build()) {
-
-                result.set(new InternalThreadChannel(channel.createForumPost(title, createData).complete().getThreadChannel()));
-            }
+        MessageDataParser.send(messageData, data -> {
+            result.set(
+                    new InternalThreadChannel(channel.createForumPost(title, data).complete().getThreadChannel())
+            );
+            return null;
         });
 
         return result.get();

@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Commands;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Context;
+import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRanContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 
 public record CommandArgumentType<T>(String name, Class<T> type, OptionType optionType, Function<OptionMapping, T> converter) {
-    public static final CommandArgumentType<Context> CONTEXT = new CommandArgumentType<>("CONTEXT", Context.class, null, null);
+    public static final CommandArgumentType<CommandRanContext> CONTEXT = new CommandArgumentType<>("CONTEXT", CommandRanContext.class, null, null);
 
     public static final CommandArgumentType<String> STRING = new CommandArgumentType<>("STRING", String.class, OptionType.STRING, OptionMapping::getAsString);
     public static final CommandArgumentType<Integer> INTEGER = new CommandArgumentType<>("INTEGER", Integer.class, OptionType.INTEGER, OptionMapping::getAsInt);
