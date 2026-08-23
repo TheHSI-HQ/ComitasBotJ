@@ -117,4 +117,14 @@ public class Activity {
         result = 31 * result + type.hashCode();
         return result;
     }
+
+    @Override
+    @NotNull
+    public String toString() {
+        return "Activity{" +
+                "name='" + name + '\'' +
+                ", url='" + url + '\'' +
+                ", type=" + type +
+                '}';
+    }
 }

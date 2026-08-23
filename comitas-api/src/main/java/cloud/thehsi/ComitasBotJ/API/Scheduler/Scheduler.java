@@ -3,16 +3,10 @@ package cloud.thehsi.ComitasBotJ.API.Scheduler;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.TimeUnit;
+
 @SuppressWarnings("unused")
 public interface Scheduler {
-    /**
-     * Run a task synchronously
-     *
-     * @return The task
-     */
-    @NotNull
-    Task runTask(@NotNull Plugin plugin, @NotNull Runnable runnable);
-
     /**
      * Run a task asynchronously
      *
@@ -24,19 +18,21 @@ public interface Scheduler {
     /**
      * Run a task asynchronously repeatedly
      *
-     * @param delayMS    Delay between now and first execution in milliseconds
-     * @param intervalMS Delay between evey execution in milliseconds
+     * @param delay      Delay between now and first execution
+     * @param interval   Delay between evey execution
+     * @param timeUnit   The unit in which the delay is messured
      * @return The task
      */
     @NotNull
-    Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS, long intervalMS);
+    Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, long interval, @NotNull TimeUnit timeUnit);
 
     /**
      * Run a task asynchronously later
      *
-     * @param delayMS Delay between now and the execution in milliseconds
+     * @param delay     Delay between now and the execution in milliseconds
+     * @param timeUnit  he unit in which the delay is messured
      * @return The task
      */
     @NotNull
-    Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS);
+    Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, @NotNull TimeUnit timeUnit);
 }

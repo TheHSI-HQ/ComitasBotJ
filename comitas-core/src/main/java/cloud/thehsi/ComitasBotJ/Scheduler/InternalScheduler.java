@@ -8,54 +8,39 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class InternalScheduler implements Scheduler {
+    @NotNull
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(4);
 
     @NotNull
     final Map<Integer, ScheduledTask> tasks = new HashMap<>();
     int nextTaskId = 0;
 
     @Override
-    public @NotNull Task runTask(@NotNull Plugin plugin, @NotNull Runnable runnable) {
-        DebugLogging.action(plugin, runnable);
-        Task task = new SyncTask(nextTaskId, plugin);
-        tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
-        runnable.run();
-        return task;
-    }
-
-    @Override
     public @NotNull Task runTaskAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable) {
         DebugLogging.action(plugin, runnable);
-        Thread thread = new Thread(runnable);
-        Task task = new AsyncTask(nextTaskId, plugin, thread);
-        tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
-        thread.start();
-        return task;
-    }
-
-    @Override
-    public @NotNull Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS, long intervalMS) {
-        DebugLogging.action(plugin, runnable, delayMS, intervalMS);
-        Task task = new RepeatingTask(nextTaskId, plugin, runnable, delayMS, intervalMS);
+        Task task = new AsyncNowTask(nextTaskId, plugin, exec, runnable);
         tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
         return task;
     }
 
     @Override
-    public @NotNull Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS) {
-        DebugLogging.action(plugin, runnable, delayMS);
-        Thread thread = new Thread(() -> {
-            try {
-                Thread.sleep(delayMS);
-                runnable.run();
-            } catch (InterruptedException ignored) {
-            }
-        });
-
-        Task task = new AsyncTask(nextTaskId, plugin, thread);
+    public @NotNull Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, long interval, @NotNull TimeUnit timeUnit) {
+        DebugLogging.action(plugin, runnable, delay, interval, timeUnit);
+        Task task = new AsyncRepeatingTask(nextTaskId, plugin, exec, runnable, delay, interval, timeUnit);
         tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
-        thread.start();
+        return task;
+    }
+
+    @Override
+    public @NotNull Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, @NotNull TimeUnit timeUnit) {
+        DebugLogging.action(plugin, runnable, delay, timeUnit);
+        Task task = new AsyncLaterTask(nextTaskId, plugin, exec, runnable, delay, timeUnit);
+        tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
         return task;
     }
 

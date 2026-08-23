@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.Updater;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UpdateConsoleCommand extends ConsoleCommand {
@@ -26,7 +27,7 @@ public class UpdateConsoleCommand extends ConsoleCommand {
             needsConfirmation.set(true);
             getConsoleLogger().info("To confirm the update, run update confirm within the 30 seconds");
 
-            Comitas.getScheduler().runTaskLaterAsynchronously(Comitas.getPluginManager().getPlugin(), () -> needsConfirmation.set(false), 30000);
+            Comitas.getScheduler().runTaskLaterAsynchronously(Comitas.getPluginManager().getPlugin(), () -> needsConfirmation.set(false), 30, TimeUnit.SECONDS);
             return;
         } else if (Objects.equals(args[0], "confirm") && needsConfirmation.get()) {
             getConsoleLogger().info("Updating...");
