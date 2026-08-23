@@ -263,8 +263,11 @@ public class Component {
      */
     @NotNull
     public Component append(@NotNull Component... children) {
-        for (Component child : children)
-            this.append(child);
+        for (Component child : children) {
+            this.children.add(child);
+            this.children.addAll(child.children);
+            child.children.clear();
+        }
         return this;
     }
 
