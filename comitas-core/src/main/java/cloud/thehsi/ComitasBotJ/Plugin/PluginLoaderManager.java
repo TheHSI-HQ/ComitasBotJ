@@ -30,6 +30,11 @@ public class PluginLoaderManager {
     public PluginLoaderManager() {
     }
 
+    public @Nullable Plugin getBasePlugin() {
+        return basePlugin == null ?
+                null : basePlugin.plugin();
+    }
+
     public static long versionId(@NotNull String version) {
         version = version.trim().toLowerCase();
 

@@ -85,7 +85,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>cloud.thehsi.ComitasBotJ.checkstyle.ExplicitNullabilityCheck</mainClass>
+                            <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -27,6 +27,18 @@ jobs:
           mvn -pl comitas-core -am clean package -DskipTests
           mvn -pl example-plugin -am clean package -DskipTests
 
+      - name: Verify core JAR
+        run: |
+          JAR=$(find comitas-core/target -maxdepth 1 -type f -name 'comitas-core-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
+
+          if [ -z "$JAR" ]; then
+            echo "Core JAR not found"
+            exit 1
+          fi
+
+          echo "Running $JAR --version"
+          java -jar "$JAR" --version
+
       - name: Upload core artifact
         uses: actions/upload-artifact@v4
         with:
