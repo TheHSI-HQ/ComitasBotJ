@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.User.Presence;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("ClassCanBeRecord")
@@ -99,5 +100,21 @@ public class Activity {
     @NotNull
     public ActivityType getType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+
+        Activity activity = (Activity) object;
+        return name.equals(activity.name) && Objects.equals(url, activity.url) && type == activity.type;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + Objects.hashCode(url);
+        result = 31 * result + type.hashCode();
+        return result;
     }
 }

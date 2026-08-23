@@ -6,9 +6,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotUpdatePresenceEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotUpdatePresenceEvent;
 import net.dv8tion.jda.api.Permission;
@@ -46,6 +48,12 @@ public record InternalBot(SelfUser bot, EventManager eventManager) implements Bo
     public @NotNull String generateInvitationLink(@NotNull cloud.thehsi.ComitasBotJ.API.Discord.Permission... permissions) {
         DebugLogging.action((Object) permissions);
         return bot.getJDA().getInviteUrl(Permission.getPermissions(cloud.thehsi.ComitasBotJ.API.Discord.Permission.asLong(permissions)));
+    }
+
+    @Override
+    public @NotNull User getUser() {
+        DebugLogging.action();
+        return new InternalUser(bot.getJDA().getSelfUser());
     }
 
     @Override

@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +47,14 @@ public interface Bot {
      */
     @NotNull
     String generateInvitationLink(@NotNull Permission... permissions);
+
+    /**
+     * Returns the bot as a user.
+     *
+     * @return The bot cast as user
+     */
+    @NotNull
+    User getUser();
 
     /**
      * Returns the bot's ID.
