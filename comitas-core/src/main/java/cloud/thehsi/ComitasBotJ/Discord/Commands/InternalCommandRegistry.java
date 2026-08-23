@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.RestAction;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,14 +24,13 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 
 public class InternalCommandRegistry implements CommandRegistry {
-    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".CommandRegistry");
-    private DiscordAPI api;
+    final @NotNull List<RegisteredCommand> commands = new ArrayList<>();
 
     public InternalCommandRegistry() {}
+    private @NotNull
+    final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".CommandRegistry");
 
-    final List<RegisteredCommand> commands = new ArrayList<>();
-
-    public void handleCommand(SlashCommandInteractionEvent event) {
+    public void handleCommand(@NotNull SlashCommandInteractionEvent event) {
         RegisteredCommand command = null;
 
         for (RegisteredCommand cmd : commands)
@@ -72,7 +72,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     }
 
     @Override
-    public void register(CommandSupplier commandSupplier) {
+    public void register(@NotNull CommandSupplier commandSupplier) {
         DebugLogging.action(commandSupplier);
         for (Method method : commandSupplier.getClass().getMethods()) {
             if (!method.isAnnotationPresent(cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command.class)) continue;
@@ -81,7 +81,7 @@ public class InternalCommandRegistry implements CommandRegistry {
         }
     }
 
-    void registerMethod(Method method, CommandSupplier commandSupplier) {
+    void registerMethod(@NotNull Method method, @NotNull CommandSupplier commandSupplier) {
         cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command commandInfo = method.getAnnotation(cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command.class);
         CommandArgument<?>[] arguments = new CommandArgument<?>[method.getParameters().length];
 
@@ -120,17 +120,11 @@ public class InternalCommandRegistry implements CommandRegistry {
         );
     }
 
-    public void setDiscordApi(DiscordAPI api) {
-        if (this.api != null) return;
-
-        this.api = api;
-    }
-
     public void unregisterAll() {
-        if (api == null)
+        if (DiscordAPI.nullableApi() == null)
             throw new IllegalStateException("Command un-registration requested before ready");
 
-        var jda = api.getAPI();
+        var jda = DiscordAPI.nullableApi();
 
         List<RestAction<List<Command>>> retrieveActions = new ArrayList<>();
         retrieveActions.add(jda.retrieveCommands());
@@ -151,8 +145,8 @@ public class InternalCommandRegistry implements CommandRegistry {
         commands.clear();
     }
 
-    void register(RegisteredCommand command) {
-        if (this.api == null) throw new RuntimeException("Command registration requested before ready");
+    void register(@NotNull RegisteredCommand command) {
+        if (DiscordAPI.nullableApi() == null) throw new RuntimeException("Command registration requested before ready");
         SlashCommandData data = Commands.slash(command.name(), command.description());
 
         data = data.setContexts(
@@ -174,7 +168,7 @@ public class InternalCommandRegistry implements CommandRegistry {
                         arg.type().optionType(), arg.name(), arg.description(), arg.required())
                 );
 
-        this.api.getAPI().upsertCommand(data).queue();
+        DiscordAPI.nullableApi().upsertCommand(data).queue();
     }
 
     record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}

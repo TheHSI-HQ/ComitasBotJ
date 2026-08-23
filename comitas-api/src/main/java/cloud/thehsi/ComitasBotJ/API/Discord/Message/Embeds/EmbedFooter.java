@@ -5,10 +5,11 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class EmbedFooter {
-    public static final EmbedFooter NONE = new EmbedFooter();
+    public @NotNull
+    static final EmbedFooter NONE = new EmbedFooter();
 
-    String text = null;
-    String imageUrl = null;
+    @Nullable String text = null;
+    @Nullable String imageUrl = null;
 
     private EmbedFooter() {
     }
@@ -33,6 +34,7 @@ public class EmbedFooter {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "EmbedFooter{" +
                 "text='" + text + '\'' +

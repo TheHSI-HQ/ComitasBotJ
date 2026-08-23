@@ -4,20 +4,22 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
+import org.jetbrains.annotations.NotNull;
 
 public interface InternalComitasImpl {
-    String getServerVersion();
+    @NotNull String getServerVersion();
 
-    PluginManager getPluginManager();
+    @NotNull PluginManager getPluginManager();
 
-    CommandRegistry getCommandRegistry();
-    ConsoleCommandRegistry getConsoleCommandRegistry();
+    @NotNull CommandRegistry getCommandRegistry();
 
-    Scheduler getScheduler();
+    @NotNull ConsoleCommandRegistry getConsoleCommandRegistry();
 
-    UtilityBackend getUtilityBackend();
+    @NotNull Scheduler getScheduler();
 
-    Bot getBot();
+    @NotNull UtilityBackend getUtilityBackend();
+
+    @NotNull Bot getBot();
 
     void init();
 

@@ -14,18 +14,24 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InternalButtonPressedContext extends InternalInteractionContext implements ButtonPressedContext {
+    @NotNull
     final ButtonInteraction interaction;
+    @NotNull
     final InternalMessageChannel channel;
+    @NotNull
     final String id;
+    @NotNull
     final MyMessage myMessage;
-    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Message.Action.ButtonPressedContext");
+    private @NotNull
+    final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Message.Action.ButtonPressedContext");
     boolean used = false;
 
-    public InternalButtonPressedContext(ButtonInteractionEvent event, String id) {
+    public InternalButtonPressedContext(@NotNull ButtonInteractionEvent event, @NotNull String id) {
         super(event.getInteraction());
 
         this.interaction = event.getInteraction();
@@ -35,13 +41,13 @@ public class InternalButtonPressedContext extends InternalInteractionContext imp
     }
 
     @Override
-    public String getButtonId() {
+    public @NotNull String getButtonId() {
         DebugLogging.action();
         return id;
     }
 
     @Override
-    public MyMessage getMessage() {
+    public @NotNull MyMessage getMessage() {
         DebugLogging.action();
         return myMessage;
     }
@@ -56,19 +62,19 @@ public class InternalButtonPressedContext extends InternalInteractionContext imp
     }
 
     @Override
-    public MessageChannel getChannel() {
+    public @NotNull MessageChannel getChannel() {
         DebugLogging.action();
         return channel;
     }
 
     @Override
-    public MyMessage reply(Component message, boolean ephemeral) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage reply(@NotNull Component message, boolean ephemeral) throws InteractionAlreadyUsedException {
         DebugLogging.action(message, ephemeral);
         return reply(message.asMessageData(), ephemeral);
     }
 
     @Override
-    public MyMessage reply(MessageData messageData, boolean ephemeral) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage reply(@NotNull MessageData messageData, boolean ephemeral) throws InteractionAlreadyUsedException {
         DebugLogging.action(messageData, ephemeral);
         if (used)
             if (!ephemeral) {
@@ -85,25 +91,25 @@ public class InternalButtonPressedContext extends InternalInteractionContext imp
     }
 
     @Override
-    public MyMessage reply(Component message) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage reply(@NotNull Component message) throws InteractionAlreadyUsedException {
         DebugLogging.action(message);
         return reply(message, false);
     }
 
     @Override
-    public MyMessage reply(MessageData messageData) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage reply(@NotNull MessageData messageData) throws InteractionAlreadyUsedException {
         DebugLogging.action(messageData);
         return reply(messageData, false);
     }
 
     @Override
-    public MyMessage replyEphemeral(Component message) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage replyEphemeral(@NotNull Component message) throws InteractionAlreadyUsedException {
         DebugLogging.action(message);
         return reply(message, true);
     }
 
     @Override
-    public MyMessage replyEphemeral(MessageData messageData) throws InteractionAlreadyUsedException {
+    public @NotNull MyMessage replyEphemeral(@NotNull MessageData messageData) throws InteractionAlreadyUsedException {
         DebugLogging.action(messageData);
         return reply(messageData, true);
     }

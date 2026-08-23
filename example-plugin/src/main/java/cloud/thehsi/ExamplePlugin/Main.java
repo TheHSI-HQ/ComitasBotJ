@@ -1,6 +1,7 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
@@ -19,6 +20,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataTypes;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -35,9 +37,9 @@ public class Main extends Plugin implements Listener {
         getLogger().info("Bye Bye from ExamplePlugin!");
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused"})
     @EventHandler(priority = EventPriority.LOW)
-    public void onBotConnect(BotReadyEvent event) {
+    public void onBotConnect(@NotNull BotReadyEvent event) {
         getLogger().info("Hello from {}", event.getUserName());
 
         Comitas.getPluginManager().getPersistentDataStorage();
@@ -46,8 +48,11 @@ public class Main extends Plugin implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onUserJoinGuildEvent(UserJoinGuildEvent event) {
-        event.getGuild().getDefaultChannel().sendMessage(
+    public void onUserJoinGuildEvent(@NotNull UserJoinGuildEvent event) {
+        MessageChannel generalChannel = event.getGuild().getDefaultChannel();
+        if (generalChannel == null)
+            return;
+        generalChannel.sendMessage(
                 Emojis.WAVE().asComponent()
                         .append(" Hello ")
                         .append(event.getMember().mention())
@@ -59,7 +64,7 @@ public class Main extends Plugin implements Listener {
 
     @SuppressWarnings("unused")
     @EventHandler(priority = EventPriority.LOW)
-    public void onMessage(MessageReceivedEvent event) {
+    public void onMessage(@NotNull MessageReceivedEvent event) {
         if (Comitas.getBot().isMeOrNull(event.getAuthor())) return;
 
         if (event.getRawContent().startsWith("!hello")) {

@@ -2,6 +2,9 @@ package cloud.thehsi.ComitasBotJ.API.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -12,13 +15,15 @@ public interface PluginManager {
      *
      * @return The amount of loaded Plugins
      */
-    Integer countPlugins();
+    int countPlugins();
 
     /**
      * Get the name of every loaded Plugin
      *
      * @return A List of every Loaded Plugin's Name
      */
+    @NotNull
+    @Unmodifiable
     List<Plugin.PluginMetadata> getAllPluginMetadata();
 
     /**
@@ -26,6 +31,7 @@ public interface PluginManager {
      *
      * @return The {@link Plugin} who called this function
      */
+    @NotNull
     Plugin getPlugin();
 
     /**
@@ -35,6 +41,7 @@ public interface PluginManager {
      *
      * @return The {@link PersistentDataStorage} owned use by the current {@link Plugin}
      */
+    @NotNull
     PersistentDataStorage getPersistentDataStorage();
 
     /**
@@ -43,7 +50,8 @@ public interface PluginManager {
      * @param plugin The plugin to be looked up
      * @return The Plugin's Metadata as a {@link cloud.thehsi.ComitasBotJ.API.Plugin.Plugin.PluginMetadata}
      */
-    Plugin.PluginMetadata lookupPlugin(Plugin plugin);
+    @Nullable
+    Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin);
 
     /**
      * Reloads all plugins and sends a fake bot ready even
@@ -61,5 +69,5 @@ public interface PluginManager {
      * @param plugin   The plugin to which the event belongs
      * @param listener The event listener
      */
-    void registerEvents(Plugin plugin, Listener listener);
+    void registerEvents(@NotNull Plugin plugin, @NotNull Listener listener);
 }

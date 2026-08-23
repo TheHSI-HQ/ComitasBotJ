@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("ClassCanBeRecord")
 public class Activity {
-    final String name;
+    final @NotNull String name;
     final @Nullable String url;
-    final ActivityType type;
+    final @NotNull ActivityType type;
 
-    private Activity(String name, @Nullable String url, ActivityType type) {
+    private Activity(@NotNull String name, @Nullable String url, @NotNull ActivityType type) {
         this.name = name;
         this.url = url;
         this.type = type;

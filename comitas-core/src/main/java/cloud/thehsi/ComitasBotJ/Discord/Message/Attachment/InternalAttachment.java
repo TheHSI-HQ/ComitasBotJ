@@ -4,6 +4,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -13,14 +15,14 @@ import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("unused")
 public class InternalAttachment implements Attachment {
-    final Message.Attachment attachment;
+    final @NotNull Message.Attachment attachment;
 
-    public InternalAttachment(Message.Attachment attachment) {
+    public InternalAttachment(@NotNull Message.Attachment attachment) {
         this.attachment = attachment;
     }
 
     @Override
-    public CompletableFuture<String> getHash() {
+    public @NotNull CompletableFuture<String> getHash() {
         DebugLogging.action();
         return attachment.getProxy().download().thenApply(input -> {
             try (InputStream is = input) {
@@ -34,13 +36,13 @@ public class InternalAttachment implements Attachment {
 
                 return HexFormat.of().formatHex(digest.digest());
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException(e); //TODO: Repalce with custom exception
             }
         });
     }
 
     @Override
-    public CompletableFuture<byte[]> getContent() {
+    public @NotNull CompletableFuture<byte[]> getContent() {
         DebugLogging.action();
         return attachment.getProxy().download().thenApply(input -> {
             try (InputStream is = input) {
@@ -52,7 +54,7 @@ public class InternalAttachment implements Attachment {
                 }
                 return buffer.toByteArray();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException(e); //TODO: Replace with custom exception
             }
         });
     }
@@ -64,6 +66,7 @@ public class InternalAttachment implements Attachment {
     }
 
     @Override
+    @Nullable
     public String getDescription() {
         DebugLogging.action();
         return attachment.getDescription();
@@ -71,23 +74,24 @@ public class InternalAttachment implements Attachment {
 
 
     @Override
-    public String getFileName() {
+    public @NotNull String getFileName() {
         DebugLogging.action();
         return attachment.getFileName();
     }
 
     @Override
-    public String getURL() {
+    public @NotNull String getURL() {
         DebugLogging.action();
         return attachment.getUrl();
     }
 
     @Override
-    public MessageData asMessageData() {
+    public @NotNull MessageData asMessageData() {
         DebugLogging.action();
         return new MessageData().addAttachment(this);
     }
 
+    @NotNull
     public Message.Attachment getAttachment() {
         DebugLogging.action();
         return attachment;

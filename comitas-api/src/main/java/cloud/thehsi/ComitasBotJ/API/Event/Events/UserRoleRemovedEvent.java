@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface UserRoleRemovedEvent extends Event, UndoableEvent {
@@ -10,6 +11,7 @@ public interface UserRoleRemovedEvent extends Event, UndoableEvent {
      *
      * @return The revoked role
      */
+    @NotNull
     Role getRole();
 
     /**
@@ -17,5 +19,6 @@ public interface UserRoleRemovedEvent extends Event, UndoableEvent {
      *
      * @return The member whose role was revoked
      */
+    @NotNull
     Member getMember();
 }

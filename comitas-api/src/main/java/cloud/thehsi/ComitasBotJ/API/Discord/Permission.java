@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,15 +62,18 @@ public enum Permission {
     PIN_MESSAGES(2L << 49, "PIN_MESSAGES"),
     BYPASS_SLOWMODE(2L << 50, "BYPASS_SLOWMODE");
 
-    private static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");
+    private @NotNull
+    static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");
     final long permission;
-    final String[] names;
-    Permission(long permission, String... names) {
+    final @NotNull String[] names;
+
+    Permission(long permission, @NotNull String... names) {
         this.permission = permission;
         this.names = names;
     }
 
-    public static Permission fromValue(String permission) {
+    @Nullable
+    public static Permission fromValue(@NotNull String permission) {
         return Arrays.stream(values())
                 .filter(e -> Arrays.asList(e.names).contains(permission))
                 .findFirst()
@@ -78,10 +83,11 @@ public enum Permission {
                 });
     }
 
-    public static Long asLong(Permission[] permissions) {
+    public static long asLong(@NotNull Permission[] permissions) {
         return Arrays.stream(permissions).mapToLong(e -> e.permission).sum();
     }
 
+    @NotNull
     public static Permission[] fromLong(long permission) {
         return Arrays.stream(values())
                 .filter(e -> (permission & e.permission) != 0)
@@ -89,6 +95,7 @@ public enum Permission {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "Permission{" +
                 "name=" + name() +

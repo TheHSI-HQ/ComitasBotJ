@@ -10,20 +10,26 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPI {
-    static JDA api;
-
+    @NotNull
     private static final Logger debugLogger = DebugLogging.getLogger();
+    @Nullable
+    static JDA api;
+    @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPI");
-    private final String BOT_TOKEN;
+    @Nullable
     final DiscordAPIListeners listeners;
+    @Nullable
+    private final String BOT_TOKEN;
 
-    public DiscordAPI(String BOT_TOKEN, EventManager eventManager, InternalCommandRegistry commandRegistry) {
+    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
         this.BOT_TOKEN = BOT_TOKEN;
 
         this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry);
@@ -36,11 +42,19 @@ public class DiscordAPI {
         this.BOT_TOKEN = null;
     }
 
+    @NotNull
     public static JDA api() {
+        assert api != null;
         return api;
     }
 
-    public static DiscordAPI performMinimalStartup(String BOT_TOKEN, boolean silent) {
+    @Nullable
+    public static JDA nullableApi() {
+        return api;
+    }
+
+    @NotNull
+    public static DiscordAPI performMinimalStartup(@NotNull String BOT_TOKEN, boolean silent) {
         ch.qos.logback.classic.Logger jdaLogger =
                 (ch.qos.logback.classic.Logger)
                         LoggerFactory.getLogger("net.dv8tion.jda");
@@ -108,10 +122,7 @@ public class DiscordAPI {
 
         connect();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Awaiting bot to be ready.");
+        assert api != null;
         api.awaitReady();
-    }
-
-    public JDA getAPI() {
-        return api;
     }
 }

@@ -5,33 +5,37 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserRoleRemovedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public class InternalUserRoleRemovedEvent extends InternalUndoableEvent implements UserRoleRemovedEvent {
-    private final Role role;
-    private final Member member;
-    private final EventOrigin eventOrigin;
+    private @NotNull
+    final Role role;
+    private @NotNull
+    final Member member;
+    private @NotNull
+    final EventOrigin eventOrigin;
 
-    public InternalUserRoleRemovedEvent(Member member, Role role, EventOrigin origin) {
+    public InternalUserRoleRemovedEvent(@NotNull Member member, @NotNull Role role, @NotNull EventOrigin origin) {
         this.member = member;
         this.role = role;
         this.eventOrigin = origin;
     }
 
     @Override
-    public Role getRole() {
+    public @NotNull Role getRole() {
         DebugLogging.action();
         return role;
     }
 
     @Override
-    public Member getMember() {
+    public @NotNull Member getMember() {
         DebugLogging.action();
         return member;
     }
 
     @Override
-    public EventOrigin getOrigin() {
+    public @NotNull EventOrigin getOrigin() {
         return eventOrigin;
     }
 }

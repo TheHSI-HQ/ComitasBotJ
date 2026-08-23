@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Components;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,8 @@ public class ComponentParser {
     private ComponentParser() {
     }
 
-    public static String parseComponent(Component component) {
+    @NotNull
+    public static String parseComponent(@NotNull Component component) {
         List<String> lines = new ArrayList<>();
         String currentLine = "";
         Style lastStyle = Style.RESET;
@@ -88,7 +90,8 @@ public class ComponentParser {
         return String.join("\n", lines);
     }
 
-    private static String setLineType(String line, boolean big, boolean small, boolean smaller, boolean sub, boolean quote, boolean bullet) {
+    @NotNull
+    private static String setLineType(@NotNull String line, boolean big, boolean small, boolean smaller, boolean sub, boolean quote, boolean bullet) {
         line = line.replaceFirst("(^#{1,3}|-#|-|>) ", "");
         if (big) return "# " + line;
         if (small) return "## " + line;
@@ -99,7 +102,8 @@ public class ComponentParser {
         return line;
     }
 
-    private static String closeStyle(String line, StyleDifference styleDifference) {
+    @NotNull
+    private static String closeStyle(@NotNull String line, @NotNull StyleDifference styleDifference) {
         if (styleDifference.spoiler.isFalse()) line += "||";
         if (styleDifference.code.isFalse()) line += "`";
         if (styleDifference.strikethrough.isFalse()) line += "~~";
@@ -111,7 +115,8 @@ public class ComponentParser {
         return line;
     }
 
-    private static String openStyle(String line, StyleDifference styleDifference) {
+    @NotNull
+    private static String openStyle(@NotNull String line, @NotNull StyleDifference styleDifference) {
         if (styleDifference.bold.isTrue()) line += "**";
         if (styleDifference.italic.isTrue()) line += "*";
         if (styleDifference.underline.isTrue()) line += "__";
@@ -138,10 +143,14 @@ public class ComponentParser {
 
     @SuppressWarnings("unused")
     private record BooleanDifference(Boolean value) {
-        public static final BooleanDifference SAME = new BooleanDifference(null);
-        public static final BooleanDifference TRUE = new BooleanDifference(true);
-        public static final BooleanDifference FALSE = new BooleanDifference(false);
+        public @NotNull
+        static final BooleanDifference SAME = new BooleanDifference(null);
+        public @NotNull
+        static final BooleanDifference TRUE = new BooleanDifference(true);
+        public @NotNull
+        static final BooleanDifference FALSE = new BooleanDifference(false);
 
+        @NotNull
         public static BooleanDifference fromDiff(boolean old_value, boolean new_value) {
             if (old_value == new_value) return BooleanDifference.SAME;
             if (new_value) return BooleanDifference.TRUE;
@@ -159,21 +168,34 @@ public class ComponentParser {
 
     @SuppressWarnings("unused")
     private static class StyleDifference {
+        @NotNull
         final BooleanDifference bold;
+        @NotNull
         final BooleanDifference italic;
+        @NotNull
         final BooleanDifference underline;
+        @NotNull
         final BooleanDifference strikethrough;
+        @NotNull
         final BooleanDifference bigHeader;
+        @NotNull
         final BooleanDifference smallHeader;
+        @NotNull
         final BooleanDifference smallerHeader;
+        @NotNull
         final BooleanDifference subtext;
+        @NotNull
         final BooleanDifference quote;
+        @NotNull
         final BooleanDifference bulletPoints;
+        @NotNull
         final BooleanDifference code;
+        @NotNull
         final BooleanDifference codeBlock;
+        @NotNull
         final BooleanDifference spoiler;
 
-        public StyleDifference(Style old_style, Style new_style) {
+        public StyleDifference(@NotNull Style old_style, @NotNull Style new_style) {
             bold = BooleanDifference.fromDiff(old_style.isBold(), new_style.isBold());
             italic = BooleanDifference.fromDiff(old_style.isItalic(), new_style.isItalic());
             underline = BooleanDifference.fromDiff(old_style.isUnderline(), new_style.isUnderline());

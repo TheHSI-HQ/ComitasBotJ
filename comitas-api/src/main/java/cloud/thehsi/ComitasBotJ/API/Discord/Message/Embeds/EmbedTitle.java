@@ -5,10 +5,11 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class EmbedTitle {
-    public static final EmbedTitle NONE = new EmbedTitle();
+    public @NotNull
+    static final EmbedTitle NONE = new EmbedTitle();
 
-    String text = null;
-    String url = null;
+    @Nullable String text = null;
+    @Nullable String url = null;
 
     private EmbedTitle() {
     }
@@ -33,6 +34,7 @@ public class EmbedTitle {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "EmbedTitle{" +
                 "text='" + text + '\'' +

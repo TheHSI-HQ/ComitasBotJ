@@ -15,13 +15,16 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("unused")
 public class RepeatingTask implements Task {
     final int taskId;
+    @NotNull
     final Plugin owner;
+    @NotNull
     final ScheduledFuture<?> scheduledFuture;
+    @NotNull
     final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     boolean canceled = false;
 
 
-    public RepeatingTask(int taskId, Plugin owner, Runnable runnable, Long delay, Long interval) {
+    public RepeatingTask(int taskId, @NotNull Plugin owner, @NotNull Runnable runnable, long delay, long interval) {
         this.taskId = taskId;
         this.owner = owner;
         this.scheduledFuture = exec.scheduleAtFixedRate(() -> {

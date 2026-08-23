@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -21,22 +22,32 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public interface UtilityBackend {
-    Embed createEmbed(EmbedAuthor author, Color color, Component description, EmbedFooter footer, String image, String thumbnail, EmbedTitle title, TemporalAccessor timestamp, String url, List<EmbedField> fields);
+    @NotNull Embed createEmbed(@Nullable EmbedAuthor author,
+                               @Nullable Color color,
+                               @Nullable Component description,
+                               @Nullable EmbedFooter footer,
+                               @Nullable String image,
+                               @Nullable String thumbnail,
+                               @Nullable EmbedTitle title,
+                               @Nullable TemporalAccessor timestamp,
+                               @Nullable String url,
+                               @NotNull List<EmbedField> fields);
 
-    @Nullable Emoji getEmojiFromId(String id);
+    @Nullable Emoji getEmojiFromId(@NotNull String id);
     @Nullable Emoji getEmojiFromId(long id);
 
-    Emoji getEmojiFromUnicode(String unicodeEmoji);
+    @Nullable Emoji getEmojiFromUnicode(@NotNull String unicodeEmoji);
 
-    @Nullable User getUserFromId(String id);
+    @Nullable User getUserFromId(@NotNull String id);
     @Nullable User getUserFromId(long id);
 
-    AttachmentUpload uploadAttachment(Path path) throws IOException;
-    AttachmentUpload uploadAttachment(String filename, byte[] data);
+    @NotNull AttachmentUpload uploadAttachment(@NotNull Path path) throws IOException;
 
-    ThreadTag createTagOnChannel(Channel channel, String tagName);
+    @NotNull AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data);
 
-    Button createActionButton(String idOrUrl, String label, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback);
+    @NotNull ThreadTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
 
-    Button createActionButton(String idOrUrl, Emoji emoji, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback);
+    @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
+
+    @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull Emoji emoji, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
 }

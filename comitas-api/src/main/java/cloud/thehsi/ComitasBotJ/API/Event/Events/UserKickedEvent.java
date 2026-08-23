@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface UserKickedEvent extends Event {
@@ -10,6 +11,7 @@ public interface UserKickedEvent extends Event {
      *
      * @return The user who was banned
      */
+    @NotNull
     User getUser();
 
     /**
@@ -17,5 +19,6 @@ public interface UserKickedEvent extends Event {
      *
      * @return The guild, who the member was banned from
      */
+    @NotNull
     Guild getGuild();
 }

@@ -5,6 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,35 +18,65 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
-    private final List<LoadedPlugin> plugins = new ArrayList<>();
-    private final Logger debugLogger = DebugLogging.getLogger();
-    private final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
-    public InternalPluginManager pluginManager = null;
-    LoadedPlugin basePlugin = null;
+    private @NotNull
+    final List<LoadedPlugin> plugins = new ArrayList<>();
+    private @NotNull
+    final Logger debugLogger = DebugLogging.getLogger();
+    private @NotNull
+    final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
+    public @Nullable InternalPluginManager pluginManager = null;
+    @Nullable LoadedPlugin basePlugin = null;
 
     public PluginLoaderManager() {
     }
 
-    public void initPluginManager(InternalPluginManager pluginManager) {
+    public static long versionId(@NotNull String version) {
+        version = version.trim().toLowerCase();
+
+        int suffix = 0; // release
+        char last = version.charAt(version.length() - 1);
+
+        if (last == 'a') {
+            suffix = -100;
+            version = version.substring(0, version.length() - 1);
+        } else if (last == 'b') {
+            suffix = -99;
+            version = version.substring(0, version.length() - 1);
+        }
+
+        String[] parts = version.split("\\.");
+
+        int major = 0;
+        int minor = 0;
+        int patch = 0;
+
+        try {
+            if (parts.length > 0) major = Integer.parseInt(parts[0]);
+            if (parts.length > 1) minor = Integer.parseInt(parts[1]);
+            if (parts.length > 2) patch = Integer.parseInt(parts[2]);
+        }catch (NumberFormatException e) {
+            return 0;
+        }
+
+        return major * 1_000_000_000L
+                + minor * 1_000_000L
+                + patch * 1_000L
+                + suffix;
+    }
+
+    public void initPluginManager(@NotNull InternalPluginManager pluginManager) {
         if (this.pluginManager == null) this.pluginManager = pluginManager;
     }
 
-    public Integer count() {
+    public int count() {
         return plugins.size();
     }
 
+    @NotNull
     public List<Plugin.PluginMetadata> pluginMetadataList() {
         return plugins.stream()
                 .map(LoadedPlugin::metadata)
                 .toList();
-    }
-
-    public Plugin.PluginMetadata lookupPlugin(Plugin plugin) {
-        for (LoadedPlugin p : plugins) {
-            if (p.plugin() == plugin) return p.metadata();
-        }
-
-        return null;
     }
 
     public void loadBasePlugin() {
@@ -84,7 +116,17 @@ public class PluginLoaderManager {
             plugins.add(basePlugin);
     }
 
+    @Nullable
+    public Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin) {
+        for (LoadedPlugin p : plugins) {
+            if (p.plugin() == plugin) return p.metadata();
+        }
+
+        return null;
+    }
+
     public void loadPlugins() {
+        assert pluginManager != null;
         if (!Main.props().strictSafeMode()) loadBasePlugin();
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking and creating plugins and plugin_data directories");
@@ -229,41 +271,7 @@ public class PluginLoaderManager {
         }
     }
 
-    public static long versionId(String version) {
-        version = version.trim().toLowerCase();
-
-        int suffix = 0; // release
-        char last = version.charAt(version.length() - 1);
-
-        if (last == 'a') {
-            suffix = -100;
-            version = version.substring(0, version.length() - 1);
-        } else if (last == 'b') {
-            suffix = -99;
-            version = version.substring(0, version.length() - 1);
-        }
-
-        String[] parts = version.split("\\.");
-
-        int major = 0;
-        int minor = 0;
-        int patch = 0;
-
-        try {
-            if (parts.length > 0) major = Integer.parseInt(parts[0]);
-            if (parts.length > 1) minor = Integer.parseInt(parts[1]);
-            if (parts.length > 2) patch = Integer.parseInt(parts[2]);
-        }catch (NumberFormatException e) {
-            return 0;
-        }
-
-        return major * 1_000_000_000L
-                + minor * 1_000_000L
-                + patch * 1_000L
-                + suffix;
-    }
-
-    private boolean isApiTargetCompatible(String target) {
+    private boolean isApiTargetCompatible(@NotNull String target) {
         long apiVersion = versionId(Comitas.getServerVersion());
 
         target = target.trim();
@@ -276,7 +284,7 @@ public class PluginLoaderManager {
         return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
     }
 
-    private boolean isApiTargetCompatible(String target, String overwriteApiVersion) {
+    private boolean isApiTargetCompatible(@NotNull String target, @NotNull String overwriteApiVersion) {
         long apiVersion = versionId(overwriteApiVersion);
 
         target = target.trim();
@@ -290,6 +298,7 @@ public class PluginLoaderManager {
     }
 
     public void unloadPlugins() {
+        assert pluginManager != null;
         for (LoadedPlugin loaded : plugins) {
             try {
                 loaded.plugin().onDisable();
@@ -308,14 +317,16 @@ public class PluginLoaderManager {
         System.gc();
     }
 
-    public Plugin getPlugin(ClassLoader classLoader) {
+    @Nullable
+    public Plugin getPlugin(@NotNull ClassLoader classLoader) {
         for (LoadedPlugin plugin : plugins) {
             if (plugin.loader == classLoader) return plugin.plugin;
         }
         return null;
     }
 
-    public Plugin getPlugin(UUID uuid) {
+    @Nullable
+    public Plugin getPlugin(@NotNull UUID uuid) {
         for (LoadedPlugin plugin : plugins) {
             if (Objects.equals(plugin.metadata.uuid(), uuid)) return plugin.plugin;
         }

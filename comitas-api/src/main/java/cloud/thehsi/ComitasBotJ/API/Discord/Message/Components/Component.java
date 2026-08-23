@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message.Components;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,28 +12,22 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class Component {
-    private final List<Component> children = new ArrayList<>();
-    private Style style = Style.RESET;
-    private String content = "";
-
-    /**
-     * Converts the component into {@link MessageData}
-     */
-    public MessageData asMessageData() {
-        return new MessageData(this);
-    }
-
-    private Component() {
-    }
+    private @NotNull
+    final List<Component> children = new ArrayList<>();
+    private @NotNull Style style = Style.RESET;
+    private @NotNull String content = "";
 
     /**
      * Copy a component.
      */
-    public Component(Component component) {
+    public Component(@NotNull Component component) {
         for (Component child : component.children)
             children.add(new Component(child));
         content = component.content;
         style = component.style;
+    }
+
+    private Component() {
     }
 
     /**
@@ -39,6 +35,7 @@ public class Component {
      *
      * @return The empty component.
      */
+    @NotNull
     public static Component empty() {
         return new Component();
     }
@@ -48,6 +45,7 @@ public class Component {
      *
      * @return The newline component.
      */
+    @NotNull
     public static Component newLine() {
         Component c = new Component();
         c.content = "\n";
@@ -60,9 +58,10 @@ public class Component {
      * @param content The raw content
      * @return The raw component.
      */
-    public static Component raw(String content) {
+    @NotNull
+    public static Component raw(@Nullable String content) {
         Component c = new Component();
-        c.content = content;
+        c.content = content == null ? "null" : content;
         return c;
     }
 
@@ -73,7 +72,8 @@ public class Component {
      * @param format The timestamp format
      * @return The timestamp component.
      */
-    public static Component timestamp(Instant timestamp, TimeStampFormat format) {
+    @NotNull
+    public static Component timestamp(@NotNull Instant timestamp, @NotNull TimeStampFormat format) {
         Component c = new Component();
         c.content = "<t:" + timestamp.getEpochSecond() + ":" + format.getIdentifier() + ">";
         return c;
@@ -85,7 +85,8 @@ public class Component {
      * @param link The link url
      * @return The link component.
      */
-    public static Component link(String link) {
+    @NotNull
+    public static Component link(@NotNull String link) {
         Component c = new Component();
         c.content = link;
         return c;
@@ -98,7 +99,8 @@ public class Component {
      * @param label The link label
      * @return The link component.
      */
-    public static Component link(String link, String label) {
+    @NotNull
+    public static Component link(@NotNull String link, @Nullable String label) {
         Component c = new Component();
         c.content = "[%s](%s)".formatted(label, link);
         return c;
@@ -111,24 +113,10 @@ public class Component {
      * @return The text component.
      * @implNote Any content will be auto escaped
      */
-    public static Component text(String content) {
+    @NotNull
+    public static Component text(@Nullable String content) {
         Component c = new Component();
         c.content(content);
-        return c;
-    }
-
-    /**
-     * Create a component from text and a style
-     *
-     * @param content The content
-     * @param style   The style
-     * @return The text component.
-     * @implNote Any content will be auto escaped
-     */
-    public static Component text(String content, Style style) {
-        Component c = new Component();
-        c.content(content);
-        c.style(style);
         return c;
     }
 
@@ -141,9 +129,10 @@ public class Component {
      * @implNote Any content will be auto escaped
      * @implNote Styles will be added together.
      */
-    public static Component text(String content, Style... styles) {
+    @NotNull
+    public static Component text(@Nullable String content, @NotNull Style... styles) {
         Component c = new Component();
-        c.content = content;
+        c.content(content);
         Style finalStyle = Style.RESET;
         for (Style style : styles)
             finalStyle = finalStyle.add(style);
@@ -152,10 +141,19 @@ public class Component {
     }
 
     /**
+     * Converts the component into {@link MessageData}
+     */
+    @NotNull
+    public MessageData asMessageData() {
+        return new MessageData(this);
+    }
+
+    /**
      * Returns a list of children of this Component.
      *
      * @return A children list of this component.
      */
+    @NotNull
     public List<Component> children() {
         return new ArrayList<>(children);
     }
@@ -165,6 +163,7 @@ public class Component {
      *
      * @return The component style.
      */
+    @NotNull
     public Style style() {
         return style;
     }
@@ -174,6 +173,7 @@ public class Component {
      *
      * @return The component content.
      */
+    @NotNull
     public String content() {
         return content;
     }
@@ -185,7 +185,8 @@ public class Component {
      * @return The component.
      * @implNote Any content will be auto escaped
      */
-    public Component content(String content) {
+    @NotNull
+    public Component content(@Nullable String content) {
         this.content = content == null ? "null" : content;
         this.content = this.content.replace("\\", "\\\\");
         this.content = this.content.replace("*", "\\*");
@@ -211,7 +212,8 @@ public class Component {
      * @param content The new raw content
      * @return The component.
      */
-    public Component rawContent(String content) {
+    @NotNull
+    public Component rawContent(@NotNull String content) {
         this.content = content;
         return this;
     }
@@ -222,7 +224,8 @@ public class Component {
      * @param style The new style
      * @return The component.
      */
-    public Component style(Style style) {
+    @NotNull
+    public Component style(@Nullable Style style) {
         if (style == null) style = Style.RESET;
         this.style = style;
         return this;
@@ -234,7 +237,8 @@ public class Component {
      * @param emoji Emoji to be appended
      * @return The component.
      */
-    public Component append(Emoji emoji) {
+    @NotNull
+    public Component append(@NotNull Emoji emoji) {
         this.children.add(emoji.asComponent());
         return this;
     }
@@ -245,21 +249,9 @@ public class Component {
      * @param child String to be appended
      * @return The component.
      */
-    public Component append(String child) {
+    @NotNull
+    public Component append(@Nullable String child) {
         this.children.add(Component.text(child));
-        return this;
-    }
-
-    /**
-     * Append a component to this component.
-     *
-     * @param child Component to be appended
-     * @return The component.
-     */
-    public Component append(Component child) {
-        this.children.add(child);
-        this.children.addAll(child.children);
-        child.children.clear();
         return this;
     }
 
@@ -269,13 +261,15 @@ public class Component {
      * @param children Components to be appended
      * @return The component.
      */
-    public Component append(Component... children) {
+    @NotNull
+    public Component append(@NotNull Component... children) {
         for (Component child : children)
             this.append(child);
         return this;
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "Component{" +
                 "children=" + Arrays.deepToString(children.toArray()) +

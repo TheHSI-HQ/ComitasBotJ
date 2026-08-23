@@ -49,16 +49,17 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPIListeners extends ListenerAdapter {
-    final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPIListeners");
-    final Logger debugLogger = DebugLogging.getLogger();
-    final DiscordAPI api;
-    final EventManager eventManager;
-    final InternalCommandRegistry commandRegistry;
+    final @NotNull Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".DiscordAPIListeners");
+    final @NotNull Logger debugLogger = DebugLogging.getLogger();
+    final @NotNull DiscordAPI api;
+    final @NotNull EventManager eventManager;
+    final @NotNull InternalCommandRegistry commandRegistry;
     boolean firstStartup = true;
 
+    @NotNull
     final List<String> undoLoopFixList = Collections.synchronizedList(new ArrayList<>());
 
-    public DiscordAPIListeners(DiscordAPI api, EventManager eventManager, InternalCommandRegistry commandRegistry) {
+    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
         this.eventManager = eventManager;
         this.commandRegistry = commandRegistry;
         this.api = api;
@@ -79,16 +80,13 @@ public class DiscordAPIListeners extends ListenerAdapter {
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Setting Bot Presence.");
 
         if (!Main.conf().botActivityName.get().isBlank())
-            api.getAPI().getPresence().setActivity(
+            DiscordAPI.api().getPresence().setActivity(
                     Activity.watching(Main.conf().botActivityName.get())
             );
 
-        if (DebugLogging.isEventEnabled()) debugLogger.debug("Updating Command Registry Discord API reference.");
-        commandRegistry.setDiscordApi(api);
-
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a BotReadyEvent.");
         eventManager.callEvent(new InternalBotReadyEvent(
-                api.getAPI().getSelfUser()
+                DiscordAPI.api().getSelfUser()
         ));
 
         if (firstStartup) {
@@ -155,7 +153,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
                 EventOrigin.EXTERNAL
         );
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
+        if (DebugLogging.isEventEnabled())
             debugLogger.debug("Firing a ReactionUpdatedEvent.");
         eventManager.callEvent(reactionUpdatedEvent);
 
@@ -328,7 +326,8 @@ public class DiscordAPIListeners extends ListenerAdapter {
      * Helpers
      */
 
-    private EventOrigin resolveUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
+    @NotNull
+    private EventOrigin resolveUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
         StringBuilder identifier = new StringBuilder(clazz.getName());
         for (@Nullable Object arg : args) {
             identifier.append(";").append(arg == null ? "null" : arg.hashCode());
@@ -341,7 +340,7 @@ public class DiscordAPIListeners extends ListenerAdapter {
         return EventOrigin.EXTERNAL;
     }
 
-    private void addUndoLoopPrevention(Class<? extends UndoableEvent> clazz, Object... args) {
+    private void addUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
         StringBuilder identifier = new StringBuilder(clazz.getName());
         for (@Nullable Object arg : args) {
             identifier.append(";").append(arg == null ? "null" : arg.hashCode());

@@ -36,7 +36,7 @@ public record Timestamps(long start, long end) {
                 '}';
     }
 
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (!(obj instanceof Timestamps(long tStart, long tEnd))) {
             return false;
         } else {

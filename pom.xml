@@ -14,6 +14,7 @@
         <module>comitas-api</module>
         <module>comitas-core</module>
         <module>example-plugin</module>
+        <module>checkstyle-rules</module>
     </modules>
 
     <properties>

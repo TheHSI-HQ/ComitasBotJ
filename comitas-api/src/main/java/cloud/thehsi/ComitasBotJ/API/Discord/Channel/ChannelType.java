@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 
 public enum ChannelType {
@@ -13,14 +16,19 @@ public enum ChannelType {
     GUILD_DIRECTORY(Channel.class),
     UNKNOWN(Channel.class);
 
-    private final Class<? extends Channel> clazz;
+    private @NotNull
+    final Class<? extends Channel> clazz;
 
-    ChannelType(Class<? extends Channel> clazz) {
+    ChannelType(@NotNull Class<? extends Channel> clazz) {
         this.clazz = clazz;
     }
 
-    public Class<? extends Channel> clazz() {
-        return clazz;
+    @NotNull
+    public static ChannelType fromId(@Nullable String id) {
+        return Arrays.stream(values())
+                .filter(e -> e.name().equals(id))
+                .findFirst()
+                .orElse(UNKNOWN);
     }
 
     public boolean isAudio() {
@@ -53,10 +61,8 @@ public enum ChannelType {
         };
     }
 
-    public static ChannelType fromId(String id) {
-        return Arrays.stream(values())
-                .filter(e -> e.name().equals(id))
-                .findFirst()
-                .orElse(UNKNOWN);
+    @NotNull
+    public Class<? extends Channel> clazz() {
+        return clazz;
     }
 }

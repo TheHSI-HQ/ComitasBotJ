@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
@@ -19,23 +20,26 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentUnparser;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
+import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReference;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class InternalMessage implements Message {
-    public final net.dv8tion.jda.api.entities.Message message;
+    public @NotNull
+    final net.dv8tion.jda.api.entities.Message message;
     private boolean deleted = false;
 
-    private Runnable optionalDeletionCallback = null;
+    private @Nullable Runnable optionalDeletionCallback = null;
 
-    public InternalMessage(net.dv8tion.jda.api.entities.Message message) {
+    public InternalMessage(@NotNull net.dv8tion.jda.api.entities.Message message) {
         this.message = message;
     }
 
-    public InternalMessage(net.dv8tion.jda.api.entities.Message message, Runnable deletionCallback) {
+    public InternalMessage(@NotNull net.dv8tion.jda.api.entities.Message message, @Nullable Runnable deletionCallback) {
         this.optionalDeletionCallback = deletionCallback;
         this.message = message;
     }
@@ -72,20 +76,24 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public String getRawContent() {
+    public @NotNull String getRawContent() {
         DebugLogging.action();
         return message.getContentRaw();
     }
 
     @Override
-    public Component getContent() {
+    public @NotNull Component getContent() {
         DebugLogging.action();
         return ComponentUnparser.unparseComponent(getRawContent());
     }
 
     @Override
-    @Nullable
-    public Member getAuthor() {
+    public @NotNull User getAuthorUser() {
+        return new InternalUser(message.getAuthor());
+    }
+
+    @Override
+    public @Nullable Member getAuthor() {
         DebugLogging.action();
         net.dv8tion.jda.api.entities.Member member = message.getMember();
         if (member == null)
@@ -94,8 +102,7 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    @Nullable
-    public MessageChannel getChannel() {
+    public @Nullable MessageChannel getChannel() {
         DebugLogging.action();
         if (!message.hasChannel())
             return null;
@@ -130,14 +137,14 @@ public class InternalMessage implements Message {
         DebugLogging.action();
         MessageReference ref = message.getMessageReference();
 
-        if (ref == null || ref.getMessageIdLong() == 0)
+        if (ref == null || ref.getMessage() == null)
             return null;
 
         return new InternalMessage(ref.getMessage());
     }
 
     @Override
-    public List<Reaction> getReactions() {
+    public @NotNull List<Reaction> getReactions() {
         DebugLogging.action();
         return message.getReactions().stream()
                 .map(e -> (Reaction) new InternalReaction(e, this))
@@ -145,19 +152,19 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public void react(Emoji emoji) {
+    public void react(@NotNull Emoji emoji) {
         DebugLogging.action(emoji);
         message.addReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override
-    public void unreact(Emoji emoji) {
+    public void unreact(@NotNull Emoji emoji) {
         DebugLogging.action(emoji);
         message.removeReaction(((InternalEmoji) emoji).emoji()).complete();
     }
 
     @Override
-    public List<MessageAttachment> getAttachments() {
+    public @NotNull List<MessageAttachment> getAttachments() {
         DebugLogging.action();
         return message.getAttachments().stream()
                 .map(e -> (MessageAttachment) new InternalMessageAttachment(e, message))
@@ -165,7 +172,7 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public MessageData getData() {
+    public @NotNull MessageData getData() {
         DebugLogging.action();
         MessageData messageData = new MessageData();
 
@@ -180,16 +187,15 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public Embed[] getEmbeds() {
+    public @NotNull List<Embed> getEmbeds() {
         DebugLogging.action();
-        Embed[] embeds = new Embed[message.getEmbeds().size()];
-        for (int i = 0; i < message.getEmbeds().size(); i++)
-            embeds[i] = new InternalEmbed(message.getEmbeds().get(i));
-        return embeds;
+        return message.getEmbeds().stream()
+                .map(e -> (Embed) new InternalEmbed(e))
+                .toList();
     }
 
     @Override
-    public @Nullable MyMessage forward(MessageChannel channel) {
+    public @Nullable MyMessage forward(@NotNull MessageChannel channel) {
         DebugLogging.action(channel);
         if (!(channel instanceof InternalMessageChannel internal))
             throw new IllegalArgumentException("MessageChannel was not created by Comitas");
@@ -209,13 +215,13 @@ public class InternalMessage implements Message {
     }
 
     @Override
-    public MyMessage reply(Component message) {
+    public @NotNull MyMessage reply(@NotNull Component message) {
         DebugLogging.action(message);
         return reply(message.asMessageData());
     }
 
     @Override
-    public MyMessage reply(MessageData messageData) {
+    public @NotNull MyMessage reply(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.message.reply(data).complete())
@@ -223,6 +229,7 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "InternalMessage{" +
                 "author=" + getAuthor() +

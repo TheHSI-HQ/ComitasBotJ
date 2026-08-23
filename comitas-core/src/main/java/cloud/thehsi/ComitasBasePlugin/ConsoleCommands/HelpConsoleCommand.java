@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import org.jetbrains.annotations.NotNull;
 
 public class HelpConsoleCommand extends ConsoleCommand {
     public HelpConsoleCommand() {
@@ -15,7 +16,7 @@ public class HelpConsoleCommand extends ConsoleCommand {
     }
 
     @Override
-    public void execute(String[] args) {
+    public void execute(@NotNull String[] args) {
         getConsoleLogger().info("Help:");
 
         for (ConsoleCommandRegistry.ConsoleCommand cmd : Comitas.getConsoleCommandRegistry().registeredCommands()) {

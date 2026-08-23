@@ -2,12 +2,15 @@ package cloud.thehsi.ComitasBotJ;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
 public class DebugLogging {
-    private static final Logger LOGGER = getLogger();
+    private @NotNull
+    static final Logger LOGGER = getLogger();
     /*
     --verbose levels
 
@@ -21,7 +24,22 @@ public class DebugLogging {
     public static int getVerbosityLevel() {
         return Main.debugLevel;
     }
+    private @NotNull
+    static final String INTERNAL_PACKAGE = "cloud.thehsi.ComitasBotJ";
 
+    public static boolean isBasicEnabled() {
+        return getVerbosityLevel() >= 1;
+    }
+
+    public static boolean isEventEnabled() {
+        return getVerbosityLevel() >= 2;
+    }
+
+    public static boolean isActionEnabled() {
+        return getVerbosityLevel() >= 3;
+    }
+
+    @NotNull
     public static Logger getLogger() {
         Class<?> caller = StackWalker.getInstance(
                         StackWalker.Option.RETAIN_CLASS_REFERENCE)
@@ -36,21 +54,7 @@ public class DebugLogging {
         return l;
     }
 
-    public static boolean isBasicEnabled() {
-        return getVerbosityLevel() >= 1;
-    }
-
-    public static boolean isEventEnabled() {
-        return getVerbosityLevel() >= 2;
-    }
-
-    public static boolean isActionEnabled() {
-        return getVerbosityLevel() >= 3;
-    }
-
-    private static final String INTERNAL_PACKAGE = "cloud.thehsi.ComitasBotJ";
-
-    public static void action(Object... args) {
+    public static void action(@Nullable Object... args) {
         if (!isActionEnabled() || !LOGGER.isDebugEnabled()) {
             return;
         }

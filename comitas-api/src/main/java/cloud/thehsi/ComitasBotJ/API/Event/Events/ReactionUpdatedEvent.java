@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface ReactionUpdatedEvent extends Event, UndoableEvent {
@@ -12,6 +13,7 @@ public interface ReactionUpdatedEvent extends Event, UndoableEvent {
      *
      * @return The Message Author
      */
+    @NotNull
     Member member();
 
     /**
@@ -19,6 +21,7 @@ public interface ReactionUpdatedEvent extends Event, UndoableEvent {
      *
      * @return The Message
      */
+    @NotNull
     Message message();
 
     /**
@@ -26,6 +29,7 @@ public interface ReactionUpdatedEvent extends Event, UndoableEvent {
      *
      * @return The updated reaction
      */
+    @NotNull
     Reaction reaction();
 
     /**
@@ -33,5 +37,6 @@ public interface ReactionUpdatedEvent extends Event, UndoableEvent {
      *
      * @return The action that happened
      */
+    @NotNull
     ReactionAction reactionAction();
 }

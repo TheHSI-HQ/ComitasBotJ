@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface UserBannedEvent extends Event, UndoableEvent {
@@ -11,6 +12,7 @@ public interface UserBannedEvent extends Event, UndoableEvent {
      *
      * @return The user who was banned
      */
+    @NotNull
     User getUser();
 
     /**
@@ -18,6 +20,7 @@ public interface UserBannedEvent extends Event, UndoableEvent {
      *
      * @return The guild, who the member was banned from
      */
+    @NotNull
     Guild getGuild();
 
     /**
@@ -25,5 +28,6 @@ public interface UserBannedEvent extends Event, UndoableEvent {
      *
      * @return The ban
      */
+    @NotNull
     Ban getBan();
 }

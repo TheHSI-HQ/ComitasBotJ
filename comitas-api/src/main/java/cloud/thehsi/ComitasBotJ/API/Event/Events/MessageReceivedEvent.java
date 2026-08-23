@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -35,6 +36,7 @@ public interface MessageReceivedEvent extends Event {
      *
      * @return The raw message content
      */
+    @NotNull
     String getRawContent();
 
     /**
@@ -42,6 +44,7 @@ public interface MessageReceivedEvent extends Event {
      *
      * @return The message content as a component tree
      */
+    @NotNull
     Component getContent();
 
     /**
@@ -49,6 +52,7 @@ public interface MessageReceivedEvent extends Event {
      *
      * @return The Message
      */
+    @NotNull
     Message getMessage();
 
     /**
@@ -64,6 +68,7 @@ public interface MessageReceivedEvent extends Event {
      *
      * @return The Message Channel
      */
+    @NotNull
     MessageChannel getChannel();
 
     /**
@@ -80,7 +85,8 @@ public interface MessageReceivedEvent extends Event {
      * @param message The message to be sent
      * @return The message that was sent
      */
-    MyMessage reply(Component message);
+    @NotNull
+    MyMessage reply(@NotNull Component message);
 
     /**
      * Reply to the message in the same channel this message was send in with message data
@@ -88,5 +94,6 @@ public interface MessageReceivedEvent extends Event {
      * @param messageData The message data
      * @return The message that was sent
      */
-    MyMessage reply(MessageData messageData);
+    @NotNull
+    MyMessage reply(@NotNull MessageData messageData);
 }

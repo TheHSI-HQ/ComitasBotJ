@@ -7,19 +7,26 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.ReactionUpdatedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
 public final class InternalReactionUpdatedEvent extends InternalUndoableEvent implements ReactionUpdatedEvent {
-    private final Member member;
-    private final Message message;
-    private final Reaction reaction;
-    private final ReactionAction reactionAction;
-    private final EventOrigin eventOrigin;
+    private @NotNull
+    final Member member;
+    private @NotNull
+    final Message message;
+    private @NotNull
+    final Reaction reaction;
+    private @NotNull
+    final ReactionAction reactionAction;
+    private @NotNull
+    final EventOrigin eventOrigin;
 
-    public InternalReactionUpdatedEvent(Member member, Message message,
-                                        Reaction reaction,
-                                        ReactionAction reactionAction, EventOrigin origin) {
+    public InternalReactionUpdatedEvent(@NotNull Member member, @NotNull Message message,
+                                        @NotNull Reaction reaction, @NotNull ReactionAction reactionAction,
+                                        @NotNull EventOrigin origin) {
         this.member = member;
         this.message = message;
         this.reaction = reaction;
@@ -28,31 +35,31 @@ public final class InternalReactionUpdatedEvent extends InternalUndoableEvent im
     }
 
     @Override
-    public Member member() {
+    public @NotNull Member member() {
         DebugLogging.action();
         return member;
     }
 
     @Override
-    public Message message() {
+    public @NotNull Message message() {
         DebugLogging.action();
         return message;
     }
 
     @Override
-    public Reaction reaction() {
+    public @NotNull Reaction reaction() {
         DebugLogging.action();
         return reaction;
     }
 
     @Override
-    public ReactionAction reactionAction() {
+    public @NotNull ReactionAction reactionAction() {
         DebugLogging.action();
         return reactionAction;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (InternalReactionUpdatedEvent) obj;
@@ -68,6 +75,7 @@ public final class InternalReactionUpdatedEvent extends InternalUndoableEvent im
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "InternalReactionUpdatedEvent[" +
                 "member=" + member + ", " +
@@ -77,7 +85,7 @@ public final class InternalReactionUpdatedEvent extends InternalUndoableEvent im
     }
 
     @Override
-    public EventOrigin getOrigin() {
+    public @NotNull EventOrigin getOrigin() {
         return eventOrigin;
     }
 }

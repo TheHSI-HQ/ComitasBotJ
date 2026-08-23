@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
@@ -16,11 +17,10 @@ public class InviteConsoleCommand extends ConsoleCommand {
     }
 
     @Override
-    public void execute(String[] args) {
+    public void execute(@NotNull String[] args) {
         switch (args.length) {
             case 0:
                 getConsoleLogger().warn("No permissions specified, granting Administator permission (8)");
-                //noinspection LoggingSimilarMessage
                 getConsoleLogger().info("Invitation Link: {}", Comitas.getBot().generateInvitationLink(Permission.ADMINISTRATOR));
                 break;
             case 1:

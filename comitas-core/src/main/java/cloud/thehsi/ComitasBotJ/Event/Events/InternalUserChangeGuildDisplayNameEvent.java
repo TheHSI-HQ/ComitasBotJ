@@ -5,16 +5,23 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserChangeGuildDisplayNameEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoableEvent implements UserChangeGuildDisplayNameEvent {
-    private final Member member;
-    private final Guild guild;
-    private final String oldName;
-    private final String newName;
-    private final EventOrigin eventOrigin;
+    private @NotNull
+    final Member member;
+    private @NotNull
+    final Guild guild;
+    private @Nullable
+    final String oldName;
+    private @Nullable
+    final String newName;
+    private @NotNull
+    final EventOrigin eventOrigin;
 
-    public InternalUserChangeGuildDisplayNameEvent(Member member, Guild guild, String oldName,
-                                                   String newName, EventOrigin origin) {
+    public InternalUserChangeGuildDisplayNameEvent(@NotNull Member member, @NotNull Guild guild, @Nullable String oldName,
+                                                   @Nullable String newName, @NotNull EventOrigin origin) {
         this.member = member;
         this.guild = guild;
         this.oldName = oldName;
@@ -23,29 +30,33 @@ public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoa
     }
 
     @Override
-    public Member getMember() {
+    public @NotNull Member getMember() {
         DebugLogging.action();
         return member;
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return guild;
     }
 
     @Override
+    @Nullable
     public String getNewDisplayName() {
         DebugLogging.action();
         return newName;
     }
 
     @Override
+    @Nullable
     public String getOldDisplayName() {
         DebugLogging.action();
         return oldName;
     }
 
+    @Override
+    @NotNull
     public String toString() {
         return "InternalUserChangeGuildDisplayNameEvent[" +
                 "member=" + member + ", " +
@@ -55,7 +66,7 @@ public final class InternalUserChangeGuildDisplayNameEvent extends InternalUndoa
     }
 
     @Override
-    public EventOrigin getOrigin() {
+    public @NotNull EventOrigin getOrigin() {
         return eventOrigin;
     }
 }

@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
@@ -30,27 +31,30 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return new InternalGuild((net.dv8tion.jda.api.entities.Guild) invite().getGuild());
     }
 
     @Override
-    public String getCode() {
+    public @NotNull String getCode() {
         DebugLogging.action();
         return invite().getCode();
     }
 
     @Override
-    public String getUrl() {
+    public @NotNull String getUrl() {
         DebugLogging.action();
         return invite().getUrl();
     }
 
     @Override
-    public User getInviter() {
+    public @Nullable User getInviter() {
         DebugLogging.action();
-        return new InternalUser(invite().getInviter());
+        net.dv8tion.jda.api.entities.User invtter = invite().getInviter();
+        if (invtter == null)
+            return null;
+        return new InternalUser(invtter);
     }
 
     @Override
@@ -66,13 +70,13 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     }
 
     @Override
-    public OffsetDateTime getTimeCreated() {
+    public @NotNull OffsetDateTime getTimeCreated() {
         DebugLogging.action();
         return invite().getTimeCreated();
     }
 
     @Override
-    public OffsetDateTime getExpiryTime() {
+    public @NotNull OffsetDateTime getExpiryTime() {
         DebugLogging.action();
         return invite().getTimeCreated().plusSeconds(invite.getMaxAge());
     }

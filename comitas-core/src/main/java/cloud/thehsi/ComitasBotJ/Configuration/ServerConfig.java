@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Configuration;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,14 +14,18 @@ import java.util.function.Supplier;
 
 @SuppressWarnings({"SameParameterValue", "unused"})
 public class ServerConfig {
-    private static final Path CONFIG_PATH = Path.of("./server.properties");
-    private static final String DEFAULT_RESOURCE = "/server.properties";
-    private final Properties properties = new Properties();
+    private @NotNull
+    static final Path CONFIG_PATH = Path.of("./server.properties");
+    private @NotNull
+    static final String DEFAULT_RESOURCE = "/server.properties";
+    private @NotNull
+    final Properties properties = new Properties();
 
     public ServerConfig() throws IOException {
         load();
     }
 
+    @NotNull
     public ParsedServerConfig asParsed() {
         return new ParsedServerConfig(this);
     }
@@ -43,7 +49,7 @@ public class ServerConfig {
         }
     }
 
-    private boolean asBool(String v) {
+    private boolean asBool(@NotNull String v) {
         return switch (v.toLowerCase()) {
             case "true", "yes" -> true;
             case "false", "no" -> false;
@@ -52,11 +58,13 @@ public class ServerConfig {
         };
     }
 
+    @NotNull
     private String fromBool(boolean v) {
         return Boolean.toString(v);
     }
 
-    private Double asNumber(String v) {
+    @NotNull
+    private Double asNumber(@NotNull String v) {
         try {
             return Double.parseDouble(v);
         } catch (NumberFormatException ignored) {
@@ -64,15 +72,17 @@ public class ServerConfig {
         }
     }
 
+    @NotNull
     private String fromNumber(double v) {
         return Double.toString(v);
     }
 
-    public Integer count() {
+    public int count() {
         return properties.size();
     }
 
-    public String getString(String key) {
+    @NotNull
+    public String getString(@NotNull String key) {
         return properties.getProperty(key);
     }
 
@@ -80,27 +90,28 @@ public class ServerConfig {
     GETTERS
      */
 
-    public String getString(String key, String defaultValue) {
+    @NotNull
+    public String getString(@NotNull String key, @NotNull String defaultValue) {
         return properties.getProperty(key, defaultValue);
     }
 
-    public Boolean getBoolean(String key) {
+    public boolean getBoolean(@NotNull String key) {
         return asBool(properties.getProperty(key));
     }
 
-    public Boolean getBoolean(String key, Boolean defaultValue) {
+    public boolean getBoolean(@NotNull String key, boolean defaultValue) {
         return asBool(properties.getProperty(key, fromBool(defaultValue)));
     }
 
-    public Double getNumber(String key) {
+    public double getNumber(@NotNull String key) {
         return asNumber(properties.getProperty(key));
     }
 
-    public Double getNumber(String key, Double defaultValue) {
+    public double getNumber(@NotNull String key, double defaultValue) {
         return asNumber(properties.getProperty(key, fromNumber(defaultValue)));
     }
 
-    public void set(String key, String value) {
+    public void set(@NotNull String key, @NotNull String value) {
         properties.setProperty(key, value);
     }
 
@@ -108,23 +119,23 @@ public class ServerConfig {
     SETTERS
      */
 
-    public void set(String key, Boolean value) {
+    public void set(@NotNull String key, boolean value) {
         properties.setProperty(key, fromBool(value));
     }
 
-    public void set(String key, Double value) {
+    public void set(@NotNull String key, double value) {
         properties.setProperty(key, fromNumber(value));
     }
 
-    public void setIfNotExist(String key, String value) {
+    public void setIfNotExist(@NotNull String key, @NotNull String value) {
         if (!properties.contains(key)) properties.setProperty(key, value);
     }
 
-    public void setIfNotExist(String key, Boolean value) {
+    public void setIfNotExist(@NotNull String key, boolean value) {
         if (properties.getProperty(key) == null) properties.setProperty(key, fromBool(value));
     }
 
-    public void setIfNotExist(String key, Double value) {
+    public void setIfNotExist(@NotNull String key, double value) {
         if (!properties.contains(key)) properties.setProperty(key, fromNumber(value));
     }
 
@@ -135,13 +146,18 @@ public class ServerConfig {
     }
 
     public static class ParsedServerConfig {
-        public final BooleanProperty enabled;
-        public final BooleanProperty loadPlugins;
-        public final StringProperty allowedPlugins;
-        public final StringProperty botActivityName;
-        private final ServerConfig cfg;
+        public @NotNull
+        final BooleanProperty enabled;
+        public @NotNull
+        final BooleanProperty loadPlugins;
+        public @NotNull
+        final StringProperty allowedPlugins;
+        public @NotNull
+        final StringProperty botActivityName;
+        private @NotNull
+        final ServerConfig cfg;
 
-        public ParsedServerConfig(ServerConfig cfg) {
+        public ParsedServerConfig(@NotNull ServerConfig cfg) {
             this.cfg = cfg;
 
             this.enabled = makeProperty("enabled", true);
@@ -150,7 +166,7 @@ public class ServerConfig {
             this.botActivityName = makeProperty("bot-activity-name", "ComitasBotJ");
         }
 
-        public Integer count() {
+        public int count() {
             return cfg.count();
         }
 
@@ -162,7 +178,8 @@ public class ServerConfig {
             cfg.save();
         }
 
-        private BooleanProperty makeProperty(String key, Boolean defaultValue) {
+        @NotNull
+        private BooleanProperty makeProperty(@NotNull String key, boolean defaultValue) {
             cfg.setIfNotExist(key, defaultValue);
             return new BooleanProperty(
                     () -> cfg.getBoolean(key),
@@ -170,7 +187,8 @@ public class ServerConfig {
             );
         }
 
-        private NumberProperty makeProperty(String key, Double defaultValue) {
+        @NotNull
+        private NumberProperty makeProperty(@NotNull String key, double defaultValue) {
             cfg.setIfNotExist(key, defaultValue);
             return new NumberProperty(
                     () -> cfg.getNumber(key),
@@ -178,7 +196,8 @@ public class ServerConfig {
             );
         }
 
-        private StringProperty makeProperty(String key, String defaultValue) {
+        @NotNull
+        private StringProperty makeProperty(@NotNull String key, @NotNull String defaultValue) {
             cfg.setIfNotExist(key, defaultValue);
             return new StringProperty(
                     () -> cfg.getString(key),
@@ -208,12 +227,13 @@ public class ServerConfig {
         }
     }
 
-    public record StringProperty(Supplier<String> getter, Consumer<String> setter) {
+    public record StringProperty(@NotNull Supplier<String> getter, @NotNull Consumer<String> setter) {
+        @NotNull
         public String get() {
             return getter.get();
         }
 
-        public void set(String value) {
+        public void set(@NotNull String value) {
             setter.accept(value);
         }
     }

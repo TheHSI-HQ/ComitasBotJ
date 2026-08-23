@@ -45,15 +45,14 @@ public interface Bot {
      * @return The generated invitation look
      */
     @NotNull
-    String generateInvitationLink(Permission... permissions);
+    String generateInvitationLink(@NotNull Permission... permissions);
 
     /**
      * Returns the bot's ID.
      *
      * @return The bot's ID
      */
-    @NotNull
-    Long getId();
+    long getId();
 
     /**
      * Get a guild by id
@@ -62,7 +61,7 @@ public interface Bot {
      * @return The guild
      */
     @Nullable
-    Guild getGuildById(Long id);
+    Guild getGuildById(@NotNull Long id);
 
     /**
      * Get a guild by id
@@ -71,7 +70,7 @@ public interface Bot {
      * @return The guild
      */
     @Nullable
-    Guild getGuildById(String id);
+    Guild getGuildById(@NotNull String id);
 
     /**
      * Gets a list of Guilds the Bot is a member of.

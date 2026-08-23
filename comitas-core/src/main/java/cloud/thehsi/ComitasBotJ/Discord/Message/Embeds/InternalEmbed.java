@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Components.ComponentParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -15,10 +16,11 @@ import java.util.List;
 
 @SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class InternalEmbed implements Embed {
+    @NotNull
     final MessageEmbed embed;
 
     public InternalEmbed(
-            MessageEmbed embed
+            @NotNull MessageEmbed embed
     ) {
         this.embed = embed;
     }
@@ -33,7 +35,7 @@ public class InternalEmbed implements Embed {
             @Nullable EmbedTitle title,
             @Nullable TemporalAccessor timestamp,
             @Nullable String url,
-            List<EmbedField> fields
+            @NotNull List<EmbedField> fields
     ) {
         EmbedBuilder build = new EmbedBuilder();
         if (author != null)
@@ -61,12 +63,13 @@ public class InternalEmbed implements Embed {
         this.embed = build.build();
     }
 
+    @NotNull
     public MessageEmbed embed() {
         return embed;
     }
 
     @Override
-    public MessageData asMessageData() {
+    public @NotNull MessageData asMessageData() {
         DebugLogging.action();
         return new MessageData(this);
     }

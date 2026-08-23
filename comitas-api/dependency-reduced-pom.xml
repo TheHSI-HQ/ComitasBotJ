@@ -22,7 +22,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -36,13 +35,6 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer>
-                                    <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

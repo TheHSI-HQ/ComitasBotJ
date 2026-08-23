@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.Main;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,8 @@ import java.util.UUID;
 import static cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager.versionId;
 
 public class PluginLister {
-    private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
+    private @NotNull
+    static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
     public static void listAllPlugins() {
         File pluginDir = new File("plugins");
@@ -220,6 +222,7 @@ public class PluginLister {
         logger.info(createBorder(widths, '└', '┴', '┘'));
     }
 
+    @NotNull
     private static String createBorder(int[] widths, char left, char middle, char right) {
         StringBuilder builder = new StringBuilder();
 
@@ -238,7 +241,8 @@ public class PluginLister {
         return builder.toString();
     }
 
-    private static String createHeaderRow(String[] values, int[] widths) {
+    @NotNull
+    private static String createHeaderRow(@NotNull String[] values, int[] widths) {
         StringBuilder builder = new StringBuilder("│");
 
         for (int i = 0; i < values.length; i++) {
@@ -250,11 +254,11 @@ public class PluginLister {
         return builder.toString();
     }
 
+    @NotNull
     private static String createRow(
-            String[] values,
+            @NotNull String[] values,
             int[] widths
     ) {
-
         return "│ " + // Name
                 ConsoleColor.WHITE +
                 String.format(
@@ -289,8 +293,9 @@ public class PluginLister {
                 " │";
     }
 
+    @NotNull
     private static String createRow(
-            String[] values,
+            @NotNull String[] values,
             int[] widths,
             boolean compatible
     ) {
@@ -338,7 +343,7 @@ public class PluginLister {
                 " │";
     }
 
-    private static boolean isApiTargetCompatible(String target, String overwriteApiVersion) {
+    private static boolean isApiTargetCompatible(@NotNull String target, @NotNull String overwriteApiVersion) {
         long apiVersion = versionId(overwriteApiVersion);
 
         target = target.trim();

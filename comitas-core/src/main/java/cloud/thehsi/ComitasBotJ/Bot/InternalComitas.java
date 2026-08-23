@@ -18,6 +18,8 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,48 +36,32 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
-    private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
-    private static final Logger debugLogger = DebugLogging.getLogger();
-    private final ConsoleCommandRegistry consoleCommandRegistry;
-    private final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
-    private final ConsolePrompt consolePrompt;
-    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
-    private InternalCommandRegistry commandRegistry;
-    private PluginLoaderManager pluginLoaderManager;
-    private InternalPluginManager pluginManager;
-    private InternalScheduler scheduler;
-    private EventManager eventManager;
-    private Bot bot;
-    private static String bot_token;
+    @NotNull
+    static final List<Runnable> onShutdownCalls = new ArrayList<>();
+    private @NotNull
+    static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
+    private @NotNull
+    static final Logger debugLogger = DebugLogging.getLogger();
+    private @Nullable
+    static String bot_token;
+    private @NotNull
+    final ConsoleCommandRegistry consoleCommandRegistry;
+    private @NotNull
+    final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
+    private @NotNull
+    final ConsolePrompt consolePrompt;
+    private @NotNull
+    final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private @Nullable InternalCommandRegistry commandRegistry;
+    private @Nullable PluginLoaderManager pluginLoaderManager;
+    private @Nullable InternalPluginManager pluginManager;
+    private @Nullable InternalScheduler scheduler;
+    private @Nullable EventManager eventManager;
+    private @Nullable Bot bot;
 
-    public InternalComitas(ConsoleCommandRegistry consoleCommandRegistry, ConsolePrompt consolePrompt) {
+    public InternalComitas(@NotNull ConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
         this.consoleCommandRegistry = consoleCommandRegistry;
         this.consolePrompt = consolePrompt;
-    }
-
-    public static String minimalStartupAndFetchBotID() {
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Performing minimal startup to get Bot User ID");
-
-        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
-            debugLogger.debug("Populating Secrets");
-        populateSecrets();
-
-        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
-            debugLogger.debug("Validating Bot Token");
-        if (bot_token.isBlank()) {
-            //noinspection LoggingSimilarMessage
-            logger.error("Missing Discord Bot Token (./tokens.secret)");
-            System.exit(1);
-        }
-
-        if (DebugLogging.isBasicEnabled())
-            debugLogger.debug("Starting Bot...");
-        DiscordAPI api = DiscordAPI.performMinimalStartup(bot_token, true);
-        try {
-            return api.getAPI().getSelfUser().getId();
-        } finally {
-            api.getAPI().shutdown();
-        }
     }
 
     private static void populateSecrets() {
@@ -108,52 +94,80 @@ public class InternalComitas implements InternalComitasImpl {
         }
     }
 
+    @NotNull
+    public static String minimalStartupAndFetchBotID() {
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Performing minimal startup to get Bot User ID");
+
+        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+            debugLogger.debug("Populating Secrets");
+        populateSecrets();
+
+        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+            debugLogger.debug("Validating Bot Token");
+        if (bot_token == null || bot_token.isBlank()) {
+            //noinspection LoggingSimilarMessage
+            logger.error("Missing Discord Bot Token (./tokens.secret)");
+            System.exit(1);
+        }
+
+        if (DebugLogging.isBasicEnabled())
+            debugLogger.debug("Starting Bot...");
+        DiscordAPI api = DiscordAPI.performMinimalStartup(bot_token, true);
+        try {
+            return DiscordAPI.api().getSelfUser().getId();
+        } finally {
+            DiscordAPI.api().shutdown();
+        }
+    }
+
+    public static void addShutdownCall(@NotNull Runnable callback) {
+        onShutdownCalls.add(callback);
+    }
+
     @Override
-    public String getServerVersion() {
+    public @NotNull String getServerVersion() {
         DebugLogging.action();
         return Main.getServerVersion();
     }
 
     @Override
-    public PluginManager getPluginManager() {
+    public @NotNull PluginManager getPluginManager() {
         DebugLogging.action();
+        assert pluginManager != null;
         return pluginManager;
     }
 
     @Override
-    public CommandRegistry getCommandRegistry() {
+    public @NotNull CommandRegistry getCommandRegistry() {
         DebugLogging.action();
+        assert commandRegistry != null;
         return commandRegistry;
     }
 
     @Override
-    public ConsoleCommandRegistry getConsoleCommandRegistry() {
+    public @NotNull ConsoleCommandRegistry getConsoleCommandRegistry() {
         DebugLogging.action();
         return consoleCommandRegistry;
     }
 
     @Override
-    public Scheduler getScheduler() {
+    public @NotNull Scheduler getScheduler() {
         DebugLogging.action();
+        assert scheduler != null;
         return scheduler;
     }
 
     @Override
-    public UtilityBackend getUtilityBackend() {
+    public @NotNull UtilityBackend getUtilityBackend() {
         DebugLogging.action();
         return utilityBackend;
     }
 
     @Override
-    public Bot getBot() {
+    public @NotNull Bot getBot() {
         DebugLogging.action();
+        assert bot != null;
         return bot;
-    }
-
-    static final List<Runnable> onShutdownCalls = new ArrayList<>();
-
-    public static void addShutdownCall(Runnable callback) {
-        onShutdownCalls.add(callback);
     }
 
     @Override
@@ -170,12 +184,12 @@ public class InternalComitas implements InternalComitasImpl {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Shutdown Hook");
         Runtime.getRuntime().addShutdownHook(new Thread(this::onShutdown));
 
-        if (DebugLogging.isBasicEnabled()) //noinspection LoggingSimilarMessage
+        if (DebugLogging.isBasicEnabled())
             debugLogger.debug("Populating Secrets");
         populateSecrets();
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating Bot Token");
-        if (bot_token.isBlank()) {
+        if (bot_token == null || bot_token.isBlank()) {
             logger.error("Missing Discord Bot Token (./tokens.secret)");
             System.exit(1);
         }
@@ -212,7 +226,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         pluginManager.setDiscordApi(api);
 
-        bot = new InternalBot(api.getAPI().getSelfUser());
+        bot = new InternalBot(DiscordAPI.api().getSelfUser());
     }
 
     @Override
@@ -226,9 +240,7 @@ public class InternalComitas implements InternalComitasImpl {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Marking as shutting down");
         if (!shuttingDown.compareAndSet(false, true)) return;
 
-        Terminal terminal = consolePrompt.lineReader() != null
-                ? consolePrompt.lineReader().getTerminal()
-                : null;
+        Terminal terminal = consolePrompt.lineReader().getTerminal();
 
         // Bypass printAbove()/Display entirely for shutdown logging.
         // Write straight to the terminal writer so we don't depend on
@@ -239,10 +251,8 @@ public class InternalComitas implements InternalComitasImpl {
             TuiAppender.setBypassMode(true);
         }
 
-        if (consolePrompt.lineReader() != null) {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("FLushing Console Output");
-            consolePrompt.lineReader().getTerminal().writer().flush();
-        }
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("FLushing Console Output");
+        consolePrompt.lineReader().getTerminal().writer().flush();
 
         logger.info("Shutting down ComitasBotJ");
 

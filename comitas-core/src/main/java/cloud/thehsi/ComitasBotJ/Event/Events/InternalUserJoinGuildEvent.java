@@ -7,16 +7,17 @@ import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 public record InternalUserJoinGuildEvent(GuildMemberJoinEvent event) implements UserJoinGuildEvent {
     @Override
-    public Member getMember() {
+    public @NotNull Member getMember() {
         DebugLogging.action();
         return new InternalMember(event.getMember());
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return new InternalGuild(event.getGuild());
     }

@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User.Presence;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum OnlineStatus {
     ONLINE("online"),
     IDLE("idle"),
@@ -8,17 +10,15 @@ public enum OnlineStatus {
     OFFLINE("offline"),
     UNKNOWN("");
 
-    private final String key;
+    private @NotNull
+    final String key;
 
-    OnlineStatus(String key) {
+    OnlineStatus(@NotNull String key) {
         this.key = key;
     }
 
-    public String getKey() {
-        return this.key;
-    }
-
-    public static OnlineStatus fromKey(String key) {
+    public @NotNull
+    static OnlineStatus fromKey(@NotNull String key) {
         for(OnlineStatus onlineStatus : values()) {
             if (onlineStatus.key.equalsIgnoreCase(key)) {
                 return onlineStatus;
@@ -26,5 +26,9 @@ public enum OnlineStatus {
         }
 
         return UNKNOWN;
+    }
+
+    public @NotNull String getKey() {
+        return this.key;
     }
 }

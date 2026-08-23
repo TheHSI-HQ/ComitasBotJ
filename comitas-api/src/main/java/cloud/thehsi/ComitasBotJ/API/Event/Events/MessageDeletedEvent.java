@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -18,6 +19,7 @@ public interface MessageDeletedEvent extends Event {
      *
      * @return The Message Channel
      */
+    @NotNull
     MessageChannel getChannel();
 
     /**

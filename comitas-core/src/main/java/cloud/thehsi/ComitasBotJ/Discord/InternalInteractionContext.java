@@ -2,23 +2,28 @@ package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
-import cloud.thehsi.ComitasBotJ.API.Discord.InteractionContext;
+import cloud.thehsi.ComitasBotJ.API.Discord.Interaction.InteractionContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.interactions.Interaction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 abstract public class InternalInteractionContext implements InteractionContext {
+    @NotNull
     final User user;
-    final @Nullable Channel channel;
-    final @Nullable Guild guild;
+    @Nullable
+    final Channel channel;
+    @Nullable
+    final Guild guild;
+    @NotNull
     final Interaction interaction;
 
-    public InternalInteractionContext(Interaction interaction) {
+    public InternalInteractionContext(@NotNull Interaction interaction) {
         this.interaction = interaction;
 
         this.user = new InternalUser(interaction.getUser());
@@ -32,7 +37,7 @@ abstract public class InternalInteractionContext implements InteractionContext {
     abstract public void acknowledge();
 
     @Override
-    public User getUser() {
+    public @NotNull User getUser() {
         DebugLogging.action();
         return user;
     }

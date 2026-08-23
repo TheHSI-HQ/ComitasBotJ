@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Role;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -14,6 +15,7 @@ public interface Role {
      *
      * @return The role's Name.
      */
+    @NotNull
     String getName();
 
     /**
@@ -21,7 +23,7 @@ public interface Role {
      *
      * @return The role's ID
      */
-    Long getId();
+    long getId();
 
     /**
      * Get the position of the role
@@ -37,6 +39,7 @@ public interface Role {
      *
      * @return The generated Mention-Component
      */
+    @NotNull
     Component mention();
 
     /**
@@ -68,6 +71,7 @@ public interface Role {
      *
      * @return The user's name with there color
      */
+    @NotNull
     String getLoggableName();
 
     /**
@@ -75,5 +79,6 @@ public interface Role {
      *
      * @return The generated list of permissions
      */
+    @NotNull
     List<Permission> getPermissions();
 }

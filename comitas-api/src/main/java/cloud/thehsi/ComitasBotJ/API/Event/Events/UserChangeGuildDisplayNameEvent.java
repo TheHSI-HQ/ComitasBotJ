@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -11,6 +12,7 @@ public interface UserChangeGuildDisplayNameEvent extends Event, UndoableEvent {
      *
      * @return The member who changed their nickname
      */
+    @NotNull
     Member getMember();
 
     /**
@@ -18,6 +20,7 @@ public interface UserChangeGuildDisplayNameEvent extends Event, UndoableEvent {
      *
      * @return The guild where the nickname was changed
      */
+    @NotNull
     Guild getGuild();
 
     /**

@@ -13,17 +13,23 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.Message;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InternalMessageEditedEvent implements MessageEditedEvent {
-    private final Message message;
-    private final cloud.thehsi.ComitasBotJ.API.Discord.Message.Message iMessage;
-    private final MessageChannel channel;
-    private final Guild guild;
-    private final net.dv8tion.jda.api.entities.Member author;
+    private @NotNull
+    final Message message;
+    private @NotNull
+    final cloud.thehsi.ComitasBotJ.API.Discord.Message.Message iMessage;
+    private @NotNull
+    final MessageChannel channel;
+    private @Nullable
+    final Guild guild;
+    private @Nullable
+    final net.dv8tion.jda.api.entities.Member author;
     private boolean delete = false;
 
-    public InternalMessageEditedEvent(net.dv8tion.jda.api.events.message.MessageUpdateEvent event) {
+    public InternalMessageEditedEvent(@NotNull net.dv8tion.jda.api.events.message.MessageUpdateEvent event) {
         this.message = event.getMessage();
         this.iMessage = new InternalMessage(message, this::deleteMessage);
 
@@ -54,18 +60,19 @@ public class InternalMessageEditedEvent implements MessageEditedEvent {
     }
 
     @Override
-    public String getRawContent() {
+    public @NotNull String getRawContent() {
         DebugLogging.action();
         return message.getContentRaw();
     }
 
     @Override
-    public Component getContent() {
+    public @NotNull Component getContent() {
         DebugLogging.action();
         return iMessage.getContent();
     }
 
     @Override
+    @NotNull
     public cloud.thehsi.ComitasBotJ.API.Discord.Message.Message getMessage() {
         DebugLogging.action();
         return iMessage;
@@ -81,25 +88,26 @@ public class InternalMessageEditedEvent implements MessageEditedEvent {
     }
 
     @Override
-    public MessageChannel getChannel() {
+    public @NotNull MessageChannel getChannel() {
         DebugLogging.action();
         return channel;
     }
 
     @Override
+    @Nullable
     public Guild getGuild() {
         DebugLogging.action();
         return guild;
     }
 
     @Override
-    public MyMessage reply(Component message) {
+    public @NotNull MyMessage reply(@NotNull Component message) {
         DebugLogging.action(message);
         return iMessage.reply(message);
     }
 
     @Override
-    public MyMessage reply(MessageData messageData) {
+    public @NotNull MyMessage reply(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
         return iMessage.reply(messageData);
     }

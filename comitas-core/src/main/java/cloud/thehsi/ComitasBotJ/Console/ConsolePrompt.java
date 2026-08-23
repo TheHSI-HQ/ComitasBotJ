@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Console;
 import ch.qos.logback.classic.LoggerContext;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import org.jetbrains.annotations.NotNull;
 import org.jline.reader.*;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -13,13 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConsolePrompt {
-    private static final Logger logger = LoggerFactory.getLogger("Console");
-    private static final Logger stdInLogger = LoggerFactory.getLogger("StdIn.Console");
-    private final InternalConsoleCommandRegistry registry;
+    private @NotNull
+    static final Logger logger = LoggerFactory.getLogger("Console");
+    private @NotNull
+    static final Logger stdInLogger = LoggerFactory.getLogger("StdIn.Console");
+    private @NotNull
+    final InternalConsoleCommandRegistry registry;
 
-    private final LineReader lineReader;
+    private @NotNull
+    final LineReader lineReader;
 
-    public ConsolePrompt(InternalConsoleCommandRegistry registry) {
+    public ConsolePrompt(@NotNull InternalConsoleCommandRegistry registry) {
         this.registry = registry;
 
         try {
@@ -72,19 +77,19 @@ public class ConsolePrompt {
         consoleThread.start();
     }
 
-    public void writeDirect(String line) {
+    public void writeDirect(@NotNull String line) {
         System.out.println(line);
     }
 
     /**
      * Called by TuiAppender on every log event
      */
-    public void appendLog(String line) {
-        if (lineReader == null) return;
+    public void appendLog(@NotNull String line) {
         // printAbove redraws the prompt line beneath automatically
         lineReader.printAbove(line);
     }
 
+    @NotNull
     public LineReader lineReader() {
         return lineReader;
     }

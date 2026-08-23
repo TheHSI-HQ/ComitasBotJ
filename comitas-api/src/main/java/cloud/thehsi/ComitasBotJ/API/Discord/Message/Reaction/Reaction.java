@@ -3,6 +3,8 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ public interface Reaction {
      *
      * @return The reaction's emoji
      */
+    @NotNull
     Emoji getEmoji();
 
     /**
@@ -20,6 +23,8 @@ public interface Reaction {
      *
      * @return A list of all reactors
      */
+    @NotNull
+    @Unmodifiable
     List<Member> getReactors();
 
     /**
@@ -48,6 +53,7 @@ public interface Reaction {
      *
      * @return The reaction's message
      */
+    @NotNull
     Message getMessage();
 
     /**
@@ -70,5 +76,5 @@ public interface Reaction {
      *
      * @param member TThe member whose reaction is to be removed
      */
-    void removeReaction(Member member);
+    void removeReaction(@NotNull Member member);
 }

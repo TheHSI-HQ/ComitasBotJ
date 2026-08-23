@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Components;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +14,13 @@ public class ComponentUnparser {
     private ComponentUnparser() {
     }
 
-    private static final Pattern BLOCK_PREFIX = Pattern.compile("^(#{1,3}|-#|>|-) (.*)$");
-    private static final Pattern FENCE = Pattern.compile("^```(\\S*)\\s*$");
+    private @NotNull
+    static final Pattern BLOCK_PREFIX = Pattern.compile("^(#{1,3}|-#|>|-) (.*)$");
+    private @NotNull
+    static final Pattern FENCE = Pattern.compile("^```(\\S*)\\s*$");
 
-    public static Component unparseComponent(String message) {
+    @NotNull
+    public static Component unparseComponent(@NotNull String message) {
         Component root = Component.empty();
         String[] rawLines = message.split("\n", -1);
 
@@ -74,7 +79,8 @@ public class ComponentUnparser {
         return root;
     }
 
-    private static Component parseInline(String line, Style lineStyle) {
+    @NotNull
+    private static Component parseInline(@NotNull String line, @Nullable Style lineStyle) {
         Component result = Component.empty();
 
         boolean bold = false, italic = false, underline = false,
@@ -132,7 +138,8 @@ public class ComponentUnparser {
         return c == '*' || c == '_' || c == '~' || c == '|' || c == '`' || c == '\\';
     }
 
-    private static Component appendRun(Component target, StringBuilder buffer, Style lineStyle,
+    @NotNull
+    private static Component appendRun(@NotNull Component target, @NotNull StringBuilder buffer, @Nullable Style lineStyle,
                                        boolean bold, boolean italic, boolean underline,
                                        boolean strikethrough, boolean code, boolean spoiler) {
         if (buffer.isEmpty()) return target;

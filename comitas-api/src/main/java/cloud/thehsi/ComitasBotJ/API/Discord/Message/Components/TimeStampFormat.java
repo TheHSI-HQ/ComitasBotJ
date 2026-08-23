@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Components;
 
+import org.jetbrains.annotations.NotNull;
+
 @SuppressWarnings("unused")
 public enum TimeStampFormat {
     RELATIVE("R"),
@@ -10,12 +12,14 @@ public enum TimeStampFormat {
     LONG_DATE_WITH_SHORT_TIME("f"),
     LONG_DATE_WITH_DAY_OF_WEEK_AND_TIME("F");
 
-    private final String identifier;
+    private @NotNull
+    final String identifier;
 
-    TimeStampFormat(String identifier) {
+    TimeStampFormat(@NotNull String identifier) {
         this.identifier = identifier;
     }
 
+    @NotNull
     public String getIdentifier() {
         return identifier;
     }

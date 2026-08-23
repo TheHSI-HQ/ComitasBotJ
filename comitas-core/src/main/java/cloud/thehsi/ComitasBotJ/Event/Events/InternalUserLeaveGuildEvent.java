@@ -9,11 +9,12 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record InternalUserLeaveGuildEvent(GuildMemberRemoveEvent event) implements UserLeaveGuildEvent {
     @Override
-    public User getUser() {
+    public @NotNull User getUser() {
         DebugLogging.action();
         return new InternalUser(event.getUser());
     }
@@ -27,7 +28,7 @@ public record InternalUserLeaveGuildEvent(GuildMemberRemoveEvent event) implemen
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return new InternalGuild(event.getGuild());
     }

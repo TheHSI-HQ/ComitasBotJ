@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Commands;
 
+import org.jetbrains.annotations.NotNull;
+
 @SuppressWarnings("unused")
 public interface CommandRegistry {
     /**
@@ -8,5 +10,5 @@ public interface CommandRegistry {
      * @param command The CommandSupplier with the commands
      */
 
-    void register(CommandSupplier command);
+    void register(@NotNull CommandSupplier command);
 }

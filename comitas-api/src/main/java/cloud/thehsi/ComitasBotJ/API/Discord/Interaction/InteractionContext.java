@@ -1,8 +1,9 @@
-package cloud.thehsi.ComitasBotJ.API.Discord;
+package cloud.thehsi.ComitasBotJ.API.Discord.Interaction;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -12,6 +13,7 @@ public interface InteractionContext {
      *
      * @return The interaction causing user
      */
+    @NotNull
     User getUser();
 
     /**

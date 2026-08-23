@@ -6,13 +6,17 @@ import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageDeletedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InternalMessageDeletedEvent implements MessageDeletedEvent {
-    private final MessageChannel channel;
-    private final Guild guild;
+    private @NotNull
+    final MessageChannel channel;
+    private @Nullable
+    final Guild guild;
     private final long id;
 
-    public InternalMessageDeletedEvent(net.dv8tion.jda.api.events.message.MessageDeleteEvent event) {
+    public InternalMessageDeletedEvent(@NotNull net.dv8tion.jda.api.events.message.MessageDeleteEvent event) {
         this.channel = new InternalMessageChannel(event.getChannel());
         if (event.isFromGuild())
             this.guild = new InternalGuild(event.getGuild());
@@ -27,12 +31,13 @@ public class InternalMessageDeletedEvent implements MessageDeletedEvent {
     }
 
     @Override
-    public MessageChannel getChannel() {
+    public @NotNull MessageChannel getChannel() {
         DebugLogging.action();
         return channel;
     }
 
     @Override
+    @Nullable
     public Guild getGuild() {
         DebugLogging.action();
         return guild;

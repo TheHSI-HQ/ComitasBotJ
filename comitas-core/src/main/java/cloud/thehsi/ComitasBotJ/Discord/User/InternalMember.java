@@ -25,14 +25,16 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class InternalMember extends InternalUser implements Member {
-    public final net.dv8tion.jda.api.entities.Member member;
+    public @NotNull
+    final net.dv8tion.jda.api.entities.Member member;
 
-    public InternalMember(net.dv8tion.jda.api.entities.Member member) {
+    public InternalMember(@NotNull net.dv8tion.jda.api.entities.Member member) {
         super(member.getUser());
         this.member = member;
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "InternalMember{" +
                 "member=" + member +
@@ -52,6 +54,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
+    @Nullable
     public Color getPrimaryColor() {
         DebugLogging.action();
         return member.getRoles().stream()
@@ -62,6 +65,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
+    @Nullable
     public Color getSecondaryColor() {
         DebugLogging.action();
         return member.getRoles().stream()
@@ -72,6 +76,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
+    @Nullable
     public Color getTertiaryColor() {
         DebugLogging.action();
         return member.getRoles().stream()
@@ -104,7 +109,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public @NotNull OnlineStatus getOnlineStatus(ClientType clientType) {
+    public @NotNull OnlineStatus getOnlineStatus(@NotNull ClientType clientType) {
         DebugLogging.action(clientType);
         return OnlineStatus.fromKey(member.getOnlineStatus(
                 net.dv8tion.jda.api.entities.ClientType.fromKey(clientType.getKey())

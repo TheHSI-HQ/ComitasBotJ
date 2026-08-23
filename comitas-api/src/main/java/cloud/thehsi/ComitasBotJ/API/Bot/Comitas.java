@@ -4,18 +4,23 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class Comitas {
-    private static final Comitas INSTANCE = new Comitas();
+    private @NotNull
+    static final Comitas INSTANCE = new Comitas();
 
-    private InternalComitasImpl impl;
+    private @Nullable InternalComitasImpl impl;
 
     private Comitas() {
     }
 
     /* Not supposed to be used by Plugin Developers */
+    @NotNull
     public static UtilityBackend getUtilityBackend() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getUtilityBackend();
     }
 
@@ -23,6 +28,7 @@ public class Comitas {
      * Shutdown the Bot.
      */
     public static void shutdown() {
+        assert INSTANCE.impl != null;
         INSTANCE.impl.shutdown();
     }
 
@@ -31,7 +37,9 @@ public class Comitas {
      *
      * @return The {@link Bot}.
      */
+    @NotNull
     public static Bot getBot() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getBot();
     }
 
@@ -41,6 +49,7 @@ public class Comitas {
      *
      * @return Instance of {@link Comitas}.
      */
+    @NotNull
     public static Comitas getInstance() {
         return INSTANCE;
     }
@@ -50,7 +59,9 @@ public class Comitas {
      *
      * @return The Current Server Version.
      */
+    @NotNull
     public static String getServerVersion() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getServerVersion();
     }
 
@@ -61,7 +72,9 @@ public class Comitas {
      *
      * @return The {@link PluginManager} in use by {@link Comitas}
      */
+    @NotNull
     public static PluginManager getPluginManager() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getPluginManager();
     }
 
@@ -72,7 +85,9 @@ public class Comitas {
      *
      * @return The {@link CommandRegistry} in use by {@link Comitas}
      */
+    @NotNull
     public static CommandRegistry getCommandRegistry() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getCommandRegistry();
     }
 
@@ -83,7 +98,9 @@ public class Comitas {
      *
      * @return The {@link ConsoleCommandRegistry} in use by {@link Comitas}
      */
+    @NotNull
     public static ConsoleCommandRegistry getConsoleCommandRegistry() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getConsoleCommandRegistry();
     }
 
@@ -94,11 +111,13 @@ public class Comitas {
      *
      * @return The {@link Scheduler} in use by {@link Comitas}
      */
+    @NotNull
     public static Scheduler getScheduler() {
+        assert INSTANCE.impl != null;
         return INSTANCE.impl.getScheduler();
     }
 
-    public void init(InternalComitasImpl impl) {
+    public void init(@NotNull InternalComitasImpl impl) {
         assert INSTANCE.impl == null;
 
         INSTANCE.impl = impl;

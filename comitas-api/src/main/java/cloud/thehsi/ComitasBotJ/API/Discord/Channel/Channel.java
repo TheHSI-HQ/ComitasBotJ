@@ -2,7 +2,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ public interface Channel {
      *
      * @return The channel's Name.
      */
+    @NotNull
     String getName();
 
     /**
@@ -20,6 +23,7 @@ public interface Channel {
      *
      * @return The channel's Type.
      */
+    @NotNull
     ChannelType getType();
 
     /**
@@ -27,7 +31,7 @@ public interface Channel {
      *
      * @return The channel's ID
      */
-    Long getId();
+    long getId();
 
     /**
      * Is this channel NSFW
@@ -43,6 +47,7 @@ public interface Channel {
      *
      * @return The generated Mention-Component
      */
+    @NotNull
     Component mention();
 
     /**
@@ -51,5 +56,6 @@ public interface Channel {
      * @return The channel members if present
      */
     @Nullable
+    @Unmodifiable
     List<Member> getMembers();
 }

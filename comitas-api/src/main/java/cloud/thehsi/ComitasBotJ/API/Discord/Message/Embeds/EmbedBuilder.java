@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.time.temporal.TemporalAccessor;
@@ -10,16 +12,17 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class EmbedBuilder {
-    private EmbedAuthor author = null;
-    private Color color = null;
-    private Component description = null;
-    private EmbedFooter footer = null;
-    private String image = null;
-    private String thumbnail = null;
-    private EmbedTitle title = null;
-    private TemporalAccessor timestamp = null;
-    private String url = null;
-    private final List<EmbedField> fields = new ArrayList<>();
+    private @NotNull
+    final List<EmbedField> fields = new ArrayList<>();
+    private @Nullable EmbedAuthor author = null;
+    private @Nullable Color color = null;
+    private @Nullable Component description = null;
+    private @Nullable EmbedFooter footer = null;
+    private @Nullable String image = null;
+    private @Nullable String thumbnail = null;
+    private @Nullable EmbedTitle title = null;
+    private @Nullable TemporalAccessor timestamp = null;
+    private @Nullable String url = null;
 
     /**
      * Sets the embeds author.
@@ -27,7 +30,8 @@ public class EmbedBuilder {
      * @param author The new author
      * @return The embed builder.
      */
-    public EmbedBuilder setAuthor(EmbedAuthor author) {
+    @NotNull
+    public EmbedBuilder setAuthor(@Nullable EmbedAuthor author) {
         this.author = author;
         return this;
     }
@@ -38,8 +42,12 @@ public class EmbedBuilder {
      * @param author The new author
      * @return The embed builder.
      */
-    public EmbedBuilder setAuthor(String author) {
-        this.author = new EmbedAuthor(author);
+    @NotNull
+    public EmbedBuilder setAuthor(@Nullable String author) {
+        if (author == null)
+            this.author = null;
+        else
+            this.author = new EmbedAuthor(author);
         return this;
     }
 
@@ -49,7 +57,8 @@ public class EmbedBuilder {
      * @param color The new color
      * @return The embed builder.
      */
-    public EmbedBuilder setColor(Color color) {
+    @NotNull
+    public EmbedBuilder setColor(@Nullable Color color) {
         this.color = color;
         return this;
     }
@@ -60,7 +69,8 @@ public class EmbedBuilder {
      * @param description The new description
      * @return The embed builder.
      */
-    public EmbedBuilder setDescription(Component description) {
+    @NotNull
+    public EmbedBuilder setDescription(@Nullable Component description) {
         this.description = description;
         return this;
     }
@@ -71,7 +81,8 @@ public class EmbedBuilder {
      * @param footer The new footer
      * @return The embed builder.
      */
-    public EmbedBuilder setFooter(EmbedFooter footer) {
+    @NotNull
+    public EmbedBuilder setFooter(@Nullable EmbedFooter footer) {
         this.footer = footer;
         return this;
     }
@@ -82,8 +93,12 @@ public class EmbedBuilder {
      * @param footer The new footer
      * @return The embed builder.
      */
-    public EmbedBuilder setFooter(String footer) {
-        this.footer = new EmbedFooter(footer);
+    @NotNull
+    public EmbedBuilder setFooter(@Nullable String footer) {
+        if (footer == null)
+            this.footer = null;
+        else
+            this.footer = new EmbedFooter(footer);
         return this;
     }
 
@@ -93,7 +108,8 @@ public class EmbedBuilder {
      * @param url The new image url
      * @return The embed builder.
      */
-    public EmbedBuilder setImage(String url) {
+    @NotNull
+    public EmbedBuilder setImage(@Nullable String url) {
         this.image = url;
         return this;
     }
@@ -104,7 +120,8 @@ public class EmbedBuilder {
      * @param url The new thumbnail url
      * @return The embed builder.
      */
-    public EmbedBuilder setThumbnail(String url) {
+    @NotNull
+    public EmbedBuilder setThumbnail(@Nullable String url) {
         this.thumbnail = url;
         return this;
     }
@@ -115,7 +132,8 @@ public class EmbedBuilder {
      * @param title The new title
      * @return The embed builder.
      */
-    public EmbedBuilder setTitle(EmbedTitle title) {
+    @NotNull
+    public EmbedBuilder setTitle(@Nullable EmbedTitle title) {
         this.title = title;
         return this;
     }
@@ -126,8 +144,12 @@ public class EmbedBuilder {
      * @param title The new title
      * @return The embed builder.
      */
-    public EmbedBuilder setTitle(String title) {
-        this.title = new EmbedTitle(title);
+    @NotNull
+    public EmbedBuilder setTitle(@Nullable String title) {
+        if (title == null)
+            this.title = null;
+        else
+            this.title = new EmbedTitle(title);
         return this;
     }
 
@@ -137,7 +159,8 @@ public class EmbedBuilder {
      * @param timestamp The new timestamp
      * @return The embed builder.
      */
-    public EmbedBuilder setTimestamp(TemporalAccessor timestamp) {
+    @NotNull
+    public EmbedBuilder setTimestamp(@Nullable TemporalAccessor timestamp) {
         this.timestamp = timestamp;
         return this;
     }
@@ -148,7 +171,8 @@ public class EmbedBuilder {
      * @param url The new url
      * @return The embed builder.
      */
-    public EmbedBuilder setUrl(String url) {
+    @NotNull
+    public EmbedBuilder setUrl(@Nullable String url) {
         this.url = url;
         return this;
     }
@@ -159,7 +183,8 @@ public class EmbedBuilder {
      * @param field The field to add
      * @return The embed builder.
      */
-    public EmbedBuilder addField(EmbedField field) {
+    @NotNull
+    public EmbedBuilder addField(@Nullable EmbedField field) {
         this.fields.add(field);
         return this;
     }
@@ -169,6 +194,7 @@ public class EmbedBuilder {
      *
      * @return The build embed.
      */
+    @NotNull
     public Embed build() {
         return Comitas.getUtilityBackend().createEmbed(
                 author,

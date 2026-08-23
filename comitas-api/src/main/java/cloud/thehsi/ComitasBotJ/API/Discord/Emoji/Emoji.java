@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Emoji;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -12,7 +13,7 @@ public interface Emoji {
      * @return The emoji
      */
     @Nullable
-    static Emoji fromId(String id) {
+    static Emoji fromId(@NotNull String id) {
         return Comitas.getUtilityBackend().getEmojiFromId(id);
     }
 
@@ -32,7 +33,7 @@ public interface Emoji {
      * @return The emoji
      */
     @Nullable
-    static Emoji fromUnicode(String id) {
+    static Emoji fromUnicode(@NotNull String id) {
         return Comitas.getUtilityBackend().getEmojiFromUnicode(id);
     }
 
@@ -41,6 +42,7 @@ public interface Emoji {
      *
      * @return The emoji component
      */
+    @NotNull
     Component asComponent();
 
     /**
@@ -48,5 +50,6 @@ public interface Emoji {
      *
      * @return The emoji name
      */
+    @NotNull
     String getName();
 }

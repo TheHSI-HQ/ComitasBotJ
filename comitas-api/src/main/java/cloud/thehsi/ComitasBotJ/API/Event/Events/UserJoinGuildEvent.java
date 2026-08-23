@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface UserJoinGuildEvent extends Event {
@@ -10,6 +11,7 @@ public interface UserJoinGuildEvent extends Event {
      *
      * @return The member who joined
      */
+    @NotNull
     Member getMember();
 
     /**
@@ -17,5 +19,6 @@ public interface UserJoinGuildEvent extends Event {
      *
      * @return The guild, who the member joined
      */
+    @NotNull
     Guild getGuild();
 }

@@ -13,7 +13,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -22,41 +22,40 @@ import java.util.List;
 import java.util.Set;
 
 public class InternalThreadChannel extends InternalMessageChannel implements ThreadChannel {
+    @NotNull
     final net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel;
 
-    public InternalThreadChannel(net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel) {
+    public InternalThreadChannel(@NotNull net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel) {
         super(channel);
 
         this.channel = channel;
     }
 
+    @NotNull
     public net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel() {
         return channel;
     }
 
     @Override
-    @Nullable
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
-        if (channel instanceof GuildChannel guildChannel)
-            return new InternalGuild(guildChannel.getGuild());
-        return null;
+        return new InternalGuild(channel.getGuild());
     }
 
     @Override
-    public Message getInitialMessage() {
+    public @NotNull Message getInitialMessage() {
         DebugLogging.action();
         return new InternalMessage(channel.retrieveStartMessage().complete());
     }
 
     @Override
-    public Channel getParent() {
+    public @NotNull Channel getParent() {
         DebugLogging.action();
         return ChannelTypeResolver.resolve(channel.getParentChannel());
     }
 
     @Override
-    public List<ThreadTag> getTags() {
+    public @NotNull List<ThreadTag> getTags() {
         DebugLogging.action();
         return channel.getAppliedTags().stream()
                 .map(e -> (ThreadTag) new InternalThreadTag(e, channel.getIdLong()))
@@ -64,7 +63,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public void addTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+    public void addTag(@NotNull ThreadTag tag) throws TagUsedOnIncorrectChannelException {
         DebugLogging.action(tag);
         List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
         if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
@@ -88,7 +87,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public void removeTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+    public void removeTag(@NotNull ThreadTag tag) throws TagUsedOnIncorrectChannelException {
         DebugLogging.action(tag);
         List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
         if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
@@ -105,7 +104,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public boolean hasTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+    public boolean hasTag(@NotNull ThreadTag tag) throws TagUsedOnIncorrectChannelException {
         DebugLogging.action(tag);
         List<ForumTag> tags = new ArrayList<>(channel.getAppliedTags());
         if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
@@ -116,7 +115,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public List<Member> getMembers() {
+    public @NotNull List<Member> getMembers() {
         DebugLogging.action();
         return channel.retrieveThreadMembers().complete().stream()
                 .map(e -> (Member) new InternalMember(e.getMember()))
@@ -124,7 +123,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public void addMember(Member member) {
+    public void addMember(@NotNull Member member) {
         DebugLogging.action(member);
         if (!(member instanceof InternalMember internalMember))
             throw new RuntimeException("Member is not associated with an internal member");
@@ -132,7 +131,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public void removeMember(Member member) {
+    public void removeMember(@NotNull Member member) {
         DebugLogging.action(member);
         if (!(member instanceof InternalMember internalMember))
             throw new RuntimeException("Member is not associated with an internal member");
@@ -188,13 +187,13 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @Override
-    public String getTitle() {
+    public @NotNull String getTitle() {
         DebugLogging.action();
         return channel.getName();
     }
 
     @Override
-    public void setTitle(String title) {
+    public void setTitle(@NotNull String title) {
         DebugLogging.action(title);
         channel.getManager().setName(title).complete();
     }

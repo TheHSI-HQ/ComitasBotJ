@@ -14,7 +14,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Channel.Thread.InternalThreadTag;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -23,29 +23,28 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class InternalForumChannel extends InternalChannel implements ForumChannel {
+    @NotNull
     final net.dv8tion.jda.api.entities.channel.concrete.ForumChannel channel;
 
-    public InternalForumChannel(net.dv8tion.jda.api.entities.channel.concrete.ForumChannel channel) {
+    public InternalForumChannel(@NotNull net.dv8tion.jda.api.entities.channel.concrete.ForumChannel channel) {
         super(channel);
 
         this.channel = channel;
     }
 
+    @NotNull
     public net.dv8tion.jda.api.entities.channel.concrete.ForumChannel channel() {
         return channel;
     }
 
     @Override
-    @Nullable
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
-        if (channel instanceof GuildChannel guildChannel)
-            return new InternalGuild(guildChannel.getGuild());
-        return null;
+        return new InternalGuild(channel.getGuild());
     }
 
     @Override
-    public List<ThreadChannel> getPosts() {
+    public @NotNull List<ThreadChannel> getPosts() {
         DebugLogging.action();
         return channel.getThreadChannels().stream()
                 .map(e -> (ThreadChannel) new InternalThreadChannel(e))
@@ -53,7 +52,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public List<ThreadTag> getTags() {
+    public @NotNull List<ThreadTag> getTags() {
         DebugLogging.action();
         return channel.getAvailableTags().stream().map(
                 e-> (ThreadTag) new InternalThreadTag(e, channel.getIdLong())
@@ -61,7 +60,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public @Nullable ThreadTag getTag(String tagName) {
+    public @Nullable ThreadTag getTag(@NotNull String tagName) {
         DebugLogging.action(tagName);
         return getTags().stream()
                 .filter(e -> Objects.equals(e.getName(), tagName))
@@ -70,7 +69,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public ThreadTag getOrAddTag(String tagName) {
+    public @NotNull ThreadTag getOrAddTag(@NotNull String tagName) {
         DebugLogging.action(tagName);
         ThreadTag tag = getTag(tagName);
         if (tag != null)
@@ -83,13 +82,13 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public ThreadTag addTag(String tagName) throws TagNameNotUniqueException {
+    public @NotNull ThreadTag addTag(@NotNull String tagName) throws TagNameNotUniqueException {
         DebugLogging.action(tagName);
         return Comitas.getUtilityBackend().createTagOnChannel(this, tagName);
     }
 
     @Override
-    public void addTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+    public void addTag(@NotNull ThreadTag tag) throws TagUsedOnIncorrectChannelException {
         DebugLogging.action(tag);
         List<ForumTag> tags = new ArrayList<>(channel.getAvailableTags());
         if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
@@ -105,7 +104,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public void removeTag(ThreadTag tag) throws TagUsedOnIncorrectChannelException {
+    public void removeTag(@NotNull ThreadTag tag) throws TagUsedOnIncorrectChannelException {
         DebugLogging.action(tag);
         List<ForumTag> tags = new ArrayList<>(channel.getAvailableTags());
         if (!(tag instanceof InternalThreadTag(ForumTag iTag, long channelId)))
@@ -121,13 +120,13 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     }
 
     @Override
-    public ThreadChannel createPost(String title, Component message) {
+    public @NotNull ThreadChannel createPost(@NotNull String title, @NotNull Component message) {
         DebugLogging.action(title, message);
         return createPost(title, message.asMessageData());
     }
 
     @Override
-    public ThreadChannel createPost(String title, MessageData messageData) {
+    public @NotNull ThreadChannel createPost(@NotNull String title, @NotNull MessageData messageData) {
         DebugLogging.action(title, messageData);
         AtomicReference<InternalThreadChannel> result = new AtomicReference<>();
         MessageDataParser.send(messageData, data -> {

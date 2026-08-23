@@ -3,6 +3,8 @@ package cloud.thehsi.ComitasBotJ;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,7 +17,10 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -24,25 +29,28 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Updater {
+    @NotNull
     static final String GITHUB_REPO = "TheHSI-HQ/ComitasBotJ";
+    @NotNull
     static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    private static final DecimalFormat DF = new DecimalFormat("0.00",
+    private @NotNull
+    static final DecimalFormat DF = new DecimalFormat("0.00",
             DecimalFormatSymbols.getInstance(Locale.ROOT));
 
-    private static void log(String message, Object... args) {
+    private static void log(@NotNull String message, @Nullable Object... args) {
         for (Object arg : args) {
             message = message.replaceFirst("\\{}", java.util.regex.Matcher.quoteReplacement(String.valueOf(arg)));
         }
         System.out.println(message);
     }
 
-    private static void logError(String message, Throwable throwable) {
+    private static void logError(@NotNull String message, @NotNull Throwable throwable) {
         System.err.println(message);
         throwable.printStackTrace(System.err);
     }
 
-    private static byte[] downloadFile(URL url) throws IOException {
+    private static byte[] downloadFile(@NotNull URL url) throws IOException {
         URLConnection connection = url.openConnection();
         long totalBytes = connection.getContentLengthLong();
 
@@ -116,6 +124,7 @@ public class Updater {
         }
     }
 
+    @NotNull
     private static String formatDuration(long seconds) {
         if (seconds < 0) {
             return "--:--";
@@ -132,6 +141,7 @@ public class Updater {
         return String.format(Locale.ROOT, "%02d:%02d", minutes, secs);
     }
 
+    @NotNull
     private static String getLatestRelease() throws IOException, InterruptedException {
         try (HttpClient client = HttpClient.newHttpClient()) {
 
@@ -149,6 +159,7 @@ public class Updater {
         }
     }
 
+    @NotNull
     static CompletableFuture<byte[]> downloadNewestResource() {
         CompletableFuture<byte[]> future = new CompletableFuture<>();
 

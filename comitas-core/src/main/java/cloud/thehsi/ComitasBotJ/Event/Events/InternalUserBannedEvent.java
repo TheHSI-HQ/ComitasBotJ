@@ -12,16 +12,20 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
 public class InternalUserBannedEvent extends InternalUndoableEvent implements UserBannedEvent {
+    @NotNull
     final GuildBanEvent event;
+    @NotNull
     final Ban ban;
+    @NotNull
     final EventOrigin eventOrigin;
 
-    public InternalUserBannedEvent(GuildBanEvent event, EventOrigin origin) {
+    public InternalUserBannedEvent(@NotNull GuildBanEvent event, @NotNull EventOrigin origin) {
         this.event = event;
         String reason = event.getGuild().retrieveAuditLogs()
                 .type(ActionType.BAN)
@@ -38,25 +42,25 @@ public class InternalUserBannedEvent extends InternalUndoableEvent implements Us
     }
 
     @Override
-    public User getUser() {
+    public @NotNull User getUser() {
         DebugLogging.action();
         return new InternalUser(event.getUser());
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return new InternalGuild(event.getGuild());
     }
 
     @Override
-    public Ban getBan() {
+    public @NotNull Ban getBan() {
         DebugLogging.action();
         return ban;
     }
 
     @Override
-    public EventOrigin getOrigin() {
+    public @NotNull EventOrigin getOrigin() {
         return eventOrigin;
     }
 }

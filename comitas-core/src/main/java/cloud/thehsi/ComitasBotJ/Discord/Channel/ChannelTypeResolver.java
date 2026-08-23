@@ -5,9 +5,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import org.jetbrains.annotations.NotNull;
 
 public class ChannelTypeResolver {
-    public static Channel resolve(net.dv8tion.jda.api.entities.channel.Channel channel) {
+    @NotNull
+    public static Channel resolve(@NotNull net.dv8tion.jda.api.entities.channel.Channel channel) {
         ChannelType type = ChannelType.fromId(channel.getType().name());
 
         Channel c = switch (type) {

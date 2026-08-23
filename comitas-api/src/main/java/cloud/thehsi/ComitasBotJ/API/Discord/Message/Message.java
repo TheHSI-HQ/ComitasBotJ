@@ -7,7 +7,10 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -37,6 +40,7 @@ public interface Message {
      *
      * @return The raw message content
      */
+    @NotNull
     String getRawContent();
 
     /**
@@ -44,13 +48,23 @@ public interface Message {
      *
      * @return The message content as a component tree
      */
+    @NotNull
     Component getContent();
+
+    /**
+     * Get the Message Author User
+     *
+     * @return The Message Author User
+     */
+    @NotNull
+    User getAuthorUser();
 
     /**
      * Get the Message Author
      *
      * @return The Message Author
      */
+    @Nullable
     Member getAuthor();
 
     /**
@@ -58,6 +72,7 @@ public interface Message {
      *
      * @return The Message Channel
      */
+    @Nullable
     MessageChannel getChannel();
 
     /**
@@ -87,23 +102,27 @@ public interface Message {
      *
      * @return The list of reactions
      */
+    @NotNull
+    @Unmodifiable
     List<Reaction> getReactions();
 
     /**
      * React to this message
      */
-    void react(Emoji emoji);
+    void react(@NotNull Emoji emoji);
 
     /**
      * Removes a reaction to this message
      */
-    void unreact(Emoji emoji);
+    void unreact(@NotNull Emoji emoji);
 
     /**
      * Get a list of attachments to this message
      *
      * @return The list of attachments
      */
+    @NotNull
+    @Unmodifiable
     List<MessageAttachment> getAttachments();
 
     /**
@@ -111,6 +130,7 @@ public interface Message {
      *
      * @return The MessageData
      */
+    @NotNull
     MessageData getData();
 
     /**
@@ -118,7 +138,8 @@ public interface Message {
      *
      * @return The embeds
      */
-    Embed[] getEmbeds();
+    @NotNull
+    List<Embed> getEmbeds();
 
     /**
      * Forward the message to a {@link MessageChannel}
@@ -126,7 +147,7 @@ public interface Message {
      * @return The message with the forwarded message
      */
     @Nullable
-    MyMessage forward(MessageChannel channel);
+    MyMessage forward(@NotNull MessageChannel channel);
 
     /**
      * Returns the MyMessage cast of the Message if the bot send the message
@@ -143,7 +164,8 @@ public interface Message {
      * @param message The message to be sent
      * @return The message that was sent
      */
-    MyMessage reply(Component message);
+    @NotNull
+    MyMessage reply(@NotNull Component message);
 
     /**
      * Reply to the message in the same channel this message was send in with message data
@@ -151,5 +173,6 @@ public interface Message {
      * @param messageData The message data
      * @return The message that was sent
      */
-    MyMessage reply(MessageData messageData);
+    @NotNull
+    MyMessage reply(@NotNull MessageData messageData);
 }

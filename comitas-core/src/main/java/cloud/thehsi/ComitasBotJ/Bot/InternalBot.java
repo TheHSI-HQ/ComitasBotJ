@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import java.util.List;
 
 public record InternalBot(SelfUser bot) implements Bot {
+    @NotNull
     static final Logger debugLogger = DebugLogging.getLogger();
 
     @Override
@@ -39,20 +40,20 @@ public record InternalBot(SelfUser bot) implements Bot {
     }
 
     @Override
-    public @NotNull String generateInvitationLink(cloud.thehsi.ComitasBotJ.API.Discord.Permission... permissions) {
+    public @NotNull String generateInvitationLink(@NotNull cloud.thehsi.ComitasBotJ.API.Discord.Permission... permissions) {
         DebugLogging.action((Object) permissions);
         return bot.getJDA().getInviteUrl(Permission.getPermissions(cloud.thehsi.ComitasBotJ.API.Discord.Permission.asLong(permissions)));
     }
 
     @Override
-    public @NotNull Long getId() {
+    public long getId() {
         DebugLogging.action();
         return bot.getIdLong();
     }
 
     @Override
     @ApiStatus.Experimental
-    public @Nullable Guild getGuildById(Long id) {
+    public @Nullable Guild getGuildById(@NotNull Long id) {
         DebugLogging.action(id);
         net.dv8tion.jda.api.entities.Guild guild = bot.getJDA().getGuildById(id);
         if (guild == null) return null;
@@ -61,7 +62,7 @@ public record InternalBot(SelfUser bot) implements Bot {
 
     @Override
     @ApiStatus.Experimental
-    public @Nullable Guild getGuildById(String id) {
+    public @Nullable Guild getGuildById(@NotNull String id) {
         DebugLogging.action(id);
         net.dv8tion.jda.api.entities.Guild guild = bot.getJDA().getGuildById(id);
         if (guild == null) return null;

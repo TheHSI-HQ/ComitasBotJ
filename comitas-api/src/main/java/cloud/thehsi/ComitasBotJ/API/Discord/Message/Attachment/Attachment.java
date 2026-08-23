@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
@@ -12,6 +13,7 @@ public interface Attachment {
      *
      * @return The attachment's hash
      */
+    @NotNull
     CompletableFuture<String> getHash();
 
     /**
@@ -19,6 +21,7 @@ public interface Attachment {
      *
      * @return The attachment's content
      */
+    @NotNull
     CompletableFuture<byte[]> getContent();
 
     /**
@@ -41,6 +44,7 @@ public interface Attachment {
      *
      * @return The attachment's filename
      */
+    @NotNull
     String getFileName();
 
     /**
@@ -48,10 +52,12 @@ public interface Attachment {
      *
      * @return The attachment's url
      */
+    @NotNull
     String getURL();
 
     /**
      * Converts the attachment into {@link MessageData}
      */
+    @NotNull
     MessageData asMessageData();
 }

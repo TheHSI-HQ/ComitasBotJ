@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("unused")
 public class AsyncTask implements Task {
     final int taskId;
-    final Plugin owner;
-    final Thread thread;
+    final @NotNull Plugin owner;
+    final @NotNull Thread thread;
     boolean canceled = false;
 
-    public AsyncTask(int taskId, Plugin owner, Thread thread) {
+    public AsyncTask(int taskId, @NotNull Plugin owner, @NotNull Thread thread) {
         this.taskId = taskId;
         this.owner = owner;
         this.thread = thread;

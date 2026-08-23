@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface BotReadyEvent extends Event {
@@ -9,6 +10,7 @@ public interface BotReadyEvent extends Event {
      *
      * @return The bot's Username.
      */
+    @NotNull
     String getUserName();
 
     /**
@@ -16,6 +18,7 @@ public interface BotReadyEvent extends Event {
      *
      * @return The bot's Display Name
      */
+    @NotNull
     String getDisplayName();
 
     /**
@@ -23,12 +26,13 @@ public interface BotReadyEvent extends Event {
      *
      * @return The bot's ID
      */
-    Long getId();
+    long getId();
 
     /**
      * Returns the bot
      *
      * @return The bot
      */
+    @NotNull
     Bot getBot();
 }

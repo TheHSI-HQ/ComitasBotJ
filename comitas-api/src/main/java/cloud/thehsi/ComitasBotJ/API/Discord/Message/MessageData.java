@@ -5,6 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,83 +14,95 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public class MessageData {
-    Component content = Component.empty();
-    final List<Embed> embeds = new ArrayList<>();
-    final List<Attachment> attachments = new ArrayList<>();
-    final List<AttachmentUpload> attachmentUploads = new ArrayList<>();
-    final List<ActionRowComponent> actionRowComponents = new ArrayList<>();
+    final @NotNull List<Embed> embeds = new ArrayList<>();
+    final @NotNull List<Attachment> attachments = new ArrayList<>();
+    final @NotNull List<AttachmentUpload> attachmentUploads = new ArrayList<>();
+    final @NotNull List<ActionRowComponent> actionRowComponents = new ArrayList<>();
+    @NotNull Component content = Component.empty();
 
-    public MessageData setContent(Component content) {
-        this.content = content;
-        return this;
+    public MessageData(@Nullable Component component) {
+        this.setContent(component);
     }
 
-    public MessageData addEmbed(Embed embed) {
+    public MessageData(@Nullable Component component, @NotNull Embed... embeds) {
+        this.setContent(content);
+        this.embeds.addAll(Arrays.stream(embeds).toList());
+    }
+
+    public MessageData(@Nullable Component component, @NotNull AttachmentUpload... attachments) {
+        this.setContent(component);
+        this.attachmentUploads.addAll(Arrays.stream(attachments).toList());
+    }
+
+    public MessageData(@NotNull Embed... embeds) {
+        this.embeds.addAll(Arrays.stream(embeds).toList());
+    }
+
+    public MessageData(@NotNull AttachmentUpload... attachments) {
+        this.attachmentUploads.addAll(Arrays.stream(attachments).toList());
+    }
+
+    @NotNull
+    public MessageData addEmbed(@NotNull Embed embed) {
         this.embeds.add(embed);
         return this;
     }
 
-    public MessageData addActionRowComponent(ActionRowComponent actionRowComponent) {
+    @NotNull
+    public MessageData addActionRowComponent(@NotNull ActionRowComponent actionRowComponent) {
         this.actionRowComponents.add(actionRowComponent);
         return this;
     }
 
-    public MessageData addAttachment(Attachment attachment) {
+    @NotNull
+    public MessageData addAttachment(@NotNull Attachment attachment) {
         this.attachments.add(attachment);
         return this;
     }
 
-    public MessageData addAttachment(AttachmentUpload attachment) {
+    @NotNull
+    public MessageData addAttachment(@NotNull AttachmentUpload attachment) {
         this.attachmentUploads.add(attachment);
         return this;
     }
 
+    @NotNull
     public Component getContent() {
         return content;
-    }
-
-    public List<Embed> getEmbeds() {
-        return embeds;
-    }
-
-    public List<AttachmentUpload> getAttachmentUploads() {
-        return attachmentUploads;
-    }
-
-    public List<Attachment> getAttachments() {
-        return attachments;
-    }
-
-    public List<ActionRowComponent> getActionRowComponents() {
-        return actionRowComponents;
     }
 
     public MessageData() {
     }
 
-    public MessageData(Component component) {
-        this.content = component;
+    @NotNull
+    public MessageData setContent(@Nullable Component content) {
+        this.content = content == null ?
+                Component.empty() : content;
+        return this;
     }
 
-    public MessageData(Component component, Embed... embeds) {
-        this.content = component;
-        this.embeds.addAll(Arrays.stream(embeds).toList());
+    @NotNull
+    public List<Embed> getEmbeds() {
+        return embeds;
     }
 
-    public MessageData(Component component, AttachmentUpload... attachments) {
-        this.content = component;
-        this.attachmentUploads.addAll(Arrays.stream(attachments).toList());
+    @NotNull
+    public List<AttachmentUpload> getAttachmentUploads() {
+        return attachmentUploads;
     }
 
-    public MessageData(Embed... embeds) {
-        this.embeds.addAll(Arrays.stream(embeds).toList());
+    @NotNull
+    public List<Attachment> getAttachments() {
+        return attachments;
     }
 
-    public MessageData(AttachmentUpload... attachments) {
-        this.attachmentUploads.addAll(Arrays.stream(attachments).toList());
+    @NotNull
+    public List<ActionRowComponent> getActionRowComponents() {
+        return actionRowComponents;
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "MessageData{" +
                 "content=" + content +

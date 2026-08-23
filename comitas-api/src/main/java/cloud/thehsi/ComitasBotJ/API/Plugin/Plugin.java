@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,10 +18,12 @@ public abstract class Plugin {
      *
      * @return The {@link PersistentDataStorage} owned use by this {@link Plugin}
      */
+    @NotNull
     public static PersistentDataStorage getPersistentDataStorage() {
         return Comitas.getPluginManager().getPersistentDataStorage();
     }
 
+    @NotNull
     public Logger getLogger() {
         return LoggerFactory.getLogger(getClass());
     }
@@ -31,7 +34,8 @@ public abstract class Plugin {
 
     public record PluginMetadata(String name, String version, String jarName, String targetAPI, UUID uuid,
                                  String consoleCommandPrefix) {
-        public static PluginMetadata fromProperties(Properties props, String jarName) {
+        @NotNull
+        public static PluginMetadata fromProperties(@NotNull Properties props, @NotNull String jarName) {
             if (!props.containsKey("name")) throw new RuntimeException("Plugin is missing name in plugin.properties");
             if (!props.containsKey("version"))
                 throw new RuntimeException("Plugin is missing version in plugin.properties");

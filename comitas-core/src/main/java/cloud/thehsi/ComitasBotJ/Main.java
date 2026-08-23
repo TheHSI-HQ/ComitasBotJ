@@ -9,6 +9,8 @@ import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLister;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -26,16 +28,22 @@ import java.util.Properties;
         description = "ComitasBotJ"
 )
 public class Main implements Runnable {
-    public static final String LOGGER_ROOT_PATH = "ComitasBotJ";
+    public @NotNull
+    static final String LOGGER_ROOT_PATH = "ComitasBotJ";
     private static final long STARTUP_TIME = System.currentTimeMillis();
-    private static final InternalConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
-    private static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
-    private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
-    private final Logger debugLogger = DebugLogging.getLogger();
-
+    private @NotNull
+    static final InternalConsoleCommandRegistry consoleCommandRegistry = new InternalConsoleCommandRegistry();
+    private @NotNull
+    static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
+    private @NotNull
+    static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
     // Properties
-    private static StartupProperties props;
-    private static ServerConfig.ParsedServerConfig conf;
+    private @Nullable
+    static StartupProperties props;
+    private @Nullable
+    static ServerConfig.ParsedServerConfig conf;
+    private @NotNull
+    final Logger debugLogger = DebugLogging.getLogger();
     @CommandLine.Option(
             names = "--no-cmd",
             description = "Disable command line"
@@ -84,15 +92,19 @@ public class Main implements Runnable {
         return System.currentTimeMillis() - STARTUP_TIME;
     }
 
+    @NotNull
     public static StartupProperties props() {
+        assert props != null;
         return props;
     }
 
+    @NotNull
     public static ServerConfig.ParsedServerConfig conf() {
+        assert conf != null;
         return conf;
     }
 
-    public static void main(String[] args) {
+    public static void main(@NotNull String[] args) {
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
                   ___           _ _           ___      _      _\s
                  / __|___ _ __ (_) |_ __ _ __| _ ) ___| |_ _ | |
@@ -104,6 +116,7 @@ public class Main implements Runnable {
         System.exit(exitCode);
     }
 
+    @NotNull
     public static String getServerVersion() {
         try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
             Properties props = new Properties();
@@ -162,7 +175,7 @@ public class Main implements Runnable {
         if (props().invitePermissions() != 0) {
             logger.info("Generating invite...");
 
-            if (props.invitePermissions() == 8)
+            if (props().invitePermissions() == 8)
                 logger.warn("No permissions specified (or Administrator permission specified), granting Administator permission (8). Not recommended for production");
 
             Permission[] permissions = Permission.fromLong(props().invitePermissions());
@@ -208,7 +221,7 @@ public class Main implements Runnable {
                         """, ConsoleColor.YELLOW);
         }
 
-        if (props.ignoreApiTarget())
+        if (props().ignoreApiTarget())
             logger.warn("""
                         {}
                         Plugin compatibility checks are disabled.
@@ -220,7 +233,7 @@ public class Main implements Runnable {
                         Proceed with caution.
                         """, ConsoleColor.YELLOW);
 
-        if (props.safeMode() && !props().strictSafeMode())
+        if (props().safeMode() && !props().strictSafeMode())
             logger.warn("""
                     {}
                     Safe Mode is enabled.
@@ -230,7 +243,7 @@ public class Main implements Runnable {
                     and should not be used in production environments.
                     """, ConsoleColor.YELLOW);
 
-        if (props.strictSafeMode())
+        if (props().strictSafeMode())
             logger.warn("""
                     {}
                     Strict Safe Mode is enabled.

@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ import java.util.function.Function;
 public class MessageDataParser {
     private MessageDataParser() {}
 
-    public static void parse(MessageData messageData, Consumer<ParsedMessageData> consumer) {
+    public static void parse(@NotNull MessageData messageData, @NotNull Consumer<ParsedMessageData> consumer) {
         String msg = ComponentParser.parseComponent(messageData.getContent());
 
         MessageEmbed[] messageEmbeds = messageData.getEmbeds().stream()
@@ -85,7 +87,8 @@ public class MessageDataParser {
         }
     }
 
-    public static InternalMyMessage send(MessageData messageData, Function<MessageCreateData, InternalMyMessage> consumer) {
+    @NotNull
+    public static InternalMyMessage send(@NotNull MessageData messageData, @NotNull Function<MessageCreateData, InternalMyMessage> consumer) {
         AtomicReference<InternalMyMessage> result = new AtomicReference<>();
         parse(messageData, data -> {
             try (MessageCreateData createData = new MessageCreateBuilder()
@@ -106,7 +109,7 @@ public class MessageDataParser {
         return result.get();
     }
 
-    public static void edit(Message message, MessageData messageData) {
+    public static void edit(@NotNull Message message, @NotNull MessageData messageData) {
         parse(messageData, data -> message.editMessage(MessageEditBuilder.fromMessage(message)
                 .setContent(data.message())
                 .setEmbeds(data.messageEmbeds())
@@ -119,8 +122,10 @@ public class MessageDataParser {
                 .build()).complete());
     }
 
-    public record ParsedMessageData(String message, MessageEmbed[] messageEmbeds, List<AttachedFile> attachedFiles,
-                                    List<ActionRowChildComponent> actionRowChildComponents) {
+    public record ParsedMessageData(@NotNull String message, @NotNull MessageEmbed[] messageEmbeds,
+                                    @NotNull @Unmodifiable List<AttachedFile> attachedFiles,
+                                    @NotNull @Unmodifiable List<ActionRowChildComponent> actionRowChildComponents) {
+        @NotNull
         public List<FileUpload> fileUploads() {
             return attachedFiles.stream()
                     .filter(e -> e instanceof FileUpload)

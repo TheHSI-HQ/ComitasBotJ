@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTagData;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -38,7 +39,7 @@ import java.util.function.Consumer;
 
 public class InternalUtilityBackend implements UtilityBackend {
     @Override
-    public Embed createEmbed(EmbedAuthor author, Color color, Component description, EmbedFooter footer, String image, String thumbnail, EmbedTitle title, TemporalAccessor timestamp, String url, List<EmbedField> fields) {
+    public @NotNull Embed createEmbed(@Nullable EmbedAuthor author, @Nullable Color color, @Nullable Component description, @Nullable EmbedFooter footer, @Nullable String image, @Nullable String thumbnail, @Nullable EmbedTitle title, @Nullable TemporalAccessor timestamp, @Nullable String url, @NotNull List<EmbedField> fields) {
         DebugLogging.action(author, color, description, footer, image, thumbnail, title, timestamp, url, fields);
         return new InternalEmbed(
                 author,
@@ -56,7 +57,7 @@ public class InternalUtilityBackend implements UtilityBackend {
 
     @Override
     @Nullable
-    public Emoji getEmojiFromId(String id) {
+    public Emoji getEmojiFromId(@NotNull String id) {
         DebugLogging.action(id);
         RichCustomEmoji customEmoji = DiscordAPI.api().getEmojiById(id);
         if (customEmoji == null) return null;
@@ -73,14 +74,13 @@ public class InternalUtilityBackend implements UtilityBackend {
     }
 
     @Override
-    @Nullable
-    public Emoji getEmojiFromUnicode(String unicodeEmoji) {
+    public @NotNull Emoji getEmojiFromUnicode(@NotNull String unicodeEmoji) {
         DebugLogging.action(unicodeEmoji);
         return new InternalEmoji(unicodeEmoji);
     }
 
     @Override
-    public @Nullable User getUserFromId(String id) {
+    public @Nullable User getUserFromId(@NotNull String id) {
         DebugLogging.action(id);
         net.dv8tion.jda.api.entities.User user = DiscordAPI.api().getUserById(id);
         return user == null ?
@@ -96,19 +96,19 @@ public class InternalUtilityBackend implements UtilityBackend {
     }
 
     @Override
-    public AttachmentUpload uploadAttachment(Path path) throws IOException {
+    public @NotNull AttachmentUpload uploadAttachment(@NotNull Path path) throws IOException {
         DebugLogging.action(path);
         return new InternalAttachmentUpload(path);
     }
 
     @Override
-    public AttachmentUpload uploadAttachment(String filename, byte[] data) {
+    public @NotNull AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data) {
         DebugLogging.action(filename, data);
         return new InternalAttachmentUpload(filename, data);
     }
 
     @Override
-    public ThreadTag createTagOnChannel(Channel channel, String tagName) throws TagNameNotUniqueException {
+    public @NotNull ThreadTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName) throws TagNameNotUniqueException {
         DebugLogging.action(channel, tagName);
 
         if (!(channel instanceof InternalChannel internal))
@@ -132,19 +132,19 @@ public class InternalUtilityBackend implements UtilityBackend {
 
         List<ForumTag> found = iPostContainer.getAvailableTagsByName(tagName, false);
         if (found.isEmpty())
-            return null;
+            throw new RuntimeException("Couldn't locate newly created tag. Maybe missing permissions?"); // TODO: Replace with custom exception
 
         return new InternalThreadTag(found.getFirst(), channel.getId());
     }
 
     @Override
-    public Button createActionButton(String idOrUrl, String label, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback) {
+    public @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback) {
         DebugLogging.action(idOrUrl, label, buttonStyle, callback);
         return new InternalButton(idOrUrl, label, buttonStyle, callback);
     }
 
     @Override
-    public Button createActionButton(String idOrUrl, Emoji emoji, ButtonStyle buttonStyle, Consumer<ButtonPressedContext> callback) {
+    public @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull Emoji emoji, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback) {
         DebugLogging.action(idOrUrl, emoji, buttonStyle, callback);
         return new InternalButton(idOrUrl, emoji, buttonStyle, callback);
     }

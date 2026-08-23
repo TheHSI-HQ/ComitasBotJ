@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -12,6 +13,7 @@ public interface UserLeaveGuildEvent extends Event {
      *
      * @return The user who left
      */
+    @NotNull
     User getUser();
 
     /**
@@ -27,5 +29,6 @@ public interface UserLeaveGuildEvent extends Event {
      *
      * @return The guild, who the member left
      */
+    @NotNull
     Guild getGuild();
 }

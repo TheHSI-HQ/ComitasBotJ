@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,11 +13,11 @@ import java.nio.file.Path;
  */
 @SuppressWarnings("unused")
 public interface AttachmentUpload {
-    static AttachmentUpload from(Path path) throws IOException {
+    static @NotNull AttachmentUpload from(@NotNull Path path) throws IOException {
         return Comitas.getUtilityBackend().uploadAttachment(path);
     }
 
-    static AttachmentUpload from(String filename, byte[] data) {
+    static @NotNull AttachmentUpload from(@NotNull String filename, byte[] data) {
         return Comitas.getUtilityBackend().uploadAttachment(filename, data);
     }
 
@@ -24,21 +26,24 @@ public interface AttachmentUpload {
      *
      * @param spoiler Should this attachment be a spoiler
      */
+    @NotNull
     AttachmentUpload setSpoiler(boolean spoiler);
+
+    /**
+     * Get the attachments filename
+     *
+     * @return Filename of this attachment
+     */
+    @NotNull
+    String getFileName();
 
     /**
      * Set the attachments filename
      *
      * @param fileName New filename of this attachment
      */
-    AttachmentUpload setFileName(String fileName);
-
-    /**
-     * Set the attachments description
-     *
-     * @param description New description of this attachment
-     */
-    AttachmentUpload setDescription(String description);
+    @NotNull
+    AttachmentUpload setFileName(@NotNull String fileName);
 
     /**
      * Is the attachment marked as a spoiler
@@ -48,21 +53,24 @@ public interface AttachmentUpload {
     boolean isSpoiler();
 
     /**
-     * Get the attachments filename
-     *
-     * @return Filename of this attachment
-     */
-    String getFileName();
-
-    /**
      * Get the attachments description
      *
      * @return Description of this attachment
      */
+    @Nullable
     String getDescription();
+
+    /**
+     * Set the attachments description
+     *
+     * @param description New description of this attachment
+     */
+    @NotNull
+    AttachmentUpload setDescription(@NotNull String description);
 
     /**
      * Converts the attachment into {@link MessageData}
      */
+    @NotNull
     MessageData asMessageData();
 }

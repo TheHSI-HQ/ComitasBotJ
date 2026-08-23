@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -15,7 +16,7 @@ public interface User {
      * @return The user.
      */
     @Nullable
-    static User fromId(String id) {
+    static User fromId(@NotNull String id) {
         return Comitas.getUtilityBackend().getUserFromId(id);
     }
     /**
@@ -33,6 +34,7 @@ public interface User {
      *
      * @return The user's Username.
      */
+    @NotNull
     String getUserName();
 
     /**
@@ -40,6 +42,7 @@ public interface User {
      *
      * @return The user's Display Name
      */
+    @NotNull
     String getDisplayName();
 
     /**
@@ -47,7 +50,7 @@ public interface User {
      *
      * @return The user's ID
      */
-    Long getId();
+    long getId();
 
     /**
      * Determine if the user is a bot
@@ -68,6 +71,7 @@ public interface User {
      *
      * @return The users name
      */
+    @NotNull
     String getLoggableName();
 
     /**
@@ -77,6 +81,7 @@ public interface User {
      *
      * @return The generated Mention-Component
      */
+    @NotNull
     Component mention();
 
     /**
@@ -86,7 +91,8 @@ public interface User {
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    MyMessage sendDirectMessage(Component message);
+    @NotNull
+    MyMessage sendDirectMessage(@NotNull Component message);
 
     /**
      * Messages this User with a Message of your choosing
@@ -95,5 +101,6 @@ public interface User {
      * @return Was the message successfully send
      */
     @ApiStatus.Experimental
-    MyMessage sendDirectMessage(MessageData messageData);
+    @NotNull
+    MyMessage sendDirectMessage(@NotNull MessageData messageData);
 }

@@ -8,32 +8,35 @@ import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
 import net.dv8tion.jda.api.entities.channel.attribute.IMemberContainer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class InternalChannel implements Channel {
-    public final net.dv8tion.jda.api.entities.channel.Channel channel;
+    public @NotNull
+    final net.dv8tion.jda.api.entities.channel.Channel channel;
+    @NotNull
     final ChannelType channelType;
 
-    public InternalChannel(net.dv8tion.jda.api.entities.channel.Channel channel) {
+    public InternalChannel(@NotNull net.dv8tion.jda.api.entities.channel.Channel channel) {
         this.channel = channel;
         this.channelType = ChannelType.fromId(channel.getType().name());
     }
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         DebugLogging.action();
         return channel.getName();
     }
 
     @Override
-    public ChannelType getType() {
+    public @NotNull ChannelType getType() {
         return channelType;
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         DebugLogging.action();
         return channel.getIdLong();
     }
@@ -47,7 +50,7 @@ public class InternalChannel implements Channel {
     }
 
     @Override
-    public Component mention() {
+    public @NotNull Component mention() {
         DebugLogging.action();
         return Component.raw(channel.getAsMention());
     }

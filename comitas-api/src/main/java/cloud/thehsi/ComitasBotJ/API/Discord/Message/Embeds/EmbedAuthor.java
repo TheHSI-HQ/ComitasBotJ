@@ -5,11 +5,12 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class EmbedAuthor {
-    public static final EmbedAuthor NONE = new EmbedAuthor();
+    public @NotNull
+    static final EmbedAuthor NONE = new EmbedAuthor();
 
-    String name = null;
-    String url = null;
-    String imageUrl = null;
+    @Nullable String name = null;
+    @Nullable String url = null;
+    @Nullable String imageUrl = null;
 
     private EmbedAuthor() {
     }
@@ -45,6 +46,7 @@ public class EmbedAuthor {
     }
 
     @Override
+    @NotNull
     public String toString() {
         return "EmbedAuthor{" +
                 "name='" + name + '\'' +

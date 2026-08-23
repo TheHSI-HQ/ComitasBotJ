@@ -1,249 +1,268 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public final class PersistentDataTypes {
-    public static final PersistentDataType<String> STRING = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<String> STRING = new PersistentDataType<>() {
         @Override
-        public Object serialize(String value) {
+        public @NotNull Object serialize(@NotNull String value) {
             return value;
         }
 
         @Override
-        public String deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, String.class);
+        public @NotNull String deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, String.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "STRING";
         }
     };
 
-    public static final PersistentDataType<Integer> INTEGER = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Integer> INTEGER = new PersistentDataType<>() {
         @Override
-        public Object serialize(Integer value) {
+        public @NotNull Object serialize(@NotNull Integer value) {
             return value;
         }
 
         @Override
-        public Integer deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Integer.class);
+        public @NotNull Integer deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Integer.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "INTEGER";
         }
     };
 
-    public static final PersistentDataType<Long> LONG = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Long> LONG = new PersistentDataType<>() {
         @Override
-        public Object serialize(Long value) {
+        public @NotNull Object serialize(@NotNull Long value) {
             return value;
         }
 
         @Override
-        public Long deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Long.class);
+        public @NotNull Long deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Long.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "LONG";
         }
     };
 
-    public static final PersistentDataType<Double> DOUBLE = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Double> DOUBLE = new PersistentDataType<>() {
         @Override
-        public Object serialize(Double value) {
+        public @NotNull Object serialize(@NotNull Double value) {
             return value;
         }
 
         @Override
-        public Double deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Double.class);
+        public @NotNull Double deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Double.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "DOUBLE";
         }
     };
 
-    public static final PersistentDataType<Byte> BYTE = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Byte> BYTE = new PersistentDataType<>() {
         @Override
-        public Object serialize(Byte value) {
+        public @NotNull Object serialize(@NotNull Byte value) {
             return value;
         }
 
         @Override
-        public Byte deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Byte.class);
+        public @NotNull Byte deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Byte.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "BYTE";
         }
     };
 
-    public static final PersistentDataType<Short> SHORT = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Short> SHORT = new PersistentDataType<>() {
         @Override
-        public Object serialize(Short value) {
+        public @NotNull Object serialize(@NotNull Short value) {
             return value;
         }
 
         @Override
-        public Short deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Short.class);
+        public @NotNull Short deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Short.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "SHORT";
         }
     };
 
-    public static final PersistentDataType<Boolean> BOOLEAN = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Boolean> BOOLEAN = new PersistentDataType<>() {
         @Override
-        public Object serialize(Boolean value) {
+        public @NotNull Object serialize(@NotNull Boolean value) {
             return value;
         }
 
         @Override
-        public Boolean deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Boolean.class);
+        public @NotNull Boolean deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Boolean.class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "BOOLEAN";
         }
     };
 
-    public static final PersistentDataType<byte[]> BYTE_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<byte[]> BYTE_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(byte[] value) {
+        public @NotNull Object serialize(byte @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public byte[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, byte[].class);
+        public byte @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, byte[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "BYTE_ARRAY";
         }
     };
 
-    public static final PersistentDataType<String[]> STRING_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<String[]> STRING_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(String[] value) {
+        public @NotNull Object serialize(@Nullable String @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public String[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, String[].class);
+        public @NotNull String @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, String[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "STRING_ARRAY";
         }
     };
 
-    public static final PersistentDataType<Integer[]> INTEGER_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Integer[]> INTEGER_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(Integer[] value) {
+        public @NotNull Object serialize(@Nullable Integer @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public Integer[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Integer[].class);
+        public @NotNull Integer @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Integer[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "INTEGER_ARRAY";
         }
     };
 
-    public static final PersistentDataType<Long[]> LONG_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Long[]> LONG_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(Long[] value) {
+        public @NotNull Object serialize(@Nullable Long @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public Long[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Long[].class);
+        public @NotNull Long @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Long[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "LONG_ARRAY";
         }
     };
 
-    public static final PersistentDataType<Double[]> DOUBLE_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Double[]> DOUBLE_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(Double[] value) {
+        public @NotNull Object serialize(@Nullable Double @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public Double[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Double[].class);
+        public @NotNull Double @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Double[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "DOUBLE_ARRAY";
         }
     };
 
-    public static final PersistentDataType<Short[]> SHORT_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Short[]> SHORT_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(Short[] value) {
+        public @NotNull Object serialize(@Nullable Short @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public Short[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Short[].class);
+        public @NotNull Short @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Short[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "SHORT_ARRAY";
         }
     };
 
-    public static final PersistentDataType<Boolean[]> BOOLEAN_ARRAY = new PersistentDataType<>() {
+    public @NotNull
+    static final PersistentDataType<Boolean[]> BOOLEAN_ARRAY = new PersistentDataType<>() {
         @Override
-        public Object serialize(Boolean[] value) {
+        public @NotNull Object serialize(@Nullable Boolean @NotNull [] value) {
             return value.clone();
         }
 
         @Override
-        public Boolean[] deserialize(Object value) {
-            return PersistentDataCoercion.coerce(value, Boolean[].class);
+        public @NotNull Boolean @NotNull [] deserialize(@NotNull Object value) {
+            return Objects.requireNonNull(PersistentDataCoercion.coerce(value, Boolean[].class));
         }
 
         @Override
-        public String getName() {
+        public @NotNull String getName() {
             return "BOOLEAN_ARRAY";
         }
     };
 
-    private static final Map<String, PersistentDataType<?>> TYPES =
+    private @NotNull
+    static final Map<String, PersistentDataType<?>> TYPES =
             new HashMap<>();
 
     static {
@@ -265,13 +284,14 @@ public final class PersistentDataTypes {
     }
 
     private static void register(
-            String name,
-            PersistentDataType<?> type
+            @NotNull String name,
+            @NotNull PersistentDataType<?> type
     ) {
         TYPES.put(name, type);
     }
 
-    public static PersistentDataType<?> get(String name) {
+    @NotNull
+    public static PersistentDataType<?> get(@NotNull String name) {
         return TYPES.get(name);
     }
 }

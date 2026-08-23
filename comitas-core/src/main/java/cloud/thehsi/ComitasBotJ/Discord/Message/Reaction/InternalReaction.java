@@ -11,17 +11,18 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public record InternalReaction(MessageReaction reaction, Message message) implements Reaction {
     @Override
-    public Emoji getEmoji() {
+    public @NotNull Emoji getEmoji() {
         return new InternalEmoji(reaction.getEmoji());
     }
 
     @Override
-    public List<Member> getReactors() {
+    public @NotNull List<Member> getReactors() {
         DebugLogging.action();
         Guild guild = reaction.getGuild();
 
@@ -55,7 +56,7 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
-    public Message getMessage() {
+    public @NotNull Message getMessage() {
         DebugLogging.action();
         return message;
     }
@@ -79,7 +80,7 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
-    public void removeReaction(Member member) {
+    public void removeReaction(@NotNull Member member) {
         DebugLogging.action(member);
         reaction.removeReaction(((InternalUser) member.getUser()).user).complete();
     }

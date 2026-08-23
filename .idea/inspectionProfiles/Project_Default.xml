@@ -17,6 +17,7 @@
     <inspection_tool class="CanConvertToMultiDollarString" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="CanUnescapeDollarLiteral" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="CascadeIf" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="CheckStyle" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="ClassName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ComplexRedundantLet" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ConstPropertyName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
@@ -125,6 +126,7 @@
     <inspection_tool class="RedundantSamConstructor" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantSemicolon" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantSetter" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="RedundantSuppression" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantSuspendModifier" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantUnitExpression" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantUnitReturnType" enabled="false" level="WARNING" enabled_by_default="false" />

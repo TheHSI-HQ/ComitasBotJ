@@ -1,10 +1,12 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 
+import org.jetbrains.annotations.NotNull;
+
 @SuppressWarnings("unused")
 public interface PersistentDataType<T> {
-    Object serialize(T value);
+    @NotNull Object serialize(@NotNull T value);
 
-    T deserialize(Object value);
+    @NotNull T deserialize(@NotNull Object value);
 
-    String getName();
+    @NotNull String getName();
 }

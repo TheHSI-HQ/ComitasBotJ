@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Array;
 import java.util.Base64;
 import java.util.List;
@@ -9,7 +12,8 @@ public final class PersistentDataCoercion {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T coerce(Object value, Class<T> target) {
+    @Nullable
+    public static <T> T coerce(@Nullable Object value, @NotNull Class<T> target) {
         if (value == null) return null;
 
         if (target.isInstance(value)) {
@@ -28,7 +32,8 @@ public final class PersistentDataCoercion {
         return (T) coerceScalar(value, target);
     }
 
-    private static Object coerceArray(Object value, Class<?> componentType) {
+    @NotNull
+    private static Object coerceArray(@NotNull Object value, @NotNull Class<?> componentType) {
         int length;
         java.util.function.IntFunction<Object> getter;
 
@@ -51,7 +56,8 @@ public final class PersistentDataCoercion {
         return result;
     }
 
-    private static Object coerceScalar(Object value, Class<?> target) {
+    @Nullable
+    private static Object coerceScalar(@Nullable Object value, @NotNull Class<?> target) {
         if (value == null) return null;
         Class<?> t = wrap(target);
         if (t.isInstance(value)) return value;
@@ -85,7 +91,8 @@ public final class PersistentDataCoercion {
         );
     }
 
-    private static Class<?> wrap(Class<?> c) {
+    @NotNull
+    private static Class<?> wrap(@NotNull Class<?> c) {
         if (!c.isPrimitive()) return c;
         if (c == long.class) return Long.class;
         if (c == int.class) return Integer.class;

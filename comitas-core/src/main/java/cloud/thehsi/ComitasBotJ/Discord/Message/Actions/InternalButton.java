@@ -17,7 +17,8 @@ public class InternalButton implements Button, IActionRowComponent {
     public @Nullable String id = null;
     public @Nullable Consumer<ButtonPressedContext> callback = null;
     public @Nullable String internalReferenceId = null;
-    public final net.dv8tion.jda.api.components.buttons.Button button;
+    public @NotNull
+    final net.dv8tion.jda.api.components.buttons.Button button;
 
     public InternalButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback) {
         DebugLogging.action(idOrUrl, label, buttonStyle, callback);
@@ -55,7 +56,7 @@ public class InternalButton implements Button, IActionRowComponent {
     }
 
     @Override
-    public ActionRowChildComponent getAsActionRowChildComponent() {
+    public @NotNull ActionRowChildComponent getAsActionRowChildComponent() {
         DebugLogging.action();
         return button;
     }

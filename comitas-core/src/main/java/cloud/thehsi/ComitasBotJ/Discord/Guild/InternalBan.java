@@ -15,7 +15,7 @@ public record InternalBan(User user, @Nullable String reason, Guild guild) imple
     }
 
     @Override
-    public User getUser() {
+    public @NotNull User getUser() {
         DebugLogging.action();
         return user;
     }
@@ -27,7 +27,7 @@ public record InternalBan(User user, @Nullable String reason, Guild guild) imple
     }
 
     @Override
-    public Guild getGuild() {
+    public @NotNull Guild getGuild() {
         DebugLogging.action();
         return guild;
     }

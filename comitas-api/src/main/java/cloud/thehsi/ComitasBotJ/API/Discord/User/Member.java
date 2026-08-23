@@ -89,7 +89,7 @@ public interface Member extends User {
      * @return Member's online status
      */
     @NotNull
-    OnlineStatus getOnlineStatus(ClientType clientType);
+    OnlineStatus getOnlineStatus(@NotNull ClientType clientType);
 
     /**
      * Get the member's current activities

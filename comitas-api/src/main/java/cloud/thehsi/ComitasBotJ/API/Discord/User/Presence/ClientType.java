@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User.Presence;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum ClientType {
     DESKTOP("desktop"),
     MOBILE("mobile"),
@@ -7,17 +9,15 @@ public enum ClientType {
     VR("vr"), //TODO: Not yet supported by JDA, put in as placeholder
     UNKNOWN("unknown");
 
-    private final String key;
+    private @NotNull
+    final String key;
 
-    ClientType(String key) {
+    ClientType(@NotNull String key) {
         this.key = key;
     }
 
-    public String getKey() {
-        return this.key;
-    }
-
-    public static ClientType fromKey(String key) {
+    public @NotNull
+    static ClientType fromKey(@NotNull String key) {
         for(ClientType type : values()) {
             if (type.key.equals(key)) {
                 return type;
@@ -25,6 +25,10 @@ public enum ClientType {
         }
 
         return UNKNOWN;
+    }
+
+    public @NotNull String getKey() {
+        return this.key;
     }
 }
 

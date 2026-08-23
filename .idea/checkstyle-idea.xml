@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CheckStyle-IDEA" serialisationVersion="2">
+    <checkstyleVersion>14.0.0</checkstyleVersion>
+    <scanScope>JavaOnly</scanScope>
+    <copyLibs>true</copyLibs>
+    <importSettingsFromMaven>true</importSettingsFromMaven>
+    <option name="thirdPartyClasspath">
+      <option value="C:\Users\henri.sendelbach\.m2\repository\cloud\thehsi\ComitasBotJ\checkstyle-rules\1.0\checkstyle-rules-1.0.jar" />
+    </option>
+    <option name="activeLocationIds">
+      <option value="maven-config-location" />
+    </option>
+    <option name="locations">
+      <list>
+        <ConfigurationLocation id="bundled-sun-checks" type="BUNDLED" scope="All" description="Sun Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="bundled-google-checks" type="BUNDLED" scope="All" description="Google Checks">(bundled)</ConfigurationLocation>
+        <ConfigurationLocation id="maven-config-location" type="PROJECT_RELATIVE" scope="All" description="Maven Config Location">$PROJECT_DIR$/comitas-api/checkstyle.xml</ConfigurationLocation>
+      </list>
+    </option>
+  </component>
+</project>

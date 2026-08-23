@@ -10,9 +10,10 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings({"unused", "ClassCanBeRecord"})
 public class SyncTask implements Task {
     final int taskId;
+    @NotNull
     final Plugin owner;
 
-    public SyncTask(int taskId, Plugin owner) {
+    public SyncTask(int taskId, @NotNull Plugin owner) {
         this.taskId = taskId;
         this.owner = owner;
     }

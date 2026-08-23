@@ -15,31 +15,32 @@ import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements Guild {
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         DebugLogging.action();
         return guild.getName();
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         DebugLogging.action();
         return guild.getIdLong();
     }
 
     @Override
-    public @Nullable Channel getChannelById(Long id) {
+    public @Nullable Channel getChannelById(long id) {
         DebugLogging.action();
-        return getChannelById(id.toString());
+        return getChannelById(String.valueOf(id));
     }
 
     @Override
-    public @Nullable Channel getChannelById(String id) {
+    public @Nullable Channel getChannelById(@NotNull String id) {
         DebugLogging.action();
         GuildChannel channel = guild.getChannelById(GuildChannel.class, id);
         if (channel == null) return null;
@@ -47,7 +48,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public MessageChannel getDefaultChannel() {
+    public @Nullable MessageChannel getDefaultChannel() {
         DebugLogging.action();
         net.dv8tion.jda.api.entities.channel.middleman.GuildChannel defaultChannel = guild.getDefaultChannel();
 
@@ -73,7 +74,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public @Nullable Member getMember(User user) {
+    public @Nullable Member getMember(@NotNull User user) {
         DebugLogging.action(user);
         net.dv8tion.jda.api.entities.User iUser = ((InternalUser) user).user;
         net.dv8tion.jda.api.entities.Member iMember = guild.getMember(iUser);
@@ -82,7 +83,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public List<Invite> getInvites() {
+    public @NotNull List<Invite> getInvites() {
         DebugLogging.action();
         return guild.retrieveInvites().complete().stream()
                 .map(e -> (Invite) new InternalInvite(e))
@@ -90,7 +91,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public List<Ban> getBans() {
+    public @NotNull List<Ban> getBans() {
         DebugLogging.action();
         return guild.retrieveBanList().complete().stream()
                 .map(e -> (Ban) (new InternalBan(
@@ -102,7 +103,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public List<Member> getMembers() {
+    public @NotNull List<Member> getMembers() {
         DebugLogging.action();
         return guild.getMembers().stream()
                 .map(e -> (Member) new InternalMember(e))
@@ -110,7 +111,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public List<Role> getRoles() {
+    public @NotNull List<Role> getRoles() {
         DebugLogging.action();
         return guild.getRoles().stream()
                 .map(e -> (Role) new InternalRole(e))
@@ -128,7 +129,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
 
     @Override
     @Nullable
-    public Role getRoleById(String id) {
+    public Role getRoleById(@NotNull String id) {
         DebugLogging.action(id);
         net.dv8tion.jda.api.entities.Role role = guild.getRoleById(id);
         if (role == null)
@@ -143,7 +144,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public String getDescription() {
+    public @Nullable String getDescription() {
         DebugLogging.action();
         return guild().getDescription();
     }
@@ -155,7 +156,7 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public List<Channel> getChannels() {
+    public @NotNull List<Channel> getChannels() {
         DebugLogging.action();
         return guild.getChannels().stream()
                 .map(ChannelTypeResolver::resolve)
@@ -163,43 +164,56 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public void kick(Member member) {
+    public void kick(@NotNull Member member) {
         DebugLogging.action(member);
         member.kick();
     }
 
     @Override
-    public void kick(Member member, String reason) {
+    public void kick(@NotNull Member member, @Nullable String reason) {
         DebugLogging.action(member, reason);
-        member.kick(reason);
+        if (reason == null)
+            member.kick();
+        else
+            member.kick(reason);
     }
 
     @Override
-    public Ban ban(Member member) {
+    public @NotNull Ban ban(@NotNull Member member) {
         DebugLogging.action(member);
         return member.ban();
     }
 
     @Override
-    public Ban ban(Member member, String reason) {
+    public @NotNull Ban ban(@NotNull Member member, @Nullable String reason) {
         DebugLogging.action(member, reason);
+        if (reason == null)
+            return member.ban();
         return member.ban(reason);
     }
 
     @Override
-    public Ban ban(Member member, int deletionPeriodHours) {
+    public @NotNull Ban ban(@NotNull Member member, @Nullable Integer deletionPeriodHours) {
         DebugLogging.action(member, deletionPeriodHours);
+        if (deletionPeriodHours == null)
+            return member.ban();
         return member.ban(deletionPeriodHours);
     }
 
     @Override
-    public Ban ban(Member member, String reason, int deletionPeriodHours) {
+    public @NotNull Ban ban(@NotNull Member member, @Nullable String reason, @Nullable Integer deletionPeriodHours) {
         DebugLogging.action(member, reason, deletionPeriodHours);
+        if (deletionPeriodHours == null && reason == null)
+            return member.ban();
+        else if (deletionPeriodHours == null)
+            return member.ban(reason);
+        else if (reason == null)
+            return member.ban(deletionPeriodHours);
         return member.ban(reason, deletionPeriodHours);
     }
 
     @Override
-    public void unban(User user) {
+    public void unban(@NotNull User user) {
         DebugLogging.action(user);
         guild.unban(((InternalUser) user).user).complete();
     }

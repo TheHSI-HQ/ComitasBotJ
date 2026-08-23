@@ -1,26 +1,42 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Components;
 
+import org.jetbrains.annotations.NotNull;
+
 @SuppressWarnings("unused")
 public class Style {
-    public static final Style RESET = Style.fromMask(0);
-    public static final Style BOLD = Style.fromMask(1);
-    public static final Style ITALIC = Style.fromMask(2 << 1);
-    public static final Style UNDERLINE = Style.fromMask(2 << 2);
-    public static final Style STRIKETHROUGH = Style.fromMask(2 << 3);
+    public @NotNull
+    static final Style RESET = Style.fromMask(0);
+    public @NotNull
+    static final Style BOLD = Style.fromMask(1);
+    public @NotNull
+    static final Style ITALIC = Style.fromMask(2 << 1);
+    public @NotNull
+    static final Style UNDERLINE = Style.fromMask(2 << 2);
+    public @NotNull
+    static final Style STRIKETHROUGH = Style.fromMask(2 << 3);
 
-    public static final Style BIG_HEADER = Style.fromMask(2 << 4);
-    public static final Style SMALL_HEADER = Style.fromMask(2 << 5);
-    public static final Style SMALLER_HEADER = Style.fromMask(2 << 6);
-    public static final Style SUBTEXT = Style.fromMask(2 << 7);
+    public @NotNull
+    static final Style BIG_HEADER = Style.fromMask(2 << 4);
+    public @NotNull
+    static final Style SMALL_HEADER = Style.fromMask(2 << 5);
+    public @NotNull
+    static final Style SMALLER_HEADER = Style.fromMask(2 << 6);
+    public @NotNull
+    static final Style SUBTEXT = Style.fromMask(2 << 7);
 
-    public static final Style QUOTE = Style.fromMask(2 << 8);
+    public @NotNull
+    static final Style QUOTE = Style.fromMask(2 << 8);
 
-    public static final Style BULLET_POINTS = Style.fromMask(2 << 9);
+    public @NotNull
+    static final Style BULLET_POINTS = Style.fromMask(2 << 9);
 
-    public static final Style CODE = Style.fromMask(2 << 10);
-    public static final Style CODE_BLOCK = Style.fromMask(2 << 11);
+    public @NotNull
+    static final Style CODE = Style.fromMask(2 << 10);
+    public @NotNull
+    static final Style CODE_BLOCK = Style.fromMask(2 << 11);
 
-    public static final Style SPOILER = Style.fromMask(2 << 12);
+    public @NotNull
+    static final Style SPOILER = Style.fromMask(2 << 12);
 
     private boolean bold;
     private boolean italic;
@@ -52,7 +68,7 @@ public class Style {
         this.spoiler = spoiler;
     }
 
-    public Style(Style style) {
+    public Style(@NotNull Style style) {
         this.bold = style.bold;
         this.italic = style.italic;
         this.underline = style.underline;
@@ -68,6 +84,7 @@ public class Style {
         this.spoiler = style.spoiler;
     }
 
+    @NotNull
     public static Style fromMask(int mask) {
         return new Style(
                 (mask & 1) != 0,
@@ -138,7 +155,8 @@ public class Style {
         return spoiler;
     }
 
-    public Style add(Style style) {
+    @NotNull
+    public Style add(@NotNull Style style) {
         Style result = new Style(this);
 
         result.bold |= style.bold;
@@ -158,7 +176,8 @@ public class Style {
         return result;
     }
 
-    public Style remove(Style style) {
+    @NotNull
+    public Style remove(@NotNull Style style) {
         Style result = new Style(this);
 
         result.bold &= !style.bold;

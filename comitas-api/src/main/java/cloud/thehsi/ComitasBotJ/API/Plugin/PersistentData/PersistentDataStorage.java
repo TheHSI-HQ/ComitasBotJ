@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 @SuppressWarnings("unused")
 public interface PersistentDataStorage {
     /**
@@ -10,9 +13,9 @@ public interface PersistentDataStorage {
      * @param value The data
      */
     <T> void set(
-            String key,
-            PersistentDataType<T> type,
-            T value
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type,
+            @NotNull T value
     );
 
     /**
@@ -21,9 +24,10 @@ public interface PersistentDataStorage {
      * @param key  The data address
      * @param type The type of the data
      */
+    @Nullable
     <T> T get(
-            String key,
-            PersistentDataType<T> type
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type
     );
 
     /**
@@ -33,7 +37,7 @@ public interface PersistentDataStorage {
      * @return Does this Storage have this key?
      */
     boolean has(
-            String key
+            @NotNull String key
     );
 
     /**
@@ -44,8 +48,8 @@ public interface PersistentDataStorage {
      * @return Does this Storage have this key of that type?
      */
     <T> boolean has(
-            String key,
-            PersistentDataType<T> type
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type
     );
 
     /**
@@ -54,6 +58,6 @@ public interface PersistentDataStorage {
      * @param key The key
      */
     void remove(
-            String key
+            @NotNull String key
     );
 }

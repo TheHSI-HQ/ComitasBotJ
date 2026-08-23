@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Scheduler;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface Scheduler {
@@ -9,14 +10,16 @@ public interface Scheduler {
      *
      * @return The task
      */
-    Task runTask(Plugin plugin, Runnable runnable);
+    @NotNull
+    Task runTask(@NotNull Plugin plugin, @NotNull Runnable runnable);
 
     /**
      * Run a task asynchronously
      *
      * @return The task
      */
-    Task runTaskAsynchronously(Plugin plugin, Runnable runnable);
+    @NotNull
+    Task runTaskAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable);
 
     /**
      * Run a task asynchronously repeatedly
@@ -25,7 +28,8 @@ public interface Scheduler {
      * @param intervalMS Delay between evey execution in milliseconds
      * @return The task
      */
-    Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayMS, long intervalMS);
+    @NotNull
+    Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS, long intervalMS);
 
     /**
      * Run a task asynchronously later
@@ -33,5 +37,6 @@ public interface Scheduler {
      * @param delayMS Delay between now and the execution in milliseconds
      * @return The task
      */
-    Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayMS);
+    @NotNull
+    Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS);
 }

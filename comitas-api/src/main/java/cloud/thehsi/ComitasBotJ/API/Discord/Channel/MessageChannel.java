@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageHistory;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
@@ -16,7 +17,8 @@ public interface MessageChannel extends Channel {
      * @param message The message to be sent
      * @return The message that was sent
      */
-    MyMessage sendMessage(Component message);
+    @NotNull
+    MyMessage sendMessage(@NotNull Component message);
 
     /**
      * Send a Message in the Channel using message data
@@ -24,13 +26,15 @@ public interface MessageChannel extends Channel {
      * @param messageData The message data to be sent
      * @return The message that was sent
      */
-    MyMessage sendMessage(MessageData messageData);
+    @NotNull
+    MyMessage sendMessage(@NotNull MessageData messageData);
 
     /**
      * Retrieve a list of every message sent in this channel
      *
      * @return A list of all message in this channel
      */
+    @NotNull
     MessageHistory getMessageHistory();
 
     /**
@@ -47,7 +51,7 @@ public interface MessageChannel extends Channel {
      * @return The requested message or null
      */
     @Nullable
-    Message getMessageById(String id);
+    Message getMessageById(@NotNull String id);
 
     /**
      * Gets the channel's guild

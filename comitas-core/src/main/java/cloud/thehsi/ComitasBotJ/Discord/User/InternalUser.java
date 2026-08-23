@@ -10,26 +10,27 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import org.jetbrains.annotations.NotNull;
 
 public class InternalUser implements User {
-    public final net.dv8tion.jda.api.entities.User user;
+    public @NotNull
+    final net.dv8tion.jda.api.entities.User user;
 
     public InternalUser(@NotNull net.dv8tion.jda.api.entities.User user) {
         this.user = user;
     }
 
     @Override
-    public String getUserName() {
+    public @NotNull String getUserName() {
         DebugLogging.action();
         return user.getName();
     }
 
     @Override
-    public String getDisplayName() {
+    public @NotNull String getDisplayName() {
         DebugLogging.action();
         return user.getEffectiveName();
     }
 
     @Override
-    public Long getId() {
+    public long getId() {
         DebugLogging.action();
         return user.getIdLong();
     }
@@ -47,25 +48,25 @@ public class InternalUser implements User {
     }
 
     @Override
-    public String getLoggableName() {
+    public @NotNull String getLoggableName() {
         DebugLogging.action();
         return getDisplayName();
     }
 
     @Override
-    public Component mention() {
+    public @NotNull Component mention() {
         DebugLogging.action();
         return Component.raw(user.getAsMention());
     }
 
     @Override
-    public MyMessage sendDirectMessage(@NotNull Component message) {
+    public @NotNull MyMessage sendDirectMessage(@NotNull Component message) {
         DebugLogging.action(message);
         return sendDirectMessage(message.asMessageData());
     }
 
     @Override
-    public MyMessage sendDirectMessage(@NotNull MessageData messageData) {
+    public @NotNull MyMessage sendDirectMessage(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(user.openPrivateChannel()
                 .flatMap(channel -> channel.sendMessage(data))

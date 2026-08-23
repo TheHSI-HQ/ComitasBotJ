@@ -5,7 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ public interface Guild {
      *
      * @return The guild's Name.
      */
+    @NotNull
     String getName();
 
     /**
@@ -23,7 +26,7 @@ public interface Guild {
      *
      * @return The guild's ID
      */
-    Long getId();
+    long getId();
 
     /**
      * Get a channel in this guild by id
@@ -32,7 +35,7 @@ public interface Guild {
      * @return The channel if found
      */
     @Nullable
-    Channel getChannelById(Long id);
+    Channel getChannelById(long id);
 
     /**
      * Get a channel in this guild by id
@@ -41,13 +44,14 @@ public interface Guild {
      * @return The channel if found
      */
     @Nullable
-    Channel getChannelById(String id);
+    Channel getChannelById(@NotNull String id);
 
     /**
      * Returns the Default Channel of the guild.
      *
      * @return The default channel of this guild.
      */
+    @Nullable
     MessageChannel getDefaultChannel();
 
     /**
@@ -73,13 +77,15 @@ public interface Guild {
      * @return The member or null
      */
     @Nullable
-    Member getMember(User user);
+    Member getMember(@NotNull User user);
 
     /**
      * Returns a list of Invites of the guild.
      *
      * @return An invitation list of this guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Invite> getInvites();
 
     /**
@@ -87,6 +93,8 @@ public interface Guild {
      *
      * @return A list of banned users in this guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Ban> getBans();
 
     /**
@@ -94,6 +102,8 @@ public interface Guild {
      *
      * @return A member list of this guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Member> getMembers();
 
     /**
@@ -101,6 +111,8 @@ public interface Guild {
      *
      * @return A role list of this guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Role> getRoles();
 
     /**
@@ -117,7 +129,7 @@ public interface Guild {
      * @return The role if existing.
      */
     @Nullable
-    Role getRoleById(String id);
+    Role getRoleById(@NotNull String id);
 
     /**
      * Returns the member count of the guild.
@@ -131,6 +143,7 @@ public interface Guild {
      *
      * @return This guilds description
      */
+    @Nullable
     String getDescription();
 
     /**
@@ -145,6 +158,8 @@ public interface Guild {
      *
      * @return A channel list of this guild.
      */
+    @NotNull
+    @Unmodifiable
     List<Channel> getChannels();
 
     /**
@@ -152,7 +167,7 @@ public interface Guild {
      *
      * @param member The member to be kicked
      */
-    void kick(Member member);
+    void kick(@NotNull Member member);
 
     /**
      * Kick this member
@@ -160,14 +175,15 @@ public interface Guild {
      * @param member The member to be kicked
      * @param reason The kick reason
      */
-    void kick(Member member, String reason);
+    void kick(@NotNull Member member, @Nullable String reason);
 
     /**
      * Ban a member
      *
      * @param member The member to be banned
      */
-    Ban ban(Member member);
+    @NotNull
+    Ban ban(@NotNull Member member);
 
     /**
      * Ban a member
@@ -175,7 +191,8 @@ public interface Guild {
      * @param member The member to be banned
      * @param reason The ban reason
      */
-    Ban ban(Member member, String reason);
+    @NotNull
+    Ban ban(@NotNull Member member, @Nullable String reason);
 
     /**
      * Ban and delete the last {@code deletionPeriodHours} hours of message from a member
@@ -183,7 +200,8 @@ public interface Guild {
      * @param member              The member to be banned
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      */
-    Ban ban(Member member, int deletionPeriodHours);
+    @NotNull
+    Ban ban(@NotNull Member member, @Nullable Integer deletionPeriodHours);
 
     /**
      * Ban and delete the last {@code deletionPeriodHours} hours of message from a member
@@ -192,14 +210,15 @@ public interface Guild {
      * @param reason              The ban reason
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      */
-    Ban ban(Member member, String reason, int deletionPeriodHours);
+    @NotNull
+    Ban ban(@NotNull Member member, @Nullable String reason, @Nullable Integer deletionPeriodHours);
 
     /**
      * Unban a user
      *
      * @param user The user to be unbanned
      */
-    void unban(User user);
+    void unban(@NotNull User user);
 
     /**
      * Is the bot a member of this guild

@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import org.jetbrains.annotations.NotNull;
 
 public class ReloadConsoleCommand extends ConsoleCommand {
     public ReloadConsoleCommand() {
@@ -13,7 +14,7 @@ public class ReloadConsoleCommand extends ConsoleCommand {
     }
 
     @Override
-    public void execute(String[] args) {
+    public void execute(@NotNull String[] args) {
         if (args.length == 1) {
             String verb = args[0].toLowerCase();
             if (verb.equals("hard")) {

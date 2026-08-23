@@ -15,29 +15,32 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InternalMessageChannel extends InternalChannel implements MessageChannel {
+    @NotNull
     final net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel;
 
-    public InternalMessageChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+    public InternalMessageChannel(@NotNull net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
         super(channel);
 
         this.channel = channel;
     }
 
+    @NotNull
     public net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel() {
         return channel;
     }
 
     @Override
-    public MyMessage sendMessage(Component message) {
+    public @NotNull MyMessage sendMessage(@NotNull Component message) {
         DebugLogging.action(message);
         return sendMessage(message.asMessageData());
     }
 
     @Override
-    public MyMessage sendMessage(MessageData messageData) {
+    public @NotNull MyMessage sendMessage(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.channel.sendMessage(data).complete()
@@ -45,7 +48,7 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     }
 
     @Override
-    public MessageHistory getMessageHistory() {
+    public @NotNull MessageHistory getMessageHistory() {
         DebugLogging.action();
         return new InternalMessageHistory(channel.getHistory());
     }
@@ -66,7 +69,7 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     }
 
     @Override
-    public @Nullable Message getMessageById(String id) {
+    public @Nullable Message getMessageById(@NotNull String id) {
         DebugLogging.action(id);
         try {
             net.dv8tion.jda.api.entities.Message message = channel.retrieveMessageById(id).complete();

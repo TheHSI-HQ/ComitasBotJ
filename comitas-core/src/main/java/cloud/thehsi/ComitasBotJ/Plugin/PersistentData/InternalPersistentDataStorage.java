@@ -3,26 +3,28 @@ package cloud.thehsi.ComitasBotJ.Plugin.PersistentData;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataType;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class InternalPersistentDataStorage implements PersistentDataStorage {
-    private Map<String, Entry> data = new HashMap<>();
+    private @NotNull Map<String, Entry> data = new HashMap<>();
 
     public InternalPersistentDataStorage() {
     }
 
-    public InternalPersistentDataStorage(Map<String, Entry> data) {
+    public InternalPersistentDataStorage(@NotNull Map<String, Entry> data) {
         this.data = data;
     }
 
     @Override
     public <T> void set(
-            String key,
-            PersistentDataType<T> type,
-            T value
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type,
+            @NotNull T value
     ) {
         DebugLogging.action(key, type, value);
         data.put(
@@ -35,9 +37,10 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
+    @Nullable
     public <T> T get(
-            String key,
-            PersistentDataType<T> type
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type
     ) {
         DebugLogging.action(key, type);
         Entry value = data.get(key);
@@ -50,13 +53,13 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public boolean has(String key) {
+    public boolean has(@NotNull String key) {
         DebugLogging.action(key);
         return data.containsKey(key);
     }
 
     @Override
-    public <T> boolean has(String key, PersistentDataType<T> type) {
+    public <T> boolean has(@NotNull String key, @NotNull PersistentDataType<T> type) {
         DebugLogging.action(key, type);
         Entry value = data.get(key);
 
@@ -67,11 +70,12 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
-    public void remove(String key) {
+    public void remove(@NotNull String key) {
         DebugLogging.action(key);
         data.remove(key);
     }
 
+    @NotNull
     public Map<String, Entry> getData() {
         DebugLogging.action();
         return this.data;

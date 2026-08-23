@@ -4,7 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -15,6 +17,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return The thread's guild
      */
+    @NotNull
     Guild getGuild();
 
     /**
@@ -22,6 +25,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return The threads initial message
      */
+    @NotNull
     Message getInitialMessage();
 
     /**
@@ -29,6 +33,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return The threads parent channel
      */
+    @NotNull
     Channel getParent();
 
     /**
@@ -36,6 +41,8 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return Every tag in this thread
      */
+    @NotNull
+    @Unmodifiable
     List<ThreadTag> getTags();
 
     /**
@@ -43,27 +50,29 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @param tag The tag to add
      */
-    void addTag(ThreadTag tag);
+    void addTag(@NotNull ThreadTag tag);
 
     /**
      * Remove a tag from this thread
      *
      * @param tag The tag to remove
      */
-    void removeTag(ThreadTag tag);
+    void removeTag(@NotNull ThreadTag tag);
 
     /**
      * Does this thread have this tag
      *
      * @param tag The tag to look up
      */
-    boolean hasTag(ThreadTag tag);
+    boolean hasTag(@NotNull ThreadTag tag);
 
     /**
      * List all member of this thread
      *
      * @return A list of all thread members
      */
+    @NotNull
+    @Unmodifiable
     List<Member> getMembers();
 
     /**
@@ -71,14 +80,14 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @param member The member to add
      */
-    void addMember(Member member);
+    void addMember(@NotNull Member member);
 
     /**
      * Remove a member from the thread
      *
      * @param member The member to remove
      */
-    void removeMember(Member member);
+    void removeMember(@NotNull Member member);
 
     /**
      * Delete this thread
@@ -139,6 +148,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return Thread title
      */
+    @NotNull
     String getTitle();
 
     /**
@@ -146,7 +156,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @param title The new post title
      */
-    void setTitle(String title);
+    void setTitle(@NotNull String title);
 
     /**
      * Get the threads original poster (OP)

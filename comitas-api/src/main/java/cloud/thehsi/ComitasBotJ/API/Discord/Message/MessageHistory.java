@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -10,6 +12,7 @@ public interface MessageHistory {
      *
      * @return The channel this history is for
      */
+    @NotNull
     MessageChannel getChannel();
 
     /**
@@ -18,5 +21,7 @@ public interface MessageHistory {
      * @param amount Amount of messages to go back
      * @return The retrieved messages
      */
+    @NotNull
+    @Unmodifiable
     List<Message> retrieve(int amount);
 }

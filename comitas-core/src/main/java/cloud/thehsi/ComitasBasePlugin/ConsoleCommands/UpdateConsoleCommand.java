@@ -3,11 +3,13 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
 import cloud.thehsi.ComitasBotJ.Updater;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UpdateConsoleCommand extends ConsoleCommand {
+    @NotNull
     final AtomicBoolean needsConfirmation = new AtomicBoolean(false);
 
     public UpdateConsoleCommand() {
@@ -19,7 +21,7 @@ public class UpdateConsoleCommand extends ConsoleCommand {
     }
 
     @Override
-    public void execute(String[] args) {
+    public void execute(@NotNull String[] args) {
         if (args.length == 0) {
             needsConfirmation.set(true);
             getConsoleLogger().info("To confirm the update, run update confirm within the 30 seconds");

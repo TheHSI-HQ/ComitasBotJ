@@ -4,17 +4,19 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Task;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class InternalScheduler implements Scheduler {
 
+    @NotNull
     final Map<Integer, ScheduledTask> tasks = new HashMap<>();
     int nextTaskId = 0;
 
     @Override
-    public Task runTask(Plugin plugin, Runnable runnable) {
+    public @NotNull Task runTask(@NotNull Plugin plugin, @NotNull Runnable runnable) {
         DebugLogging.action(plugin, runnable);
         Task task = new SyncTask(nextTaskId, plugin);
         tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
@@ -23,7 +25,7 @@ public class InternalScheduler implements Scheduler {
     }
 
     @Override
-    public Task runTaskAsynchronously(Plugin plugin, Runnable runnable) {
+    public @NotNull Task runTaskAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable) {
         DebugLogging.action(plugin, runnable);
         Thread thread = new Thread(runnable);
         Task task = new AsyncTask(nextTaskId, plugin, thread);
@@ -33,7 +35,7 @@ public class InternalScheduler implements Scheduler {
     }
 
     @Override
-    public Task runTaskTimerAsynchronously(Plugin plugin, Runnable runnable, long delayMS, long intervalMS) {
+    public @NotNull Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS, long intervalMS) {
         DebugLogging.action(plugin, runnable, delayMS, intervalMS);
         Task task = new RepeatingTask(nextTaskId, plugin, runnable, delayMS, intervalMS);
         tasks.put(nextTaskId++, new ScheduledTask(task, runnable));
@@ -41,7 +43,7 @@ public class InternalScheduler implements Scheduler {
     }
 
     @Override
-    public Task runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delayMS) {
+    public @NotNull Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delayMS) {
         DebugLogging.action(plugin, runnable, delayMS);
         Thread thread = new Thread(() -> {
             try {

@@ -5,6 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import net.dv8tion.jda.api.utils.FileUpload;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,21 +16,21 @@ import java.util.concurrent.ExecutionException;
 @SuppressWarnings("unused")
 public class InternalAttachmentUpload implements AttachmentUpload {
     final byte[] data;
-    String fileName;
-    String description = null;
+    @NotNull String fileName;
+    @Nullable String description = null;
     boolean spoiler = false;
 
-    public InternalAttachmentUpload(Path path) throws IOException {
+    public InternalAttachmentUpload(@NotNull Path path) throws IOException {
         this.fileName = path.getFileName().toString();
         data = Files.readAllBytes(path);
     }
 
-    public InternalAttachmentUpload(String filename, byte[] data) {
+    public InternalAttachmentUpload(@NotNull String filename, byte[] data) {
         this.fileName = filename;
         this.data = data;
     }
 
-    public InternalAttachmentUpload(InternalAttachment attachment) {
+    public InternalAttachmentUpload(@NotNull InternalAttachment attachment) {
         this.fileName = attachment.getFileName();
         byte[] _data = null;
         spoiler = attachment.getFileName().startsWith("SPOILER_");
@@ -42,6 +44,7 @@ public class InternalAttachmentUpload implements AttachmentUpload {
         data = _data;
     }
 
+    @NotNull
     public FileUpload asFileUpload() {
         FileUpload fileUpload = FileUpload.fromData(data, fileName);
 
@@ -53,21 +56,21 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     }
 
     @Override
-    public AttachmentUpload setSpoiler(boolean spoiler) {
+    public @NotNull AttachmentUpload setSpoiler(boolean spoiler) {
         DebugLogging.action(spoiler);
         this.spoiler = spoiler;
         return this;
     }
 
     @Override
-    public AttachmentUpload setFileName(String fileName) {
+    public @NotNull AttachmentUpload setFileName(@NotNull String fileName) {
         DebugLogging.action(fileName);
         this.fileName = fileName;
         return this;
     }
 
     @Override
-    public AttachmentUpload setDescription(String description) {
+    public @NotNull AttachmentUpload setDescription(@NotNull String description) {
         DebugLogging.action(description);
         this.description = description;
         return this;
@@ -80,19 +83,19 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     }
 
     @Override
-    public String getFileName() {
+    public @NotNull String getFileName() {
         DebugLogging.action();
         return fileName;
     }
 
     @Override
-    public String getDescription() {
+    public @Nullable String getDescription() {
         DebugLogging.action();
         return description;
     }
 
     @Override
-    public MessageData asMessageData() {
+    public @NotNull MessageData asMessageData() {
         DebugLogging.action();
         return new MessageData(this);
     }

@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
@@ -26,6 +27,7 @@ public interface Invite {
      *
      * @return The inite's guild
      */
+    @NotNull
     Guild getGuild();
 
     /**
@@ -33,6 +35,7 @@ public interface Invite {
      *
      * @return The invite code
      */
+    @NotNull
     String getCode();
 
     /**
@@ -40,6 +43,7 @@ public interface Invite {
      *
      * @return The invite URL
      */
+    @NotNull
     String getUrl();
 
     /**
@@ -47,6 +51,7 @@ public interface Invite {
      *
      * @return The invite creator
      */
+    @Nullable
     User getInviter();
 
     /**
@@ -68,6 +73,7 @@ public interface Invite {
      *
      * @return The invite's creation time
      */
+    @NotNull
     OffsetDateTime getTimeCreated();
 
     /**
@@ -75,6 +81,7 @@ public interface Invite {
      *
      * @return The invite's expiry time
      */
+    @NotNull
     OffsetDateTime getExpiryTime();
 
     /**

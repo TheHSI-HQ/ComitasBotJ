@@ -1,7 +1,9 @@
 package cloud.thehsi.ComitasBotJ.API.Discord;
 
+import org.jetbrains.annotations.Nullable;
+
 public class InteractionAlreadyUsedException extends RuntimeException {
-    public InteractionAlreadyUsedException(String message) {
+    public InteractionAlreadyUsedException(@Nullable String message) {
         super(message);
     }
 }

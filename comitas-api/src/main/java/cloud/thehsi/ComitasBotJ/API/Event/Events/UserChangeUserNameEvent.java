@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface UserChangeUserNameEvent extends Event {
@@ -9,6 +10,7 @@ public interface UserChangeUserNameEvent extends Event {
      *
      * @return The user who changed their username
      */
+    @NotNull
     User getUser();
 
     /**
@@ -16,6 +18,7 @@ public interface UserChangeUserNameEvent extends Event {
      *
      * @return The user's new username
      */
+    @NotNull
     String getNewUserName();
 
     /**
@@ -23,5 +26,6 @@ public interface UserChangeUserNameEvent extends Event {
      *
      * @return The user's old username
      */
+    @NotNull
     String getOldUserName();
 }
