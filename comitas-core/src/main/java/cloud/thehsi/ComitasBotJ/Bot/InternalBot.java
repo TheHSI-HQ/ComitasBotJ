@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
+import cloud.thehsi.ComitasBotJ.API.Bot.BotPermissionProvider;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
@@ -84,6 +85,11 @@ public record InternalBot(SelfUser bot, EventManager eventManager) implements Bo
     public @NotNull List<Guild> getGuilds() {
         DebugLogging.action();
         return bot.getJDA().getGuilds().stream().map(e -> (Guild) new InternalGuild(e)).toList();
+    }
+
+    @Override
+    public @NotNull BotPermissionProvider getPermissions() {
+        return new InternalBotPermissionProvider();
     }
 
     @Override

@@ -91,6 +91,17 @@ public interface Bot {
     List<Guild> getGuilds();
 
     /**
+     * Get the bot's permission provider.
+     * <p>
+     * The {@link  BotPermissionProvider} is used to validate that the bot
+     * has a permission that may be required for an operation.
+     *
+     * @return The bot's permission provider
+     */
+    @NotNull
+    BotPermissionProvider getPermissions();
+
+    /**
      * Determine if a {@link Member} is this Bot
      *
      * @param member The member to check
