@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Interaction;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.InteractionAlreadyUsedException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;

@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message.Actions;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
-import cloud.thehsi.ComitasBotJ.API.Discord.InteractionAlreadyUsedException;
+import cloud.thehsi.ComitasBotJ.API.Discord.Interaction.InteractionAlreadyUsedException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;

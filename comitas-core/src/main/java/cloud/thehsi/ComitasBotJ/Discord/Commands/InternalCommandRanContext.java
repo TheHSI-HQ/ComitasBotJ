@@ -3,7 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Commands;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRanContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
-import cloud.thehsi.ComitasBotJ.API.Discord.InteractionAlreadyUsedException;
+import cloud.thehsi.ComitasBotJ.API.Discord.Interaction.InteractionAlreadyUsedException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;

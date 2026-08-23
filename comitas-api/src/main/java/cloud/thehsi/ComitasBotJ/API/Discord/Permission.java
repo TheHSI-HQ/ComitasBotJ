@@ -83,7 +83,7 @@ public enum Permission {
                 });
     }
 
-    public static long asLong(@NotNull Permission[] permissions) {
+    public static long asLong(@NotNull Permission... permissions) {
         return Arrays.stream(permissions).mapToLong(e -> e.permission).sum();
     }
 
