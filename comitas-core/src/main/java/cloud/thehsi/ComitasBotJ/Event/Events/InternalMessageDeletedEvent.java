@@ -27,6 +27,7 @@ public class InternalMessageDeletedEvent implements MessageDeletedEvent {
 
     @Override
     public long getId() {
+        DebugLogging.action();
         return id;
     }
 

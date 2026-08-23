@@ -6,8 +6,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.BotUpdatePresenceEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
+import cloud.thehsi.ComitasBotJ.Event.EventManager;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotUpdatePresenceEvent;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.SelfUser;
 import org.jetbrains.annotations.ApiStatus;
@@ -17,7 +20,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public record InternalBot(SelfUser bot) implements Bot {
+public record InternalBot(SelfUser bot, EventManager eventManager) implements Bot {
     @NotNull
     static final Logger debugLogger = DebugLogging.getLogger();
 
@@ -105,6 +108,8 @@ public record InternalBot(SelfUser bot) implements Bot {
     @Override
     public void setActivity(@Nullable Activity activity) {
         DebugLogging.action(activity);
+        Activity oldActivity = getActivity();
+
         if (activity == null)
             bot.getJDA().getPresence().setActivity(null);
         else
@@ -113,6 +118,28 @@ public record InternalBot(SelfUser bot) implements Bot {
                     activity.getName(),
                     activity.getUrl()
             ));
+
+        eventManager().runCallbackAsync(
+                new InternalBotUpdatePresenceEvent(
+                        oldActivity,
+                        activity,
+                        null,
+                        getOnlineStatus(),
+                        this,
+                        EventManager.resolveUndoLoopPrevention(BotUpdatePresenceEvent.class,
+                                true, activity == null ? null : activity.getName(), activity == null ? null : activity.getUrl()
+                        )
+                ),
+                event -> {
+                    if (event.willUndo()) {
+                        EventManager.addUndoLoopPrevention(BotUpdatePresenceEvent.class,
+                                true, oldActivity == null ? null : oldActivity.getName(), oldActivity == null ? null : oldActivity.getUrl()
+                        );
+
+                        setActivity(oldActivity);
+                    }
+                }
+        );
     }
 
     @Override
@@ -124,6 +151,31 @@ public record InternalBot(SelfUser bot) implements Bot {
     @Override
     public void setOnlineStatus(@NotNull OnlineStatus onlineStatus) {
         DebugLogging.action(onlineStatus);
+
+        OnlineStatus oldStatus = getOnlineStatus();
+
         bot.getJDA().getPresence().setStatus(net.dv8tion.jda.api.OnlineStatus.fromKey(onlineStatus.getKey()));
+
+        eventManager().runCallbackAsync(
+                new InternalBotUpdatePresenceEvent(
+                        null,
+                        getActivity(),
+                        oldStatus,
+                        getOnlineStatus(),
+                        this,
+                        EventManager.resolveUndoLoopPrevention(BotUpdatePresenceEvent.class,
+                                false, onlineStatus.getKey()
+                        )
+                ),
+                event -> {
+                    if (event.willUndo()) {
+                        EventManager.addUndoLoopPrevention(BotUpdatePresenceEvent.class,
+                                false, oldStatus.getKey()
+                        );
+
+                        setOnlineStatus(oldStatus);
+                    }
+                }
+        );
     }
 }

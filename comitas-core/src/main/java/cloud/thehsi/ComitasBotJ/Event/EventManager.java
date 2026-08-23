@@ -2,27 +2,34 @@ package cloud.thehsi.ComitasBotJ.Event;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
+import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.UndoableEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class EventManager {
     private @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".EventManager");
-    private @NotNull
+    private static @NotNull
     final Logger debugLogger = DebugLogging.getLogger();
 
     private @NotNull
     final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
+
+    private @NotNull
+    final static List<String> undoLoopFixList = Collections.synchronizedList(new ArrayList<>());
 
     public void registerListener(@NotNull Plugin plugin, @NotNull Listener listener) {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Listener {}", listener.getClass());
@@ -54,6 +61,46 @@ public class EventManager {
             listeners.get(eventClass)
                     .sort(Comparator.comparingInt(RegisteredListener::slot)); // Sort by Slot
         }
+    }
+
+    @NotNull
+    public static EventOrigin resolveUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
+        StringBuilder identifier = new StringBuilder(clazz.getName());
+        for (@Nullable Object arg : args) {
+            identifier.append(";").append(arg == null ? "null" : arg.hashCode());
+        }
+        if (undoLoopFixList.remove(identifier.toString())) {
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
+            return EventOrigin.UNDO;
+        }
+        return EventOrigin.EXTERNAL;
+    }
+
+    public static void addUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
+        StringBuilder identifier = new StringBuilder(clazz.getName());
+        for (@Nullable Object arg : args) {
+            identifier.append(";").append(arg == null ? "null" : arg.hashCode());
+        }
+        if (DebugLogging.isEventEnabled())
+            debugLogger.debug("Adding a UndoLoopFix, as event {} was marked to be undone", clazz.getSimpleName());
+        undoLoopFixList.add(identifier.toString());
+    }
+
+    public void runCallbackAsync(@NotNull Event event) {
+        Thread thread = new Thread(() -> callEvent(event));
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    public void runCallbackAsync(@NotNull UndoableEvent event,
+                                 @NotNull Consumer<UndoableEvent> undoRoutine) {
+        Thread thread = new Thread(() -> {
+            callEvent(event);
+            undoRoutine.accept(event);
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public void callEvent(@NotNull Event event) {

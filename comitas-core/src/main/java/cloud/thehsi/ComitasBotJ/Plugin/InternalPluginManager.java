@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
@@ -282,7 +283,9 @@ public class InternalPluginManager implements PluginManager {
         // Fake the bot being ready, so plugins listening for it can react
         if (DiscordAPI.nullableApi() != null) {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Faking and Firing a BotReadyEvent");
-            eventManager.callEvent(new InternalBotReadyEvent(DiscordAPI.nullableApi().getSelfUser()));
+            eventManager.callEvent(new InternalBotReadyEvent(
+                    new InternalBot(DiscordAPI.nullableApi().getSelfUser(), eventManager)
+            ));
         }
         logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
     }

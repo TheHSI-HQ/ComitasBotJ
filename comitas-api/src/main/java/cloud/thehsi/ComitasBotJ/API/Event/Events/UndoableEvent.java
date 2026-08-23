@@ -1,6 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Event.Events;
 
-public interface UndoableEvent {
+public interface UndoableEvent extends Event {
     /**
      * Will this event be undone
      *

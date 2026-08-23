@@ -226,7 +226,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         pluginManager.setDiscordApi(api);
 
-        bot = new InternalBot(DiscordAPI.api().getSelfUser());
+        bot = new InternalBot(DiscordAPI.api().getSelfUser(), eventManager);
     }
 
     @Override
