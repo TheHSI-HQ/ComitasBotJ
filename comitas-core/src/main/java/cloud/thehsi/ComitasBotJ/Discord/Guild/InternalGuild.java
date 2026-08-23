@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Invite;
@@ -10,7 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -48,15 +48,14 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     }
 
     @Override
-    public @Nullable MessageChannel getDefaultChannel() {
+    public @Nullable TextChannel getDefaultChannel() {
         DebugLogging.action();
         net.dv8tion.jda.api.entities.channel.middleman.GuildChannel defaultChannel = guild.getDefaultChannel();
 
-        if (defaultChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) {
-            return new InternalMessageChannel(
-                    (net.dv8tion.jda.api.entities.channel.middleman.MessageChannel) guild.getDefaultChannel()
+        if (defaultChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel)
+            return new InternalTextChannel(
+                    (net.dv8tion.jda.api.entities.channel.concrete.TextChannel) guild.getDefaultChannel()
             );
-        }
 
         return null;
     }

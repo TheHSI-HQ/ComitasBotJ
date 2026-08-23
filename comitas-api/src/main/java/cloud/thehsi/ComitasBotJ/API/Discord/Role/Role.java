@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.awt.*;
 import java.util.List;
@@ -80,5 +81,6 @@ public interface Role {
      * @return The generated list of permissions
      */
     @NotNull
+    @Unmodifiable
     List<Permission> getPermissions();
 }

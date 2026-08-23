@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 public enum ChannelType {
-    TEXT(MessageChannel.class),
+    TEXT(TextChannel.class),
     MESSAGE(MessageChannel.class),
     FORUM(ForumChannel.class),
     THREAD(ThreadChannel.class),

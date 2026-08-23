@@ -1,8 +1,8 @@
-package cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread;
+package cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface ThreadTag {
+public interface ForumTag {
     /**
      * Gets the tags name
      *

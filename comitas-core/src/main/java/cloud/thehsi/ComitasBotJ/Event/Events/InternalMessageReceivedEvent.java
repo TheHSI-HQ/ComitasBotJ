@@ -8,7 +8,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalMessageChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
@@ -33,7 +33,7 @@ public class InternalMessageReceivedEvent implements MessageReceivedEvent {
         this.message = event.getMessage();
         this.iMessage = new InternalMessage(message, this::deleteMessage);
 
-        this.channel = new InternalMessageChannel(event.getChannel());
+        this.channel = (MessageChannel) ChannelTypeResolver.resolve(event.getChannel());
         if (event.isFromGuild())
             this.guild = new InternalGuild(event.getGuild());
         else

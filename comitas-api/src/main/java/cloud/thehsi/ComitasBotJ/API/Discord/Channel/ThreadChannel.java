@@ -1,6 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Attributes.IThreadContainer;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface ThreadChannel extends MessageChannel {
+public interface ThreadChannel extends MessageChannel, GuildChannel {
     /**
      * Gets the thread's guild
      *
@@ -25,7 +25,7 @@ public interface ThreadChannel extends MessageChannel {
      *
      * @return The threads initial message
      */
-    @NotNull
+    @Nullable
     Message getInitialMessage();
 
     /**
@@ -34,37 +34,7 @@ public interface ThreadChannel extends MessageChannel {
      * @return The threads parent channel
      */
     @NotNull
-    Channel getParent();
-
-    /**
-     * Lists all tags of this thread
-     *
-     * @return Every tag in this thread
-     */
-    @NotNull
-    @Unmodifiable
-    List<ThreadTag> getTags();
-
-    /**
-     * Add a tag to this thread
-     *
-     * @param tag The tag to add
-     */
-    void addTag(@NotNull ThreadTag tag);
-
-    /**
-     * Remove a tag from this thread
-     *
-     * @param tag The tag to remove
-     */
-    void removeTag(@NotNull ThreadTag tag);
-
-    /**
-     * Does this thread have this tag
-     *
-     * @param tag The tag to look up
-     */
-    boolean hasTag(@NotNull ThreadTag tag);
+    IThreadContainer getParent();
 
     /**
      * List all member of this thread
@@ -128,20 +98,6 @@ public interface ThreadChannel extends MessageChannel {
      * @param locked Should this thread be locked
      */
     void setLocked(boolean locked);
-
-    /**
-     * Is this thread pinned
-     *
-     * @return Is this thread pinned
-     */
-    boolean isPinned();
-
-    /**
-     * Set the pin status of this thread
-     *
-     * @param pinned Should this thread be pinned
-     */
-    void setPinned(boolean pinned);
 
     /**
      * Get the threads title

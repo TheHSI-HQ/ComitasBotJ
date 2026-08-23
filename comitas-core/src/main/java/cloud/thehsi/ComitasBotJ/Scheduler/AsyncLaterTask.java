@@ -43,11 +43,6 @@ public class AsyncLaterTask implements Task {
     }
 
     @Override
-    public boolean isSync() {
-        return false;
-    }
-
-    @Override
     public boolean isCancelled() {
         return canceled;
     }

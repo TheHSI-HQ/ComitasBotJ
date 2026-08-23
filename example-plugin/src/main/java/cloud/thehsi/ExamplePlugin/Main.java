@@ -1,7 +1,7 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
@@ -49,7 +49,7 @@ public class Main extends Plugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onUserJoinGuildEvent(@NotNull UserJoinGuildEvent event) {
-        MessageChannel generalChannel = event.getGuild().getDefaultChannel();
+        TextChannel generalChannel = event.getGuild().getDefaultChannel();
         if (generalChannel == null)
             return;
         generalChannel.sendMessage(

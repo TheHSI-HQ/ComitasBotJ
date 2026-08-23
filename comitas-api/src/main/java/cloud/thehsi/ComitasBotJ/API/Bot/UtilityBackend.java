@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
@@ -45,7 +45,7 @@ public interface UtilityBackend {
 
     @NotNull AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data);
 
-    @NotNull ThreadTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
+    @NotNull ForumTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
 
     @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
 

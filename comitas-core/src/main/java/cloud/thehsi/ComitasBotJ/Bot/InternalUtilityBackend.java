@@ -2,8 +2,8 @@ package cloud.thehsi.ComitasBotJ.Bot;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.UtilityBackend;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.TagNameNotUniqueException;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Thread.ThreadTag;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTag;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTagNameNotUniqueException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
@@ -13,8 +13,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.Forum.InternalForumTag;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.Thread.InternalThreadTag;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.InternalButton;
@@ -22,7 +22,6 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpl
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer;
-import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTagData;
 import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -108,7 +107,7 @@ public class InternalUtilityBackend implements UtilityBackend {
     }
 
     @Override
-    public @NotNull ThreadTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName) throws TagNameNotUniqueException {
+    public @NotNull ForumTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName) throws ForumTagNameNotUniqueException {
         DebugLogging.action(channel, tagName);
 
         if (!(channel instanceof InternalChannel internal))
@@ -127,14 +126,14 @@ public class InternalUtilityBackend implements UtilityBackend {
             iPostContainer.getManager().setAvailableTags(tags).complete();
         } catch (ErrorResponseException e) {
             if (e.getErrorCode() == 40061) // Tag names must be unique
-                throw new TagNameNotUniqueException("A tag named '" + tagName + "' already exists.");
+                throw new ForumTagNameNotUniqueException("A tag named '" + tagName + "' already exists.");
         }
 
-        List<ForumTag> found = iPostContainer.getAvailableTagsByName(tagName, false);
+        List<net.dv8tion.jda.api.entities.channel.forums.ForumTag> found = iPostContainer.getAvailableTagsByName(tagName, false);
         if (found.isEmpty())
             throw new RuntimeException("Couldn't locate newly created tag. Maybe missing permissions?"); // TODO: Replace with custom exception
 
-        return new InternalThreadTag(found.getFirst(), channel.getId());
+        return new InternalForumTag(found.getFirst(), channel.getId());
     }
 
     @Override
