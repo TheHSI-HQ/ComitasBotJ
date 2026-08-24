@@ -67,10 +67,6 @@ public class Main extends Plugin implements Listener {
     public void onMessage(@NotNull MessageReceivedEvent event) {
         if (Comitas.getBot().isMeOrNull(event.getAuthor())) return;
 
-        event.reply(
-                Component.text(event.getChannel().getType().name())
-        );
-
         if (event.getRawContent().startsWith("!hello")) {
             PersistentDataStorage storage = Comitas.getPluginManager().getPersistentDataStorage();
 
