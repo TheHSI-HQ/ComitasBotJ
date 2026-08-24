@@ -53,6 +53,15 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
     }
 
     @Override
+    @NotNull
+    public <T> T get(@NotNull String key, @NotNull PersistentDataType<T> type, @NotNull T fallback) {
+        T val = get(key, type);
+        if (val == null)
+            return fallback;
+        return val;
+    }
+
+    @Override
     public boolean has(@NotNull String key) {
         DebugLogging.action(key);
         return data.containsKey(key);

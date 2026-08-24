@@ -31,6 +31,20 @@ public interface PersistentDataStorage {
     );
 
     /**
+     * Retrieve data from this storage.
+     *
+     * @param key      The data address
+     * @param type     The type of the data
+     * @param fallback The fallback value, in case no value is found for key
+     */
+    @NotNull
+    <T> T get(
+            @NotNull String key,
+            @NotNull PersistentDataType<T> type,
+            @NotNull T fallback
+    );
+
+    /**
      * Does this Storage have this key?
      *
      * @param key The key
