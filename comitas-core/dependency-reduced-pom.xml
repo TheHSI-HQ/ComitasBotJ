@@ -31,7 +31,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
-                <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
+              <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -46,9 +46,27 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <minimizeJar>true</minimizeJar>
+              <filters>
+                <filter>
+                  <artifact>cloud.thehsi.ComitasBotJ:comitas-api</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <transformers>
                 <transformer>
-                    <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
+                  <mainClass>cloud.thehsi.ComitasBotJ.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>
