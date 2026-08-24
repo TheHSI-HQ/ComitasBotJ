@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -96,16 +97,21 @@ public class DiscordAPI {
         );
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot");
-        api = JDABuilder.createDefault(BOT_TOKEN)
-                .enableIntents(
-                        GatewayIntent.GUILD_MEMBERS,
-                        GatewayIntent.MESSAGE_CONTENT
-                )
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .setChunkingFilter(ChunkingFilter.ALL)
-                .setEventPassthrough(true)
-                .addEventListeners(listeners)
-                .build();
+        try {
+            api = JDABuilder.createDefault(BOT_TOKEN)
+                    .enableIntents(
+                            GatewayIntent.GUILD_MEMBERS,
+                            GatewayIntent.MESSAGE_CONTENT
+                    )
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
+                    .setChunkingFilter(ChunkingFilter.ALL)
+                    .setEventPassthrough(true)
+                    .addEventListeners(listeners)
+                    .build();
+        } catch (ErrorResponseException e) {
+            logger.error("Unable to connect to discord. Aborting!", e);
+            System.exit(1);
+        }
     }
 
     public void reconnect() throws InterruptedException {
