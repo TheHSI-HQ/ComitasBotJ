@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public interface ForumChannel extends Channel, IThreadContainer, GuildChannel {
+public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
 
     /**
      * Lists all registered tags of this channel

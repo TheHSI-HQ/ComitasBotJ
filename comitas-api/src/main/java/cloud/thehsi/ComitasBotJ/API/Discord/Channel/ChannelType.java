@@ -7,13 +7,19 @@ import java.util.Arrays;
 
 public enum ChannelType {
     TEXT(TextChannel.class),
-    MESSAGE(MessageChannel.class),
-    FORUM(ForumChannel.class),
-    THREAD(ThreadChannel.class),
+    PRIVATE(MessageChannel.class),
+    VOICE(TextChannel.class),
+    GROUP(MessageChannel.class),
+    CATEGORY(Channel.class),
+    NEWS(NewsChannel.class),
+    STAGE(TextChannel.class),
     GUILD_NEWS_THREAD(ThreadChannel.class),
     GUILD_PUBLIC_THREAD(ThreadChannel.class),
     GUILD_PRIVATE_THREAD(ThreadChannel.class),
     GUILD_DIRECTORY(Channel.class),
+    FORUM(ForumChannel.class),
+    MEDIA(TextChannel.class),
+
     UNKNOWN(Channel.class);
 
     private @NotNull
@@ -34,14 +40,15 @@ public enum ChannelType {
     public boolean isAudio() {
         //noinspection ConstantValue,SwitchStatementWithTooFewBranches
         return switch (this) {
+            case VOICE,
+                 STAGE -> true;
             default -> false;
         };
     }
 
     public boolean isThread() {
         return switch (this) {
-            case THREAD,
-                 GUILD_NEWS_THREAD,
+            case GUILD_NEWS_THREAD,
                  GUILD_PUBLIC_THREAD,
                  GUILD_PRIVATE_THREAD -> true;
             default -> false;
@@ -51,9 +58,11 @@ public enum ChannelType {
     public boolean isMessage() {
         return switch (this) {
             case TEXT,
-                 MESSAGE,
-                 FORUM,
-                 THREAD,
+                 VOICE,
+                 STAGE,
+                 NEWS,
+                 PRIVATE,
+                 GROUP,
                  GUILD_NEWS_THREAD,
                  GUILD_PUBLIC_THREAD,
                  GUILD_PRIVATE_THREAD -> true;
