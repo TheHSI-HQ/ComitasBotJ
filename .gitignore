@@ -41,3 +41,4 @@ build/
 # Build Scipt
 build.sh
 /.idea/discord.xml
+/.venv/
