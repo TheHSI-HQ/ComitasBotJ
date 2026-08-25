@@ -46,9 +46,9 @@
                 <version>3.6.0</version>
 
                 <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
+                    <configLocation>../checkstyle.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>false</failsOnError>
+                    <failsOnError>true</failsOnError>
                 </configuration>
 
                 <dependencies>
