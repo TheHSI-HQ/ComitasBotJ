@@ -9,12 +9,14 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Utility.StackTraces;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
@@ -54,12 +56,20 @@ public class EventManager {
                     (Class<? extends Event>) params[0];
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resgistering Listener Method {}({}) of {}", method.getName(), eventClass.getName(), listener.getClass());
-            listeners
-                    .computeIfAbsent(eventClass, k -> new ArrayList<>())
-                    .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, method));
 
-            listeners.get(eventClass)
-                    .sort(Comparator.comparingInt(RegisteredListener::slot)); // Sort by Slot
+            try {
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+                MethodHandle handle = lookup.unreflect(method);
+
+                listeners
+                        .computeIfAbsent(eventClass, k -> new ArrayList<>())
+                        .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, handle));
+
+                listeners.get(eventClass)
+                        .sort(Comparator.comparingInt(RegisteredListener::slot)); // Sort by Slot
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -123,18 +133,17 @@ public class EventManager {
 
         for (RegisteredListener handler : handlers) {
             try {
-                if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.method(), eventClass.getName());
-                handler.method().invoke(handler.listener(), event);
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
+                if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.methodHandle(), eventClass.getName());
+                handler.methodHandle().invoke(handler.listener(), event);
+            } catch (Throwable e) {
+                if (!DebugLogging.isBasicEnabled())
+                    StackTraces.trimStackTrace(e);
 
                 logger.error(
                         "An error occurred in plugin {}",
                         Objects.requireNonNull(Comitas.getPluginManager().lookupPlugin(handler.plugin)).name(),
-                        cause
+                        e
                 );
-            } catch (Exception e) {
-                logger.error("Failed to invoke listener in plugin {}", Objects.requireNonNull(Comitas.getPluginManager().lookupPlugin(handler.plugin)).name(), e);
             }
         }
     }
@@ -148,7 +157,7 @@ public class EventManager {
             int slot,
             Listener listener,
             Plugin plugin,
-            Method method
+            MethodHandle methodHandle
     ) {
     }
 }

@@ -131,7 +131,9 @@ public class PluginLoaderManager {
     }
 
     public void loadPlugins() {
-        assert pluginManager != null;
+        if (pluginManager == null)
+            throw new IllegalStateException("Plugin Manager not initialized");
+
         if (!Main.props().strictSafeMode()) loadBasePlugin();
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking and creating plugins and plugin_data directories");
@@ -303,7 +305,9 @@ public class PluginLoaderManager {
     }
 
     public void unloadPlugins() {
-        assert pluginManager != null;
+        if (pluginManager == null)
+            throw new IllegalStateException("Plugin Manager not initialized");
+
         for (LoadedPlugin loaded : plugins) {
             try {
                 loaded.plugin().onDisable();

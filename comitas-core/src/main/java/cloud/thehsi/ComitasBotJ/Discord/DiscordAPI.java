@@ -45,7 +45,9 @@ public class DiscordAPI {
 
     @NotNull
     public static JDA api() {
-        assert api != null;
+        if (api == null)
+            throw new IllegalStateException("API not initialized");
+
         return api;
     }
 
@@ -128,7 +130,10 @@ public class DiscordAPI {
 
         connect();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Awaiting bot to be ready.");
-        assert api != null;
+
+        if (api == null)
+            throw new IllegalStateException("API not initialized, despide it was started");
+
         api.awaitReady();
     }
 }

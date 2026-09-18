@@ -133,14 +133,18 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public @NotNull PluginManager getPluginManager() {
         DebugLogging.action();
-        assert pluginManager != null;
+        if (pluginManager == null)
+            throw new IllegalStateException("Plugin Manager not initialized");
+
         return pluginManager;
     }
 
     @Override
     public @NotNull CommandRegistry getCommandRegistry() {
         DebugLogging.action();
-        assert commandRegistry != null;
+        if (commandRegistry == null)
+            throw new IllegalStateException("Command Registry not initialized");
+
         return commandRegistry;
     }
 
@@ -153,7 +157,9 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public @NotNull Scheduler getScheduler() {
         DebugLogging.action();
-        assert scheduler != null;
+        if (scheduler == null)
+            throw new IllegalStateException("Scheduler not initialized");
+
         return scheduler;
     }
 
@@ -166,7 +172,9 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public @NotNull Bot getBot() {
         DebugLogging.action();
-        assert bot != null;
+        if (bot == null)
+            throw new IllegalStateException("Bot not initialized");
+
         return bot;
     }
 

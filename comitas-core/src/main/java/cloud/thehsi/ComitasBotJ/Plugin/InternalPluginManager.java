@@ -108,7 +108,9 @@ public class InternalPluginManager implements PluginManager {
         DebugLogging.action();
         Plugin plugin = getPlugin();
         Plugin.PluginMetadata metadata = lookupPlugin(plugin);
-        assert metadata != null;
+        if (metadata == null)
+            throw new IllegalStateException("No plugin metadata found");
+
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("{} requested persistant data storage.", metadata.name());
 
         populateDataStore(metadata.uuid());

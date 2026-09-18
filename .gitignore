@@ -38,7 +38,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
-# Build Scipt
-build.sh
 /.idea/discord.xml
 /.venv/
+.hash
+.new_hash

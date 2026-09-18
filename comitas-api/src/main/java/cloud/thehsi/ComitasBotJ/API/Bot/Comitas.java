@@ -20,7 +20,8 @@ public class Comitas {
     /* Not supposed to be used by Plugin Developers */
     @NotNull
     public static UtilityBackend getUtilityBackend() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getUtilityBackend();
     }
 
@@ -28,7 +29,8 @@ public class Comitas {
      * Shutdown the Bot.
      */
     public static void shutdown() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         INSTANCE.impl.shutdown();
     }
 
@@ -39,7 +41,8 @@ public class Comitas {
      */
     @NotNull
     public static Bot getBot() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getBot();
     }
 
@@ -61,7 +64,8 @@ public class Comitas {
      */
     @NotNull
     public static String getServerVersion() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getServerVersion();
     }
 
@@ -74,7 +78,8 @@ public class Comitas {
      */
     @NotNull
     public static PluginManager getPluginManager() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getPluginManager();
     }
 
@@ -87,7 +92,8 @@ public class Comitas {
      */
     @NotNull
     public static CommandRegistry getCommandRegistry() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getCommandRegistry();
     }
 
@@ -100,7 +106,8 @@ public class Comitas {
      */
     @NotNull
     public static ConsoleCommandRegistry getConsoleCommandRegistry() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getConsoleCommandRegistry();
     }
 
@@ -113,12 +120,14 @@ public class Comitas {
      */
     @NotNull
     public static Scheduler getScheduler() {
-        assert INSTANCE.impl != null;
+        if (INSTANCE.impl == null)
+            throw new IllegalStateException("Intance not initialized");
         return INSTANCE.impl.getScheduler();
     }
 
     public void init(@NotNull InternalComitasImpl impl) {
-        assert INSTANCE.impl == null;
+        if (INSTANCE.impl != null)
+            throw new IllegalStateException("Intance already initialized");
 
         INSTANCE.impl = impl;
 

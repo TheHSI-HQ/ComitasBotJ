@@ -94,13 +94,15 @@ public class Main implements Runnable {
 
     @NotNull
     public static StartupProperties props() {
-        assert props != null;
+        if (props == null)
+            throw new IllegalStateException("Properties not initialized");
         return props;
     }
 
     @NotNull
     public static ServerConfig.ParsedServerConfig conf() {
-        assert conf != null;
+        if (conf == null)
+            throw new IllegalStateException("ServerConfig not initialized");
         return conf;
     }
 
@@ -155,6 +157,8 @@ public class Main implements Runnable {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Computing config values");
         takeConfigActions();
 
+        if (conf == null)
+            throw new IllegalStateException("ServerConfig not initialized");
         logger.info("Loaded {} configuration value(s).", conf.count());
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
