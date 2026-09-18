@@ -34,6 +34,8 @@ public class InternalPluginManager implements PluginManager {
     static final StackWalker STACK_WALKER =
             StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     private @NotNull
+    static final ThreadLocal<Plugin> contextPlugin = new ThreadLocal<>();
+    private @NotNull
     final ScheduledExecutorService dataAutoSaveExecutor;
     private @NotNull
     final PluginLoaderManager pluginLoaderManager;
@@ -122,9 +124,23 @@ public class InternalPluginManager implements PluginManager {
         return pluginLoaderManager.pluginMetadataList();
     }
 
+    public static void setContextPlugin(@NotNull Plugin plugin) {
+        contextPlugin.set(plugin);
+    }
+
+    public static void clearContextPlugin() {
+        contextPlugin.remove();
+    }
+
     @Override
     public @NotNull Plugin getPlugin() {
         DebugLogging.action();
+
+        Plugin cached = contextPlugin.get();
+        if (cached != null) {
+            return cached;
+        }
+
         if (DebugLogging.isActionEnabled()) debugLogger.debug("Fetching calling plugin...");
         Plugin plugin = STACK_WALKER
                 .walk(frames -> frames

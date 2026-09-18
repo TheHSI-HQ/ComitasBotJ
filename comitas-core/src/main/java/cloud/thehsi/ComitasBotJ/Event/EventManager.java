@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Utility.StackTraces;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,6 +155,8 @@ public class EventManager {
         for (RegisteredListener handler : handlers) {
             try {
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.methodHandle(), eventClass.getName());
+                InternalPluginManager.setContextPlugin(handler.plugin());
+
                 handler.methodHandle().invoke(handler.listener(), event);
             } catch (Throwable e) {
                 if (!DebugLogging.isBasicEnabled())
@@ -164,6 +167,8 @@ public class EventManager {
                         Objects.requireNonNull(Comitas.getPluginManager().lookupPlugin(handler.plugin)).name(),
                         e
                 );
+            } finally {
+                InternalPluginManager.clearContextPlugin();
             }
         }
     }
