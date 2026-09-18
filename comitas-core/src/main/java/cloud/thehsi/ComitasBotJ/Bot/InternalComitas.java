@@ -276,8 +276,8 @@ public class InternalComitas implements InternalComitasImpl {
         }
 
         if (eventManager != null) {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Event Listeners");
-            eventManager.clearEventListeners();
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Shutting down Event Listeners");
+            eventManager.shutdown();
         }
 
         logger.info("Bye!");

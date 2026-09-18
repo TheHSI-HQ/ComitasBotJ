@@ -20,6 +20,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class EventManager {
@@ -34,6 +37,14 @@ public class EventManager {
     private @NotNull
     static final ConcurrentHashMap<Long, Long> undoLoopFixCache = new ConcurrentHashMap<>();
     private static final long UNDO_PREVENTION_TTL_MS = 5000;
+
+    private @NotNull
+    static final ExecutorService asyncEventExecutor =
+            Executors.newFixedThreadPool(8, r -> {
+                Thread t = new Thread(r, "ComitasEventWorker");
+                t.setDaemon(true);
+                return t;
+            });
 
     public void registerListener(@NotNull Plugin plugin, @NotNull Listener listener) {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Listener {}", listener.getClass());
@@ -111,19 +122,15 @@ public class EventManager {
     }
 
     public void runCallbackAsync(@NotNull Event event) {
-        Thread thread = new Thread(() -> callEvent(event));
-        thread.setDaemon(true);
-        thread.start();
+        asyncEventExecutor.submit(() -> callEvent(event));
     }
 
     public void runCallbackAsync(@NotNull UndoableEvent event,
                                  @NotNull Consumer<UndoableEvent> undoRoutine) {
-        Thread thread = new Thread(() -> {
+        asyncEventExecutor.submit(() -> {
             callEvent(event);
             undoRoutine.accept(event);
         });
-        thread.setDaemon(true);
-        thread.start();
     }
 
     public void callEvent(@NotNull Event event) {
@@ -164,6 +171,22 @@ public class EventManager {
     public void clearEventListeners() {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing {} event listeners", listeners.size());
         listeners.clear();
+    }
+
+    public void shutdown() {
+        if (DebugLogging.isBasicEnabled())
+            debugLogger.debug("Shutting down async event executor");
+        asyncEventExecutor.shutdown();
+        try {
+            if (!asyncEventExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                asyncEventExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            asyncEventExecutor.shutdownNow();
+        }
+
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Event Listeners");
+        clearEventListeners();
     }
 
     private record RegisteredListener(
