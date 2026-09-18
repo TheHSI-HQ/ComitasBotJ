@@ -14,6 +14,8 @@
     </option>
     <option name="locations">
       <list>
+        <ConfigurationLocation id="bundled-sun-checks" type="BUNDLED" scope="All" description="Sun Checks">bundled-sun-checks</ConfigurationLocation>
+        <ConfigurationLocation id="bundled-google-checks" type="BUNDLED" scope="All" description="Google Checks">bundled-google-checks</ConfigurationLocation>
         <ConfigurationLocation id="maven-config-location" type="PROJECT_RELATIVE" scope="All" description="Maven Config Location">$PROJECT_DIR$/checkstyle.xml</ConfigurationLocation>
       </list>
     </option>
