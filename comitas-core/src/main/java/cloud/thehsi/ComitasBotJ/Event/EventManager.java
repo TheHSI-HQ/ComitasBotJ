@@ -44,11 +44,7 @@ public class EventManager {
             EventHandler handler = method.getAnnotation(EventHandler.class);
 
             Class<?>[] params = method.getParameterTypes();
-
-            if (params.length != 1)
-                continue;
-
-            if (!Event.class.isAssignableFrom(params[0]))
+            if (params.length != 1 || !Event.class.isAssignableFrom(params[0]))
                 continue;
 
             method.setAccessible(true);
@@ -57,18 +53,29 @@ public class EventManager {
             Class<? extends Event> eventClass =
                     (Class<? extends Event>) params[0];
 
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resgistering Listener Method {}({}) of {}", method.getName(), eventClass.getName(), listener.getClass());
+            if (DebugLogging.isBasicEnabled())
+                debugLogger.debug("Registered Listener Method {}({}) of {}",
+                        method.getName(), eventClass.getName(), listener.getClass());
 
             try {
                 MethodHandles.Lookup lookup = MethodHandles.lookup();
                 MethodHandle handle = lookup.unreflect(method);
 
-                listeners
-                        .computeIfAbsent(eventClass, k -> new ArrayList<>())
-                        .add(new RegisteredListener(handler.priority().getSlot(), listener, plugin, handle));
+                int slot = handler.priority().getSlot();
+                RegisteredListener newListener = new RegisteredListener(slot, listener, plugin, handle);
 
-                listeners.get(eventClass)
-                        .sort(Comparator.comparingInt(RegisteredListener::slot)); // Sort by Slot
+                List<RegisteredListener> handlerList = listeners.computeIfAbsent(eventClass, k -> new ArrayList<>());
+
+                int insertIndex = 0;
+                for (int i = 0; i < handlerList.size(); i++) {
+                    if (handlerList.get(i).slot() > slot) {
+                        insertIndex = i;
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+
+                handlerList.add(insertIndex, newListener);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
