@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +34,65 @@ public class Updater {
     static final String GITHUB_REPO = "TheHSI-HQ/ComitasBotJ";
     @NotNull
     static final ExecutorService executorService = Executors.newCachedThreadPool();
+
+    // Add HTTP client and cache
+    @NotNull
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
+    private static @NotNull
+    final ReleaseCache releaseCache = new ReleaseCache();
+
+    @NotNull
+    private static String getLatestRelease() throws IOException, InterruptedException {
+        synchronized (releaseCache) {
+            if (releaseCache.isValid()) {
+                if (DebugLogging.isBasicEnabled())
+                    log("Using cached release version: {}", releaseCache.version);
+                return releaseCache.version;
+            }
+        }
+
+        IOException lastException = null;
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest"))
+                        .header("User-Agent", "ComitasBotJ")
+                        .header("Accept", "application/vnd.github+json")
+                        .timeout(Duration.ofSeconds(10))
+                        .build();
+
+                HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    throw new IOException("GitHub API returned status " + response.statusCode());
+                }
+
+                JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+                String version = json.get("tag_name").getAsString();
+
+                // Cache the result
+                synchronized (releaseCache) {
+                    releaseCache.version = version;
+                    releaseCache.cachedTime = System.currentTimeMillis();
+                }
+
+                return version;
+
+            } catch (IOException e) {
+                lastException = e;
+                if (attempt < 2) {
+                    long backoffMs = 1000 * (long) Math.pow(2, attempt);
+                    log("Retry {} for getLatestRelease, backing off {}ms", attempt + 1, backoffMs);
+                    Thread.sleep(backoffMs);
+                }
+            }
+        }
+
+        throw lastException;
+    }
 
     private @NotNull
     static final DecimalFormat DF = new DecimalFormat("0.00",
@@ -141,21 +201,13 @@ public class Updater {
         return String.format(Locale.ROOT, "%02d:%02d", minutes, secs);
     }
 
-    @NotNull
-    private static String getLatestRelease() throws IOException, InterruptedException {
-        try (HttpClient client = HttpClient.newHttpClient()) {
+    private static class ReleaseCache {
+        static final long TTL_MS = 60_000;  // 1 minute
+        @NotNull String version = "";
+        long cachedTime = 0L;
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest"))
-                    .header("User-Agent", "ComitasBotJ")
-                    .header("Accept", "application/vnd.github+json")
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-
-            return json.get("tag_name").getAsString();
+        boolean isValid() {
+            return (System.currentTimeMillis() - cachedTime) < TTL_MS;
         }
     }
 
