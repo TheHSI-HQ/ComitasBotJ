@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
+import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
@@ -32,6 +33,8 @@ public class InternalPluginManager implements PluginManager {
     private @NotNull
     static final StackWalker STACK_WALKER =
             StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    private @NotNull
+    final ScheduledExecutorService dataAutoSaveExecutor;
     private @NotNull
     final PluginLoaderManager pluginLoaderManager;
     private @NotNull
@@ -65,11 +68,46 @@ public class InternalPluginManager implements PluginManager {
         this.pluginLoaderManager.initPluginManager(this);
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Starting Plugin Data Auto Save on 5 Minute interval");
-        ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-        exec.scheduleAtFixedRate(() -> {
-            for (Plugin.PluginMetadata metadata : getAllPluginMetadata())
-                saveDataStore(metadata.uuid());
-        }, 5, 5, TimeUnit.MINUTES);
+        this.dataAutoSaveExecutor = Executors.newScheduledThreadPool(
+                4,
+                r -> {
+                    Thread t = new Thread(r, "ComitasPluginDataSaver");
+                    t.setDaemon(false);
+                    return t;
+                }
+        );
+
+        this.dataAutoSaveExecutor.scheduleAtFixedRate(
+                this::autoSaveAllPluginData,
+                5, 5, TimeUnit.MINUTES
+        );
+
+        InternalComitas.addShutdownCall(() -> {
+            if (DebugLogging.isBasicEnabled())
+                debugLogger.debug("Shutting down plugin data save executor");
+            dataAutoSaveExecutor.shutdown();
+            try {
+                if (!dataAutoSaveExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+                    logger.warn("Plugin data save executor did not terminate in time, forcing shutdown");
+                    dataAutoSaveExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                dataAutoSaveExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        });
+    }
+
+    private void autoSaveAllPluginData() {
+        for (Plugin.PluginMetadata metadata : getAllPluginMetadata()) {
+            dataAutoSaveExecutor.submit(() -> {
+                try {
+                    saveDataStore(metadata.uuid());
+                } catch (Exception e) {
+                    logger.error("Error auto-saving data for plugin {}", metadata.name(), e);
+                }
+            });
+        }
     }
 
     @Override
