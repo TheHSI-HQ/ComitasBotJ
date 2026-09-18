@@ -21,6 +21,10 @@ public class PluginLoaderManager {
     private @NotNull
     final List<LoadedPlugin> plugins = new ArrayList<>();
     private @NotNull
+    final Map<ClassLoader, Plugin> loaderToPluginCache = new HashMap<>();
+    private @NotNull
+    final Map<UUID, Plugin> uuidToPluginCache = new HashMap<>();
+    private @NotNull
     final Logger debugLogger = DebugLogging.getLogger();
     private @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
@@ -251,6 +255,9 @@ public class PluginLoaderManager {
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Adding {} as a loaded plugin", jar.getName());
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
 
+                loaderToPluginCache.put(loader, plugin);
+                uuidToPluginCache.put(metadata.uuid(), plugin);
+
                 logger.info("Loaded Plugin {} {}", metadata.name(), metadata.version());
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
@@ -314,6 +321,9 @@ public class PluginLoaderManager {
 
                 pluginManager.saveDataStore(loaded.metadata().uuid());
 
+                loaderToPluginCache.remove(loaded.loader);
+                uuidToPluginCache.remove(loaded.metadata().uuid());
+
                 if (loaded.loader != null)
                     loaded.loader().close();
             } catch (Exception e) {
@@ -328,18 +338,12 @@ public class PluginLoaderManager {
 
     @Nullable
     public Plugin getPlugin(@NotNull ClassLoader classLoader) {
-        for (LoadedPlugin plugin : plugins) {
-            if (plugin.loader == classLoader) return plugin.plugin;
-        }
-        return null;
+        return loaderToPluginCache.get(classLoader);  // O(1) lookup
     }
 
     @Nullable
     public Plugin getPlugin(@NotNull UUID uuid) {
-        for (LoadedPlugin plugin : plugins) {
-            if (Objects.equals(plugin.metadata.uuid(), uuid)) return plugin.plugin;
-        }
-        return null;
+        return uuidToPluginCache.get(uuid);  // O(1) lookup
     }
 
     private record LoadedPlugin(Plugin plugin, URLClassLoader loader, Plugin.PluginMetadata metadata) {
