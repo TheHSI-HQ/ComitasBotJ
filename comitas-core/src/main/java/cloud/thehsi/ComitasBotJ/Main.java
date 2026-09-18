@@ -107,6 +107,7 @@ public class Main implements Runnable {
     }
 
     public static void main(@NotNull String[] args) {
+        //noinspection JavaPrintToLogpoint
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """
                   ___           _ _           ___      _      _\s
                  / __|___ _ __ (_) |_ __ _ __| _ ) ___| |_ _ | |
@@ -118,8 +119,11 @@ public class Main implements Runnable {
         System.exit(exitCode);
     }
 
+    private @NotNull
+    static final String SERVER_VERSION = loadServerVersion();
+
     @NotNull
-    public static String getServerVersion() {
+    private static String loadServerVersion() {
         try (InputStream in = Main.class.getResourceAsStream("/version.properties")) {
             Properties props = new Properties();
             props.load(in);
@@ -127,6 +131,11 @@ public class Main implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @NotNull
+    public static String getServerVersion() {
+        return SERVER_VERSION;
     }
 
     @Override
