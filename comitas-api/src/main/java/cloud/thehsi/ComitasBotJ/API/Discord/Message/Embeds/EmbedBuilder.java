@@ -10,6 +10,9 @@ import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Used to build an embed
+ */
 @SuppressWarnings("unused")
 public class EmbedBuilder {
     private @NotNull

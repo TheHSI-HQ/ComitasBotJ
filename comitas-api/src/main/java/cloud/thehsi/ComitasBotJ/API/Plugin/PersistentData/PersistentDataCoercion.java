@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -7,10 +8,25 @@ import java.lang.reflect.Array;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * A utility class, used to parse Persistent Data
+ *
+ * @hidden
+ */
+@ApiStatus.Internal
 public final class PersistentDataCoercion {
     private PersistentDataCoercion() {
     }
 
+    /**
+     * Taking an object {@code value} and a class {@code target}, it casts,
+     * to its best possibility, the value into the target class
+     *
+     * @param value  The object to be coerced
+     * @param target The class to coerce into
+     * @param <T>    The returning type
+     * @return The coerced data in type T
+     */
     @SuppressWarnings("unchecked")
     @Nullable
     public static <T> T coerce(@Nullable Object value, @NotNull Class<T> target) {

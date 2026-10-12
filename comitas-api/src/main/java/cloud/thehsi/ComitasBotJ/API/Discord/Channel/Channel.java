@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a discord channel
+ */
 @SuppressWarnings("unused")
 public interface Channel {
     /**

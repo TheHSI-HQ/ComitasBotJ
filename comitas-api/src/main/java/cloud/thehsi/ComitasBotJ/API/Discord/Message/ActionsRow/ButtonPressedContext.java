@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Interaction.RepliableInteraction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Provides interaction context for a button press, which can be replied to
+ */
 @SuppressWarnings("unused")
 public interface ButtonPressedContext extends RepliableInteraction {
     /**
@@ -13,6 +16,7 @@ public interface ButtonPressedContext extends RepliableInteraction {
      * @return The channel where the button was pressed
      */
     @NotNull
+    @Override
     MessageChannel getChannel();
 
     /**

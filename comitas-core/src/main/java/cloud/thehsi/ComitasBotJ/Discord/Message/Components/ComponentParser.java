@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Message.Components;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +143,7 @@ public class ComponentParser {
     }
 
     @SuppressWarnings("unused")
-    private record BooleanDifference(Boolean value) {
+    private record BooleanDifference(@Nullable Boolean value) {
         public @NotNull
         static final BooleanDifference SAME = new BooleanDifference(null);
         public @NotNull

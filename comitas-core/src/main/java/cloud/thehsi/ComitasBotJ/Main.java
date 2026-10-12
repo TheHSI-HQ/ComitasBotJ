@@ -156,6 +156,8 @@ public class Main implements Runnable {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsing ServerConfig");
             conf = rawServerConfig.asParsed();
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Rewriting ServerConfig");
+            if (conf == null)
+                throw new IllegalStateException("ServerConfig not initialized");
             conf.load();
             conf.save();
         } catch (IOException e) {

@@ -102,6 +102,7 @@ public class Updater {
         for (Object arg : args) {
             message = message.replaceFirst("\\{}", java.util.regex.Matcher.quoteReplacement(String.valueOf(arg)));
         }
+        //noinspection JavaPrintToLogpoint
         System.out.println(message);
     }
 

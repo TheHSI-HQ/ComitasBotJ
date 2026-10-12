@@ -1,10 +1,10 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import org.jetbrains.annotations.NotNull;
 
-public class ReloadConsoleCommand extends ConsoleCommand {
+public class ReloadConsoleCommand extends ConsoleCommandExecutor {
     public ReloadConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,

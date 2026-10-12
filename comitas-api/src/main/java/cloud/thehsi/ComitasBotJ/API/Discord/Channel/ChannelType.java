@@ -5,21 +5,66 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
+/**
+ * The type of a {@link Channel}
+ */
 public enum ChannelType {
+    /**
+     * The Text Chnnel Type
+     */
     TEXT(TextChannel.class),
+    /**
+     * The Private Chnnel Type
+     */
     PRIVATE(MessageChannel.class),
+    /**
+     * The Voice Chnnel Type
+     */
     VOICE(TextChannel.class),
+    /**
+     * The Group Chnnel Type
+     */
     GROUP(MessageChannel.class),
+    /**
+     * The Category Chnnel Type
+     */
     CATEGORY(Channel.class),
+    /**
+     * The News Chnnel Type
+     */
     NEWS(NewsChannel.class),
+    /**
+     * The Stage Chnnel Type
+     */
     STAGE(TextChannel.class),
+    /**
+     * The Guild News Thread Chnnel Type
+     */
     GUILD_NEWS_THREAD(ThreadChannel.class),
+    /**
+     * The Guild Public Thread Chnnel Type
+     */
     GUILD_PUBLIC_THREAD(ThreadChannel.class),
+    /**
+     * The Guild Private Thread Chnnel Type
+     */
     GUILD_PRIVATE_THREAD(ThreadChannel.class),
+    /**
+     * The Guild Directory Chnnel Type
+     */
     GUILD_DIRECTORY(Channel.class),
+    /**
+     * The Forum Chnnel Type
+     */
     FORUM(ForumChannel.class),
+    /**
+     * The Media Chnnel Type
+     */
     MEDIA(TextChannel.class),
 
+    /**
+     * The Unknown Chnnel Type
+     */
     UNKNOWN(Channel.class);
 
     private @NotNull
@@ -29,6 +74,12 @@ public enum ChannelType {
         this.clazz = clazz;
     }
 
+    /**
+     * Resolve a channel type id to a channel type
+     *
+     * @param id The id to resolve
+     * @return The resolved channel or UNKNOWN
+     */
     @NotNull
     public static ChannelType fromId(@Nullable String id) {
         return Arrays.stream(values())
@@ -37,6 +88,9 @@ public enum ChannelType {
                 .orElse(UNKNOWN);
     }
 
+    /**
+     * @return Does this channel type support audio
+     */
     public boolean isAudio() {
         //noinspection ConstantValue,SwitchStatementWithTooFewBranches
         return switch (this) {
@@ -46,6 +100,9 @@ public enum ChannelType {
         };
     }
 
+    /**
+     * @return Is this channel type a thread
+     */
     public boolean isThread() {
         return switch (this) {
             case GUILD_NEWS_THREAD,
@@ -55,6 +112,9 @@ public enum ChannelType {
         };
     }
 
+    /**
+     * @return Does this channel type support messages
+     */
     public boolean isMessage() {
         return switch (this) {
             case TEXT,
@@ -70,6 +130,9 @@ public enum ChannelType {
         };
     }
 
+    /**
+     * @return Get the class for this {@link ChannelType}
+     */
     @NotNull
     public Class<? extends Channel> clazz() {
         return clazz;

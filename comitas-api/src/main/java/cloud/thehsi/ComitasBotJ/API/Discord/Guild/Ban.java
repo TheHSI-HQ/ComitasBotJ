@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a user ban
+ */
 @SuppressWarnings("unused")
 public interface Ban {
     /**

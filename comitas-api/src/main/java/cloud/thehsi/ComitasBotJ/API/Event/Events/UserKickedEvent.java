@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link Event} triggered when a user gets kicked
+ */
 @SuppressWarnings("unused")
 public interface UserKickedEvent extends Event {
     /**

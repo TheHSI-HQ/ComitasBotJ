@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * A helper class used to validate bot permissions
+ */
 public interface BotPermissionProvider {
     /**
      * Verify the bot has all the listed permissions in the provided guild, and only then return true

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.List;
 
 public class InternalBotPermissionProvider implements BotPermissionProvider {
+    @Override
     public boolean has(@NotNull Guild guild, @NotNull Permission... permissions) {
         if (!(guild instanceof InternalGuild(net.dv8tion.jda.api.entities.Guild iGuild)))
             return false;

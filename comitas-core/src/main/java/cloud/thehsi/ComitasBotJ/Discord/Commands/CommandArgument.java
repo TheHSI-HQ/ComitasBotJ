@@ -1,4 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Commands;
 
-public record CommandArgument<T>(CommandArgumentType<T> type, String name, String description, boolean required) {
+import org.jetbrains.annotations.Nullable;
+
+public record CommandArgument<T>(CommandArgumentType<T> type, @Nullable String name, @Nullable String description,
+                                 boolean required) {
 }

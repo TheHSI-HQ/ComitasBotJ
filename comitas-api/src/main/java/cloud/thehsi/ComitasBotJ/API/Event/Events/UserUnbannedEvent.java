@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link UndoableEvent} triggered when a user unbanned
+ */
 @SuppressWarnings("unused")
 public interface UserUnbannedEvent extends Event, UndoableEvent {
     /**

@@ -2,11 +2,11 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import org.jetbrains.annotations.NotNull;
 
-public class HelpConsoleCommand extends ConsoleCommand {
+public class HelpConsoleCommand extends ConsoleCommandExecutor {
     public HelpConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,

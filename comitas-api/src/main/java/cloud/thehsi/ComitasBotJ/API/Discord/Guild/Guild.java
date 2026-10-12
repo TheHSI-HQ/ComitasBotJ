@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a guild
+ */
 @SuppressWarnings("unused")
 public interface Guild {
     /**
@@ -118,6 +121,7 @@ public interface Guild {
     /**
      * Returns a role based on its id.
      *
+     * @param id The role id
      * @return The role if existing.
      */
     @Nullable
@@ -126,6 +130,7 @@ public interface Guild {
     /**
      * Returns a role based on its id.
      *
+     * @param id The role id
      * @return The role if existing.
      */
     @Nullable
@@ -181,6 +186,7 @@ public interface Guild {
      * Ban a member
      *
      * @param member The member to be banned
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull Member member);
@@ -190,6 +196,7 @@ public interface Guild {
      *
      * @param member The member to be banned
      * @param reason The ban reason
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull Member member, @Nullable String reason);
@@ -199,6 +206,7 @@ public interface Guild {
      *
      * @param member              The member to be banned
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull Member member, @Nullable Integer deletionPeriodHours);
@@ -209,6 +217,7 @@ public interface Guild {
      * @param member              The member to be banned
      * @param reason              The ban reason
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull Member member, @Nullable String reason, @Nullable Integer deletionPeriodHours);

@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a reaction
+ */
 @SuppressWarnings("unused")
 public interface Reaction {
     /**

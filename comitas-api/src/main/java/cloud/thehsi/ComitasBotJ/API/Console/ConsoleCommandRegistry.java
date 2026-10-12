@@ -7,6 +7,10 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * The registry for console commands,
+ * used to register console commands
+ */
 @SuppressWarnings("unused")
 public interface ConsoleCommandRegistry {
     /**
@@ -18,11 +22,22 @@ public interface ConsoleCommandRegistry {
      */
     void register(@NotNull ConsoleCommandExecutor executor, @Nullable String description, @NotNull String... aliases);
 
+    /**
+     * @return A list of all registered console commands
+     */
     @NotNull
     @Unmodifiable
     List<ConsoleCommand> registeredCommands();
 
-    record ConsoleCommand(String[] aliases, Plugin plugin, String description,
-                          ConsoleCommandExecutor consoleCommandExecutor) {
+    /**
+     * Represents a registered console command
+     *
+     * @param aliases                An array of aliases for this command
+     * @param plugin                 The plugin owning this command0
+     * @param description            The command description
+     * @param consoleCommandExecutor The console command executor bleonging to this command
+     */
+    record ConsoleCommand(@NotNull String[] aliases, @NotNull Plugin plugin, @NotNull String description,
+                          @NotNull ConsoleCommandExecutor consoleCommandExecutor) {
     }
 }

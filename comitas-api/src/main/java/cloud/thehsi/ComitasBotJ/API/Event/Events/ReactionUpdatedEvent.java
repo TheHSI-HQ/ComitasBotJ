@@ -6,6 +6,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link Event} triggered, when a reaction on any message gets updated
+ */
 @SuppressWarnings("unused")
 public interface ReactionUpdatedEvent extends Event, UndoableEvent {
     /**

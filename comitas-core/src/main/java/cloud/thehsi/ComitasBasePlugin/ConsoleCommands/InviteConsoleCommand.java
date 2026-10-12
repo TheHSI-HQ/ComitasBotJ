@@ -1,13 +1,13 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public class InviteConsoleCommand extends ConsoleCommand {
+public class InviteConsoleCommand extends ConsoleCommandExecutor {
     public InviteConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,

@@ -26,6 +26,8 @@ public class ButtonCallbackManager {
     }
 
     public static void registerCallback(@NotNull InternalButton button) {
+        if (button.callback == null || button.getId() == null) return;
+
         ButtonCallbackManager.metadataMap.put(button.internalReferenceId, new ButtomMetadata(
                 button.callback,
                 button.getId()

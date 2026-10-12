@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a message send by the bot
+ */
 @SuppressWarnings("unused")
 public interface MyMessage extends Message {
     /**

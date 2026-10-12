@@ -346,6 +346,6 @@ public class PluginLoaderManager {
         return uuidToPluginCache.get(uuid);  // O(1) lookup
     }
 
-    private record LoadedPlugin(Plugin plugin, URLClassLoader loader, Plugin.PluginMetadata metadata) {
+    private record LoadedPlugin(Plugin plugin, @Nullable URLClassLoader loader, Plugin.PluginMetadata metadata) {
     }
 }

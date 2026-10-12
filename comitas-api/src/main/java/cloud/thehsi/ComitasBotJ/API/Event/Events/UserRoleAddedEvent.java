@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link UndoableEvent} triggered when a member gets granted a role
+ */
 @SuppressWarnings("unused")
 public interface UserRoleAddedEvent extends Event, UndoableEvent {
     /**

@@ -14,6 +14,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a send message
+ */
 @SuppressWarnings("unused")
 public interface Message {
     /**
@@ -108,11 +111,15 @@ public interface Message {
 
     /**
      * React to this message
+     *
+     * @param emoji Emoji to react with
      */
     void react(@NotNull Emoji emoji);
 
     /**
      * Removes a reaction to this message
+     *
+     * @param emoji Emoji to unreact from
      */
     void unreact(@NotNull Emoji emoji);
 
@@ -144,6 +151,7 @@ public interface Message {
     /**
      * Forward the message to a {@link MessageChannel}
      *
+     * @param channel Where to forward the message to
      * @return The message with the forwarded message
      */
     @Nullable

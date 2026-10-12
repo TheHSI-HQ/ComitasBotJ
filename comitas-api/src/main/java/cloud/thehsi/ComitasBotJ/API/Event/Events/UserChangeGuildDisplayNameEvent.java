@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An {@link UndoableEvent} triggered when a user changes their guild specific display name
+ */
 @SuppressWarnings("unused")
 public interface UserChangeGuildDisplayNameEvent extends Event, UndoableEvent {
     /**

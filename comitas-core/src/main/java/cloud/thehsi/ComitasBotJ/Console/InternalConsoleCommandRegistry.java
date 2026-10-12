@@ -51,7 +51,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     public void register(@NotNull ConsoleCommandExecutor executor, @Nullable String description, @NotNull String... aliases) {
         DebugLogging.action(executor, description, aliases);
         consoleCommands.add(
-                new ConsoleCommand(aliases, Comitas.getPluginManager().getPlugin(), description, executor)
+                new ConsoleCommand(aliases, Comitas.getPluginManager().getPlugin(), description == null ? "" : description, executor)
         );
     }
 

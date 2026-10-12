@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * An attachment which can be attached to a message
+ */
 @SuppressWarnings("unused")
 public interface Attachment {
     /**
@@ -57,6 +60,8 @@ public interface Attachment {
 
     /**
      * Converts the attachment into {@link MessageData}
+     *
+     * @return The conversion result
      */
     @NotNull
     MessageData asMessageData();

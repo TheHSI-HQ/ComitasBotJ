@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a post in a forum channel
+ */
 @SuppressWarnings("unused")
 public interface ForumPost extends ThreadChannel {
     /**
@@ -35,6 +38,7 @@ public interface ForumPost extends ThreadChannel {
      * Does this thread have this tag
      *
      * @param tag The tag to look up
+     * @return Is the tag present
      */
     boolean hasTag(@NotNull ForumTag tag);
 

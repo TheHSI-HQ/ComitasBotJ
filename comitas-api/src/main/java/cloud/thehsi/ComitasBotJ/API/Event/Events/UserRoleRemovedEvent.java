@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link UndoableEvent} triggered when a member gets revoked a role
+ */
 @SuppressWarnings("unused")
 public interface UserRoleRemovedEvent extends Event, UndoableEvent {
     /**

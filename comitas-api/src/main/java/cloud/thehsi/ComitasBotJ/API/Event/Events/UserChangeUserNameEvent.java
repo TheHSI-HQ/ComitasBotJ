@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link Event} triggered when a user changes their username
+ */
 @SuppressWarnings("unused")
 public interface UserChangeUserNameEvent extends Event {
     /**

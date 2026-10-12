@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a channels message history
+ */
 public interface MessageHistory {
     /**
      * Returns the Message Channel who owns this history.

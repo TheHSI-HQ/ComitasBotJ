@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * A channel, which may contain threads
+ */
 public interface IThreadContainer {
     /**
      * Lists all threads

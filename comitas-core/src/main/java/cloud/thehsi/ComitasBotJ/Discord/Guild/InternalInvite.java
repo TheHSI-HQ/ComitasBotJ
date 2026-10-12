@@ -31,8 +31,9 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     }
 
     @Override
-    public @NotNull Guild getGuild() {
+    public @Nullable Guild getGuild() {
         DebugLogging.action();
+        if (invite().getGuild() == null) return null;
         return new InternalGuild((net.dv8tion.jda.api.entities.Guild) invite().getGuild());
     }
 

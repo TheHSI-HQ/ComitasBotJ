@@ -6,6 +6,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Allows replying to and getting information about an interaction
+ */
 @SuppressWarnings("unused")
 public interface InteractionContext {
     /**

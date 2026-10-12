@@ -10,6 +10,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a thread channel
+ */
 @SuppressWarnings("unused")
 public interface ThreadChannel extends MessageChannel, GuildChannel {
     /**
@@ -18,6 +21,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      * @return The thread's guild
      */
     @NotNull
+    @Override
     Guild getGuild();
 
     /**
@@ -43,6 +47,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      */
     @NotNull
     @Unmodifiable
+    @Override
     List<Member> getMembers();
 
     /**

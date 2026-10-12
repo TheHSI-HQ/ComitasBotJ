@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Event;
 
+/**
+ * The priority of a given event
+ */
 @SuppressWarnings("unused")
 public enum EventPriority {
 
@@ -39,6 +42,9 @@ public enum EventPriority {
         this.slot = slot;
     }
 
+    /**
+     * @return The priority slot
+     */
     public int getSlot() {
         return slot;
     }

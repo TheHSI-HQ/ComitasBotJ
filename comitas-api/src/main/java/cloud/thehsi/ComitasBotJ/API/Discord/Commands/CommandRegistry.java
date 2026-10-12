@@ -3,6 +3,10 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Commands;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.DynamicCommandBuilder;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The command registry is used to register commands, either dynamically
+ * or using the prefered static {@link CommandSupplier} with a {@link Command}
+ */
 @SuppressWarnings("unused")
 public interface CommandRegistry {
     /**

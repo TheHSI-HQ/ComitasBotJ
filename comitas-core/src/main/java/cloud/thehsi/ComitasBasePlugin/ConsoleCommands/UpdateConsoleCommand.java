@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.Updater;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class UpdateConsoleCommand extends ConsoleCommand {
+public class UpdateConsoleCommand extends ConsoleCommandExecutor {
     @NotNull
     final AtomicBoolean needsConfirmation = new AtomicBoolean(false);
 

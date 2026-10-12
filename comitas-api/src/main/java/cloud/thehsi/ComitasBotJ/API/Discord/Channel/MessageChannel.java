@@ -9,6 +9,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A {@link Channel} where messages can be sent in
+ */
 @SuppressWarnings("unused")
 public interface MessageChannel extends Channel {
     /**
@@ -40,6 +43,7 @@ public interface MessageChannel extends Channel {
     /**
      * Get a message sent in this channel by its id
      *
+     * @param id The message id
      * @return The requested message or null
      */
     @Nullable
@@ -48,6 +52,7 @@ public interface MessageChannel extends Channel {
     /**
      * Get a message sent in this channel by its id
      *
+     * @param id The message id
      * @return The requested message or null
      */
     @Nullable

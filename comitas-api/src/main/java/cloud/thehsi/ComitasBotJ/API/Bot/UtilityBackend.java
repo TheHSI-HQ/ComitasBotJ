@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,9 +21,18 @@ import java.time.temporal.TemporalAccessor;
 import java.util.List;
 import java.util.function.Consumer;
 
-@SuppressWarnings("unused")
+/**
+ * The utility backend is an internal communication way for
+ * the api and the comitas backend
+ *
+ * @hidden
+ */
+@SuppressWarnings({"unused", "MissingJavadoc"})
+@ApiStatus.Internal
 public interface UtilityBackend {
-    @NotNull Embed createEmbed(@Nullable EmbedAuthor author,
+    @NotNull
+    @ApiStatus.Internal
+    Embed createEmbed(@Nullable EmbedAuthor author,
                                @Nullable Color color,
                                @Nullable Component description,
                                @Nullable EmbedFooter footer,
@@ -33,21 +43,43 @@ public interface UtilityBackend {
                                @Nullable String url,
                                @NotNull List<EmbedField> fields);
 
-    @Nullable Emoji getEmojiFromId(@NotNull String id);
-    @Nullable Emoji getEmojiFromId(long id);
+    @Nullable
+    @ApiStatus.Internal
+    Emoji getEmojiFromId(@NotNull String id);
 
-    @Nullable Emoji getEmojiFromUnicode(@NotNull String unicodeEmoji);
+    @Nullable
+    @ApiStatus.Internal
+    Emoji getEmojiFromId(long id);
 
-    @Nullable User getUserFromId(@NotNull String id);
-    @Nullable User getUserFromId(long id);
+    @Nullable
+    @ApiStatus.Internal
+    Emoji getEmojiFromUnicode(@NotNull String unicodeEmoji);
 
-    @NotNull AttachmentUpload uploadAttachment(@NotNull Path path) throws IOException;
+    @Nullable
+    @ApiStatus.Internal
+    User getUserFromId(@NotNull String id);
 
-    @NotNull AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data);
+    @Nullable
+    @ApiStatus.Internal
+    User getUserFromId(long id);
 
-    @NotNull ForumTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
+    @NotNull
+    @ApiStatus.Internal
+    AttachmentUpload uploadAttachment(@NotNull Path path) throws IOException;
 
-    @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
+    @NotNull
+    @ApiStatus.Internal
+    AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data);
 
-    @NotNull Button createActionButton(@NotNull String idOrUrl, @NotNull Emoji emoji, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
+    @NotNull
+    @ApiStatus.Internal
+    ForumTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
+
+    @NotNull
+    @ApiStatus.Internal
+    Button createActionButton(@NotNull String idOrUrl, @NotNull String label, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
+
+    @NotNull
+    @ApiStatus.Internal
+    Button createActionButton(@NotNull String idOrUrl, @NotNull Emoji emoji, @NotNull ButtonStyle buttonStyle, @Nullable Consumer<ButtonPressedContext> callback);
 }

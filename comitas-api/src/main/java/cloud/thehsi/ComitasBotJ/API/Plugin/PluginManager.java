@@ -8,6 +8,10 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents the plugin manager, which handles most actions and api calls
+ * between the plugin and comitas, not connected to the bot itself
+ */
 @SuppressWarnings("unused")
 public interface PluginManager {
     /**

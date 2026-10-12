@@ -24,9 +24,9 @@ public interface Task {
     Plugin getOwner();
 
     /**
-     * Returns true if this task has been cancelled.
+     * Returns true if this task has been canceled.
      *
-     * @return true if the task has been cancelled
+     * @return true if the task has been canceled
      */
     boolean isCancelled();
 

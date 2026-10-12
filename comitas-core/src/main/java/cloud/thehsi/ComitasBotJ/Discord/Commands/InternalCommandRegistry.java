@@ -71,6 +71,7 @@ public class InternalCommandRegistry implements CommandRegistry {
                 args[i] = null;
                 for (OptionMapping option : options) {
                     if (!option.getName().equals(argument.name())) continue;
+                    if (argument.type().converter() == null) continue;
                     args[i] = argument.type().converter().apply(option);
                     options.remove(option);
                     break;
@@ -224,10 +225,13 @@ public class InternalCommandRegistry implements CommandRegistry {
         data = data.setNSFW(command.nsfw());
 
         for (CommandArgument<?> arg : command.arguments())
-            if (arg.type() != CommandArgumentType.CONTEXT)
+            if (arg.type() != CommandArgumentType.CONTEXT) {
+                if (arg.type().optionType() == null || arg.name() == null || arg.description() == null)
+                    throw new IllegalArgumentException("Command argument " + arg.type() + " isn't a supported type!");
                 data = data.addOptions(new OptionData(
                         arg.type().optionType(), arg.name(), arg.description(), arg.required())
                 );
+            }
 
         DiscordAPI.nullableApi().upsertCommand(data).queue();
     }

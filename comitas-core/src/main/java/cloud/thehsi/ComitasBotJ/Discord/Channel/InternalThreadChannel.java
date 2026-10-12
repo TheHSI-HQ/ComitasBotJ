@@ -26,6 +26,7 @@ public class InternalThreadChannel extends InternalMessageChannel implements Thr
     }
 
     @NotNull
+    @Override
     public net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel() {
         return channel;
     }

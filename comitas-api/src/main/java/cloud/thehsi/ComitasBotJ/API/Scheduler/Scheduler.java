@@ -5,12 +5,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The scheduler is used for scheduling tasks,
+ * like repeating, delayed or asyncronous tasks
+ */
 @SuppressWarnings("unused")
 public interface Scheduler {
     /**
      * Run a task asynchronously
      *
-     * @return The task
+     * @param plugin   The owning plugin
+     * @param runnable The runnable, which will be run asynchronously
+     * @return         The task
      */
     @NotNull
     Task runTaskAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable);
@@ -18,10 +24,12 @@ public interface Scheduler {
     /**
      * Run a task asynchronously repeatedly
      *
+     * @param plugin     The owning plugin
+     * @param runnable   The runnable, which will be run repeatedly
      * @param delay      Delay between now and first execution
      * @param interval   Delay between evey execution
      * @param timeUnit   The unit in which the delay is messured
-     * @return The task
+     * @return           The task
      */
     @NotNull
     Task runTaskTimerAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, long interval, @NotNull TimeUnit timeUnit);
@@ -29,9 +37,11 @@ public interface Scheduler {
     /**
      * Run a task asynchronously later
      *
+     * @param plugin    The owning plugin
+     * @param runnable  The runnable, which will be run later
      * @param delay     Delay between now and the execution in milliseconds
-     * @param timeUnit  he unit in which the delay is messured
-     * @return The task
+     * @param timeUnit  The unit in which the delay is messured
+     * @return          The task
      */
     @NotNull
     Task runTaskLaterAsynchronously(@NotNull Plugin plugin, @NotNull Runnable runnable, long delay, @NotNull TimeUnit timeUnit);

@@ -22,6 +22,7 @@ public class InternalNewsChannel extends InternalMessageChannel implements NewsC
     }
 
     @NotNull
+    @Override
     public net.dv8tion.jda.api.entities.channel.concrete.NewsChannel channel() {
         return channel;
     }

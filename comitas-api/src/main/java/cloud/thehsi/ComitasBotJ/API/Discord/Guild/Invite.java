@@ -7,6 +7,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 
+/**
+ * Represents an invitation
+ */
 @SuppressWarnings("unused")
 public interface Invite {
     /**
@@ -27,7 +30,7 @@ public interface Invite {
      *
      * @return The inite's guild
      */
-    @NotNull
+    @Nullable
     Guild getGuild();
 
     /**

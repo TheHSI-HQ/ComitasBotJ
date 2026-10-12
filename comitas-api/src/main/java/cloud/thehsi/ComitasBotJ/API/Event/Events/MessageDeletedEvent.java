@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An {@link Event} triggered when a message gets deleted
+ */
 @SuppressWarnings("unused")
 public interface MessageDeletedEvent extends Event {
     /**

@@ -10,6 +10,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An event triggered when a message gets received
+ */
 @SuppressWarnings("unused")
 public interface MessageReceivedEvent extends Event {
     /**

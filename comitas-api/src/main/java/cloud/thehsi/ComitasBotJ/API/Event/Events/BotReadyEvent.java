@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Event.Events;
 import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The event fired when the Bot is ready
+ */
 @SuppressWarnings("unused")
 public interface BotReadyEvent extends Event {
     /**

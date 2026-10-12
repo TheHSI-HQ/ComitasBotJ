@@ -229,7 +229,7 @@ public class PluginLister {
         builder.append(left);
 
         for (int i = 0; i < widths.length; i++) {
-            builder.append("─".repeat(widths[i] + 2));
+            builder.repeat("─", widths[i] + 2);
 
             if (i < widths.length - 1) {
                 builder.append(middle);
@@ -246,6 +246,7 @@ public class PluginLister {
         StringBuilder builder = new StringBuilder("│");
 
         for (int i = 0; i < values.length; i++) {
+            //noinspection StringConcatenationInFormatCall
             builder.append(" ")
                     .append(String.format("%-" + widths[i] + "s", values[i]))
                     .append(" │");
@@ -259,6 +260,7 @@ public class PluginLister {
             @NotNull String[] values,
             int[] widths
     ) {
+        //noinspection StringConcatenationInFormatCall
         return "│ " + // Name
                 ConsoleColor.WHITE +
                 String.format(
@@ -300,6 +302,7 @@ public class PluginLister {
             boolean compatible
     ) {
 
+        //noinspection StringConcatenationInFormatCall
         return "│ " + // Status
                 ConsoleColor.BOLD +
                 (compatible ? ConsoleColor.BRIGHT_GREEN : ConsoleColor.BRIGHT_RED) +

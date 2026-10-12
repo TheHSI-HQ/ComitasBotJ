@@ -112,7 +112,7 @@ public class InternalComitas implements InternalComitasImpl {
 
         if (DebugLogging.isBasicEnabled())
             debugLogger.debug("Starting Bot...");
-        DiscordAPI api = DiscordAPI.performMinimalStartup(bot_token, true);
+        DiscordAPI.performMinimalStartup(bot_token, true);
         try {
             return DiscordAPI.api().getSelfUser().getId();
         } finally {

@@ -48,9 +48,9 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     public FileUpload asFileUpload() {
         FileUpload fileUpload = FileUpload.fromData(data, fileName);
 
-        if (spoiler) fileUpload = fileUpload.asSpoiler();
+        if (spoiler) fileUpload.asSpoiler();
 
-        if (description != null)  fileUpload = fileUpload.setDescription(description);
+        if (description != null) fileUpload.setDescription(description);
 
         return fileUpload;
     }

@@ -1,8 +1,21 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction;
 
+/**
+ * A {@link ReactionAction} is used for the {@link cloud.thehsi.ComitasBotJ.API.Event.Events.ReactionUpdatedEvent}
+ * to denote rather a reaction was either added, removed, or completely dissapeared
+ */
 public enum ReactionAction {
+    /**
+     * The reaction count increased
+     */
     INCREASED(true, false),
+    /**
+     * The reaction count decreased
+     */
     DECREASED(false, false),
+    /**
+     * The reaction was removed
+     */
     REMOVED(false, true);
 
     // True is increase, False is decrease

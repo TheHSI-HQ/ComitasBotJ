@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/**
+ * A Discord Activity
+ */
 @SuppressWarnings("ClassCanBeRecord")
 public class Activity {
     final @NotNull String name;
@@ -25,12 +28,25 @@ public class Activity {
         ).matcher(url).matches();
     }
 
+    /**
+     * Create a new playing activity.
+     *
+     * @param name The game name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity playing(@NotNull String name) {
         name = name.trim();
         return new Activity(name, null, ActivityType.PLAYING);
     }
 
+    /**
+     * Create a new streaming activity.
+     *
+     * @param name The stream name
+     * @param url  The stream url
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity streaming(@NotNull String name, @Nullable String url) {
         name = name.isBlank() ? name : name.trim();
@@ -44,35 +60,74 @@ public class Activity {
         return new Activity(name, url, type);
     }
 
+    /**
+     * Create a new listening activity.
+     *
+     * @param name The audio name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity listening(@NotNull String name) {
         name = name.trim();
         return new Activity(name, null, ActivityType.LISTENING);
     }
 
+    /**
+     * Create a new watching activity.
+     *
+     * @param name The video name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity watching(@NotNull String name) {
         name = name.trim();
         return new Activity(name, null, ActivityType.WATCHING);
     }
 
+    /**
+     * Create a new competing activity.
+     *
+     * @param name The competition name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity competing(@NotNull String name) {
         name = name.trim();
         return new Activity(name, null, ActivityType.COMPETING);
     }
 
+    /**
+     * Create a new custom status activity.
+     *
+     * @param name The activity name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity customStatus(@NotNull String name) {
         name = name.trim();
         return new Activity(name, null, ActivityType.CUSTOM_STATUS);
     }
 
+    /**
+     * Create a new activity from an activity type and an activity name.
+     *
+     * @param type The activity type
+     * @param name The activities name
+     * @return The generated Activity
+     */
     @NotNull
     public static Activity of(@NotNull ActivityType type, @NotNull String name) {
         return of(type, name, null);
     }
 
+    /**
+     * Create a new activity from an activity type, an activity name and an activity url.
+     *
+     * @param type The activity type
+     * @param name The activities name
+     * @param url The activity url
+     * @return The generated Activity
+     */
     @NotNull
     @SuppressWarnings("SameParameterValue")
     public static Activity of(@NotNull ActivityType type, @NotNull String name, @Nullable String url) {
@@ -87,16 +142,31 @@ public class Activity {
         };
     }
 
+    /**
+     * Get the name of the activity.
+     *
+     * @return The activity name
+     */
     @NotNull
     public String getName() {
         return name;
     }
 
+    /**
+     * Get the url of the activity if present.
+     *
+     * @return The activity url
+     */
     @Nullable
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Get the type of the activity.
+     *
+     * @return The activity type
+     */
     @NotNull
     public ActivityType getType() {
         return type;

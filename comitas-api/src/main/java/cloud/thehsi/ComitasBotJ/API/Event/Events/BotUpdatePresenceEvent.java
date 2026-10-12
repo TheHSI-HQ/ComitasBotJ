@@ -6,6 +6,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An undoable event that fires, when the bots precense is changed
+ */
 @SuppressWarnings("unused")
 public interface BotUpdatePresenceEvent extends Event, UndoableEvent {
     /**

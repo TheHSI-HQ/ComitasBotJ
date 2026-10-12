@@ -8,11 +8,15 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents a user
+ */
 @SuppressWarnings("unused")
 public interface User {
     /**
      * Get a user by their ID.
      *
+     * @param id The user id
      * @return The user.
      */
     @Nullable
@@ -22,6 +26,7 @@ public interface User {
     /**
      * Get a user by their ID.
      *
+     * @param id The user id
      * @return The user.
      */
     @Nullable

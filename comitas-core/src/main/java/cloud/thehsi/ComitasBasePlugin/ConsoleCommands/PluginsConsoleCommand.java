@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommand;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLister;
 import org.jetbrains.annotations.NotNull;
 
-public class PluginsConsoleCommand extends ConsoleCommand {
+public class PluginsConsoleCommand extends ConsoleCommandExecutor {
     public PluginsConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,

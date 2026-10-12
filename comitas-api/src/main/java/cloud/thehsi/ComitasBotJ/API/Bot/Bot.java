@@ -13,6 +13,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * The Discord Bot
+ */
 @SuppressWarnings("unused")
 public interface Bot {
     /**

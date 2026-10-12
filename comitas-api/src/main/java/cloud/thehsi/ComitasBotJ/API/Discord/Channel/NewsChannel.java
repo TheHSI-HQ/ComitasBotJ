@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a news channel
+ */
 @SuppressWarnings("unused")
 public interface NewsChannel extends MessageChannel, GuildChannel {
     /**

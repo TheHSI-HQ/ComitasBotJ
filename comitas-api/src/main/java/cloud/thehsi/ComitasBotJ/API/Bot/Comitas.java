@@ -4,9 +4,13 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRegistry;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ *
+ */
 @SuppressWarnings("unused")
 public class Comitas {
     private @NotNull
@@ -17,8 +21,16 @@ public class Comitas {
     private Comitas() {
     }
 
-    /* Not supposed to be used by Plugin Developers */
+    /**
+     * Fetches the utility backend (an api for plugins to initiate backend classes)
+     * <p>
+     * Not supposed to be used in plugins
+     *
+     * @return The Utility Backend
+     * @hidden
+     */
     @NotNull
+    @ApiStatus.Internal
     public static UtilityBackend getUtilityBackend() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
@@ -125,6 +137,15 @@ public class Comitas {
         return INSTANCE.impl.getScheduler();
     }
 
+    /**
+     * Used to initiate the Comitas API, one use only.
+     * <p>
+     * DO NOT USE IN PLUGINS
+     *
+     * @param impl A Comitas Implementation Instance
+     * @hidden
+     */
+    @ApiStatus.Internal
     public void init(@NotNull InternalComitasImpl impl) {
         if (INSTANCE.impl != null)
             throw new IllegalStateException("Intance already initialized");

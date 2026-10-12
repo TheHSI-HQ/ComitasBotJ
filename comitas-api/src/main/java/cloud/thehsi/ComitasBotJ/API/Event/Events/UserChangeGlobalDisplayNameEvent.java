@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An {@link Event} triggered when a user changes their global display name
+ */
 @SuppressWarnings("unused")
 public interface UserChangeGlobalDisplayNameEvent extends Event {
     /**

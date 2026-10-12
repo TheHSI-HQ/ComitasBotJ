@@ -3,6 +3,11 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Describes a typed command argument
+ *
+ * @param <T> The type of the argument
+ */
 public interface CommandArgument<T> {
     /**
      * The raw value of the argument,

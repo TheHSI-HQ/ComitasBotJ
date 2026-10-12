@@ -38,7 +38,7 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
         super(interaction);
         this.sender = interaction.getMember() == null ? null : new InternalMember(interaction.getMember());
         this.channel = new InternalMessageChannel(interaction.getMessageChannel());
-        this.guild = new InternalGuild(interaction.getGuild());
+        this.guild = interaction.getGuild() == null ? null : new InternalGuild(interaction.getGuild());
         this.commandName = interaction.getName();
 
         this.interaction = interaction;

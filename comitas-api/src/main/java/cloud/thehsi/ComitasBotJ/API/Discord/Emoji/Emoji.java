@@ -5,11 +5,15 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents emoji
+ */
 @SuppressWarnings("unused")
 public interface Emoji {
     /**
      * Get an emoji by id
      *
+     * @param id The emoji id
      * @return The emoji
      */
     @Nullable
@@ -20,6 +24,7 @@ public interface Emoji {
     /**
      * Get an emoji by id
      *
+     * @param id The emoji id
      * @return The emoji
      */
     @Nullable
@@ -30,11 +35,12 @@ public interface Emoji {
     /**
      * Create an emoji from a Unicode character
      *
+     * @param unicode The emoji Unicode
      * @return The emoji
      */
     @Nullable
-    static Emoji fromUnicode(@NotNull String id) {
-        return Comitas.getUtilityBackend().getEmojiFromUnicode(id);
+    static Emoji fromUnicode(@NotNull String unicode) {
+        return Comitas.getUtilityBackend().getEmojiFromUnicode(unicode);
     }
 
     /**

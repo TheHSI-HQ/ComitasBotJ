@@ -10,6 +10,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An {@link Event} triggered when a message gets edited
+ */
 @SuppressWarnings("unused")
 public interface MessageEditedEvent extends Event {
     /**

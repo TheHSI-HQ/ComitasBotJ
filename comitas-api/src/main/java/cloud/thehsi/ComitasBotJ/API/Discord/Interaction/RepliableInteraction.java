@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents a reaction, which can be replied to
+ */
 @SuppressWarnings("unused")
 public interface RepliableInteraction extends InteractionContext {
     /**
@@ -13,6 +16,7 @@ public interface RepliableInteraction extends InteractionContext {
      * @param message   The message to be sent
      * @param ephemeral Should this message only be visible to the sender
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage reply(@NotNull Component message, boolean ephemeral) throws InteractionAlreadyUsedException;
@@ -23,6 +27,7 @@ public interface RepliableInteraction extends InteractionContext {
      * @param messageData The message data to be sent
      * @param ephemeral   Should this message only be visible to the sender
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage reply(@NotNull MessageData messageData, boolean ephemeral) throws InteractionAlreadyUsedException;
@@ -32,6 +37,7 @@ public interface RepliableInteraction extends InteractionContext {
      *
      * @param message The message to be sent
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage reply(@NotNull Component message) throws InteractionAlreadyUsedException;
@@ -41,6 +47,7 @@ public interface RepliableInteraction extends InteractionContext {
      *
      * @param messageData The message data to be sent
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage reply(@NotNull MessageData messageData) throws InteractionAlreadyUsedException;
@@ -50,6 +57,7 @@ public interface RepliableInteraction extends InteractionContext {
      *
      * @param message The message to be sent
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage replyEphemeral(@NotNull Component message) throws InteractionAlreadyUsedException;
@@ -59,6 +67,7 @@ public interface RepliableInteraction extends InteractionContext {
      *
      * @param messageData The message data to be sent
      * @return The message that was sent
+     * @throws InteractionAlreadyUsedException Thown if the interactions was already used
      */
     @NotNull
     MyMessage replyEphemeral(@NotNull MessageData messageData) throws InteractionAlreadyUsedException;

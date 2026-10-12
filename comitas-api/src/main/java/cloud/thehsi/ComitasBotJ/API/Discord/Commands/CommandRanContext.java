@@ -6,6 +6,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Context for when a command is run
+ */
 @SuppressWarnings("unused")
 public interface CommandRanContext extends RepliableInteraction {
     /**

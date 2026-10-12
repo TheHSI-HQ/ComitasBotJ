@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A class, used to store data persistently across server restarts
+ */
 @SuppressWarnings("unused")
 public interface PersistentDataStorage {
     /**
@@ -11,6 +14,7 @@ public interface PersistentDataStorage {
      * @param key   The data address
      * @param type  The type of the data
      * @param value The data
+     * @param <T>   The raw type of data
      */
     <T> void set(
             @NotNull String key,
@@ -23,6 +27,8 @@ public interface PersistentDataStorage {
      *
      * @param key  The data address
      * @param type The type of the data
+     * @param <T>  The raw type of data
+     * @return     The data, if present, else null
      */
     @Nullable
     <T> T get(
@@ -36,6 +42,8 @@ public interface PersistentDataStorage {
      * @param key      The data address
      * @param type     The type of the data
      * @param fallback The fallback value, in case no value is found for key
+     * @param <T>      The raw type of data
+     * @return         The data, if present, else fallback
      */
     @NotNull
     <T> T get(
@@ -59,6 +67,7 @@ public interface PersistentDataStorage {
      *
      * @param key  The key
      * @param type The type
+     * @param <T>   The raw type of data
      * @return Does this Storage have this key of that type?
      */
     <T> boolean has(

@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Represents a formatted message in a tree like structure
+ */
 @SuppressWarnings("unused")
 public class Component {
     private @NotNull
@@ -19,6 +22,8 @@ public class Component {
 
     /**
      * Copy a component.
+     *
+     * @param component The component to copy
      */
     public Component(@NotNull Component component) {
         for (Component child : component.children)
@@ -142,6 +147,8 @@ public class Component {
 
     /**
      * Converts the component into {@link MessageData}
+     *
+     * @return The converted MessageData
      */
     @NotNull
     public MessageData asMessageData() {
@@ -180,10 +187,10 @@ public class Component {
 
     /**
      * Sets the components content.
+     * Any content will be auto escaped
      *
      * @param content The new content
      * @return The component.
-     * @implNote Any content will be auto escaped
      */
     @NotNull
     public Component content(@Nullable String content) {

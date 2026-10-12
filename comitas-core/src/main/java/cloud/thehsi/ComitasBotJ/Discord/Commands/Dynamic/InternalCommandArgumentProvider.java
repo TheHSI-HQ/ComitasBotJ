@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InternalCommandArgumentProvider implements CommandArgumentProvider {
-    @NotNull Map<String, CommandArgument<?>> argumentMap = new HashMap<>();
+    @NotNull
+    final Map<String, CommandArgument<?>> argumentMap = new HashMap<>();
 
     public InternalCommandArgumentProvider() {
     }
@@ -34,7 +35,7 @@ public class InternalCommandArgumentProvider implements CommandArgumentProvider 
     }
 
     @Override
-    public <T> boolean has(@NotNull String identifier) {
+    public boolean has(@NotNull String identifier) {
         return argumentMap.containsKey(identifier);
     }
 

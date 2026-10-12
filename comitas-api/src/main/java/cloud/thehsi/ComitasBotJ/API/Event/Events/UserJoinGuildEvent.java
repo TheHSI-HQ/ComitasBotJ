@@ -4,6 +4,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * An {@link Event} triggered when a user joins a guild
+ */
 @SuppressWarnings("unused")
 public interface UserJoinGuildEvent extends Event {
     /**

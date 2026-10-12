@@ -14,6 +14,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * A {@link User} with a {@link Guild} attached
+ */
 @SuppressWarnings("unused")
 public interface Member extends User {
     /**
@@ -147,6 +150,8 @@ public interface Member extends User {
 
     /**
      * Ban this member
+     *
+     * @return The ban
      */
     @NotNull
     Ban ban();
@@ -155,6 +160,7 @@ public interface Member extends User {
      * Ban this member
      *
      * @param reason The ban reason
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull String reason);
@@ -163,6 +169,7 @@ public interface Member extends User {
      * Ban and delete the last {@code deletionPeriodHours} hours of message from this member
      *
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return The ban
      */
     @NotNull
     Ban ban(int deletionPeriodHours);
@@ -172,6 +179,7 @@ public interface Member extends User {
      *
      * @param reason              The ban reason
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
+     * @return The ban
      */
     @NotNull
     Ban ban(@NotNull String reason, int deletionPeriodHours);

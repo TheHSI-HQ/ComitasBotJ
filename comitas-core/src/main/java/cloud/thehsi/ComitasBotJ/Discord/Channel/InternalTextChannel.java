@@ -20,6 +20,7 @@ public class InternalTextChannel extends InternalMessageChannel implements TextC
     }
 
     @NotNull
+    @Override
     public net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel() {
         return channel;
     }

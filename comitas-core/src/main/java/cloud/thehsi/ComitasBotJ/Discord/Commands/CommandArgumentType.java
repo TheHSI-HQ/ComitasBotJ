@@ -16,7 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public record CommandArgumentType<T>(String name, Class<T> type, OptionType optionType, Function<OptionMapping, T> converter) {
+public record CommandArgumentType<T>(String name, Class<T> type, @Nullable OptionType optionType,
+                                     @Nullable Function<OptionMapping, T> converter) {
     public @NotNull
     static final CommandArgumentType<CommandRanContext> CONTEXT = new CommandArgumentType<>("CONTEXT", CommandRanContext.class, null, null);
 

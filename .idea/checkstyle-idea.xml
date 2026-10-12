@@ -8,7 +8,7 @@
     <scanBeforeCheckin>true</scanBeforeCheckin>
     <importSettingsFromMaven>true</importSettingsFromMaven>
     <option name="thirdPartyClasspath">
-      <option value="$PROJECT_DIR$/checkstyle-rules/target/checkstyle-rules-1.0.jar" />
+      <option value="C:\Users\tessa.sendelbach\.m2\repository\cloud\thehsi\ComitasBotJ\checkstyle-rules\1.0\checkstyle-rules-1.0.jar" />
     </option>
     <option name="activeLocationIds">
       <option value="maven-config-location" />

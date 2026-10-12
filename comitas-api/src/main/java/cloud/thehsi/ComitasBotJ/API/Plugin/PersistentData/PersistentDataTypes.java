@@ -7,8 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Lists all avalible data types to be used for persistent storage
+ */
 @SuppressWarnings("unused")
 public final class PersistentDataTypes {
+    /**
+     * The String datatype
+     */
     public @NotNull
     static final PersistentDataType<String> STRING = new PersistentDataType<>() {
         @Override
@@ -27,6 +33,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Integer datatype
+     */
     public @NotNull
     static final PersistentDataType<Integer> INTEGER = new PersistentDataType<>() {
         @Override
@@ -45,6 +54,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Long datatype
+     */
     public @NotNull
     static final PersistentDataType<Long> LONG = new PersistentDataType<>() {
         @Override
@@ -63,6 +75,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Double datatype
+     */
     public @NotNull
     static final PersistentDataType<Double> DOUBLE = new PersistentDataType<>() {
         @Override
@@ -81,6 +96,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Byte datatype
+     */
     public @NotNull
     static final PersistentDataType<Byte> BYTE = new PersistentDataType<>() {
         @Override
@@ -99,6 +117,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Short datatype
+     */
     public @NotNull
     static final PersistentDataType<Short> SHORT = new PersistentDataType<>() {
         @Override
@@ -117,6 +138,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Boolean datatype
+     */
     public @NotNull
     static final PersistentDataType<Boolean> BOOLEAN = new PersistentDataType<>() {
         @Override
@@ -135,6 +159,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The byte array datatype
+     */
     public @NotNull
     static final PersistentDataType<byte[]> BYTE_ARRAY = new PersistentDataType<>() {
         @Override
@@ -153,6 +180,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The String array datatype
+     */
     public @NotNull
     static final PersistentDataType<String[]> STRING_ARRAY = new PersistentDataType<>() {
         @Override
@@ -171,6 +201,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Integer array datatype
+     */
     public @NotNull
     static final PersistentDataType<Integer[]> INTEGER_ARRAY = new PersistentDataType<>() {
         @Override
@@ -189,6 +222,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Long array datatype
+     */
     public @NotNull
     static final PersistentDataType<Long[]> LONG_ARRAY = new PersistentDataType<>() {
         @Override
@@ -207,6 +243,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Double array datatype
+     */
     public @NotNull
     static final PersistentDataType<Double[]> DOUBLE_ARRAY = new PersistentDataType<>() {
         @Override
@@ -225,6 +264,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Short array datatype
+     */
     public @NotNull
     static final PersistentDataType<Short[]> SHORT_ARRAY = new PersistentDataType<>() {
         @Override
@@ -243,6 +285,9 @@ public final class PersistentDataTypes {
         }
     };
 
+    /**
+     * The Boolean array datatype
+     */
     public @NotNull
     static final PersistentDataType<Boolean[]> BOOLEAN_ARRAY = new PersistentDataType<>() {
         @Override
@@ -290,7 +335,13 @@ public final class PersistentDataTypes {
         TYPES.put(name, type);
     }
 
-    @NotNull
+    /**
+     * Get a {@link PersistentDataType} from its name
+     *
+     * @param name The name to resolve
+     * @return The resolved data type or null
+     */
+    @Nullable
     public static PersistentDataType<?> get(@NotNull String name) {
         return TYPES.get(name);
     }

@@ -21,6 +21,7 @@ public class InternalForumPost extends InternalThreadChannel implements ForumPos
     }
 
     @NotNull
+    @Override
     public net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel() {
         return channel;
     }

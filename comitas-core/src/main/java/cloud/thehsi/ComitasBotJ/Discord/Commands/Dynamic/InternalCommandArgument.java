@@ -6,9 +6,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InternalCommandArgument<T> implements CommandArgument<T> {
-    @Nullable Object value;
-    boolean optional;
-    @NotNull CommandArgumentType<T> type;
+    @Nullable
+    final Object value;
+    final boolean optional;
+    @NotNull
+    final CommandArgumentType<T> type;
 
     public InternalCommandArgument(@Nullable Object value, boolean optional, @NotNull CommandArgumentType<T> type) {
         this.value = value;

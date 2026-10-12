@@ -9,6 +9,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Represents a role
+ */
 @SuppressWarnings("unused")
 public interface Role {
     /**

@@ -12,6 +12,9 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
+/**
+ * Represents a forum channel
+ */
 @SuppressWarnings("unused")
 public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
 
@@ -47,6 +50,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      *
      * @param tagName The tag to add
      * @return The created Tag
+     * @throws ForumTagNameNotUniqueException Thrown if the forum tag name isn't unique
      */
     @NotNull
     ForumTag addTag(@NotNull String tagName) throws ForumTagNameNotUniqueException;
@@ -55,6 +59,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * Register a tag to this channels tag list
      *
      * @param tag The tag to add
+     * @throws ForumTagUsedOnIncorrectChannelException Thrown if the forum tag was used on the incorrect channel
      */
     void addTag(@NotNull ForumTag tag) throws ForumTagUsedOnIncorrectChannelException;
 
