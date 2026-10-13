@@ -153,7 +153,7 @@ public class InternalMember extends InternalUser implements Member {
         DebugLogging.action(role);
         if (!(role instanceof InternalRole(net.dv8tion.jda.api.entities.Role iRole)))
             throw new IllegalArgumentException("Role was not created by Comitas");
-        return member.getRoles().stream().noneMatch(e -> e.getIdLong() == iRole.getIdLong());
+        return member.getRoles().stream().anyMatch(e -> e.getIdLong() == iRole.getIdLong());
     }
 
     @Override
