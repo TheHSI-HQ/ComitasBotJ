@@ -19,6 +19,14 @@
     <description>API library for ComitasBotJ Plugins</description>
     <url>https://github.com/TheHSI-HQ/ComitasBotJ</url>
 
+    <developers>
+        <developer>
+            <id>thehsi</id>
+            <name>TheHSI</name>
+            <url>https://github.com/TheHSI-HQ</url>
+        </developer>
+    </developers>
+
     <licenses>
         <license>
             <name>BSD 3-Clause License</name>
@@ -40,6 +48,7 @@
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <build>
@@ -51,6 +60,32 @@
         </resources>
 
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <flattenMode>ossrh</flattenMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

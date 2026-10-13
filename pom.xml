@@ -19,8 +19,10 @@
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <comitas.version>0.0.16</comitas.version>
     </properties>
+
 </project>
