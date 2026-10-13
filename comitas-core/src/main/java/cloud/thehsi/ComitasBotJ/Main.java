@@ -181,8 +181,6 @@ public class Main implements Runnable {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Computing config values");
         takeConfigActions();
 
-        if (conf == null)
-            throw new IllegalStateException("ServerConfig not initialized");
         logger.info("Loaded {} configuration value(s).", conf.count());
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
