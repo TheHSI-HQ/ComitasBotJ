@@ -47,6 +47,8 @@ jobs:
             echo "Invalid release version: $VERSION"
             exit 1
           fi
+          
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           mvn --batch-mode versions:set \
             -DnewVersion="$VERSION" \
