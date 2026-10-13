@@ -4,7 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonStyle;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
 import org.jetbrains.annotations.NotNull;

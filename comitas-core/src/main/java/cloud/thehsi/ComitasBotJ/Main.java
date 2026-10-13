@@ -3,6 +3,9 @@ package cloud.thehsi.ComitasBotJ;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.FirstTimeStartup;
+import cloud.thehsi.ComitasBotJ.App.VersionProvider;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
@@ -64,11 +67,18 @@ public class Main implements Runnable {
             description = "Same as safe mode but also skips base plugin."
     )
     private boolean strictSafeMode;
+
     @CommandLine.Option(
             names = { "--list-plugins", "-l" },
             description = "List all plugins, regardless of whitelists, and exits."
     )
     private boolean listPlugins;
+
+    @CommandLine.Option(
+            names = {"--skip-fts"},
+            description = "Skip the first time startup screen."
+    )
+    private boolean skipFirstTimeStartup;
 
     @CommandLine.Option(
             names = { "--invite", "-i" },
@@ -147,6 +157,9 @@ public class Main implements Runnable {
                 noCmd, ignoreApiTarget, safeMode,
                 strictSafeMode, listPlugins, invitePermissions
         );
+
+        if (!skipFirstTimeStartup && FirstTimeStartup.shouldFirstTimeStartup())
+            FirstTimeStartup.showFirstTimeStartup();
 
         // Load Configuration from ./server.properties
         logger.info("Loading Configuration...");

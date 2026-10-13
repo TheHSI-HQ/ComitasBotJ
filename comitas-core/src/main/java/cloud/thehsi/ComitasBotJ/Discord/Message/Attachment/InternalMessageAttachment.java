@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
 

@@ -4,7 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTag;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTagUsedOnIncorrectChannelException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ForumPost;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.Forum.InternalForumTag;
 import org.jetbrains.annotations.NotNull;
 

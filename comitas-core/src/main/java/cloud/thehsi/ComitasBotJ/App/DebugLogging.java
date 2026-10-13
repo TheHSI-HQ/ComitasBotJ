@@ -1,7 +1,8 @@
-package cloud.thehsi.ComitasBotJ;
+package cloud.thehsi.ComitasBotJ.App;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;

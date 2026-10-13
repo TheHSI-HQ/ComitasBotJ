@@ -2,7 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Emoji;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")

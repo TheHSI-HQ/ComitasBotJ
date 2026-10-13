@@ -2,7 +2,7 @@ package cloud.thehsi.ComitasBotJ.Event.Events;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserChangeUserNameEvent;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import org.jetbrains.annotations.NotNull;
 
 public record InternalUserChangeUserNameEvent(User user, String oldName,

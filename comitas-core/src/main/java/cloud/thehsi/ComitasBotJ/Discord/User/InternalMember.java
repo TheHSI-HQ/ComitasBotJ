@@ -11,7 +11,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;

@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotUpdatePresenceEvent;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

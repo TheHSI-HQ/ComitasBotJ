@@ -9,7 +9,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ActivityType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.BotUpdatePresenceEvent;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;

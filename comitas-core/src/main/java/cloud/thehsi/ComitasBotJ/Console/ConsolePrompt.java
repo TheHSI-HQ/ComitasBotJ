@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Console;
 
 import ch.qos.logback.classic.LoggerContext;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jline.reader.*;

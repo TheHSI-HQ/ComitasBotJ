@@ -7,7 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UndoableEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
-import cloud.thehsi.ComitasBotJ.DebugLogging;
+import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Utility.StackTraces;

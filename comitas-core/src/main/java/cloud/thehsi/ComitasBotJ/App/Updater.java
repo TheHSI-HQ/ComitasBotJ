@@ -1,6 +1,7 @@
-package cloud.thehsi.ComitasBotJ;
+package cloud.thehsi.ComitasBotJ.App;
 
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
+import cloud.thehsi.ComitasBotJ.Main;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;

@@ -2,7 +2,7 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
-import cloud.thehsi.ComitasBotJ.Updater;
+import cloud.thehsi.ComitasBotJ.App.Updater;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

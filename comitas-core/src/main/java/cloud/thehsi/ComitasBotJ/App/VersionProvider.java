@@ -1,5 +1,6 @@
-package cloud.thehsi.ComitasBotJ;
+package cloud.thehsi.ComitasBotJ.App;
 
+import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine.IVersionProvider;
 
