@@ -113,10 +113,11 @@ public class Component {
 
     /**
      * Create a component from text
+     * <p>
+     * Any content will be auto escaped
      *
      * @param content The content
      * @return The text component.
-     * @implNote Any content will be auto escaped
      */
     @NotNull
     public static Component text(@Nullable String content) {
@@ -127,12 +128,13 @@ public class Component {
 
     /**
      * Create a component from text and multiple styles
+     * <p>
+     * Any content will be auto escaped
+     * Styles will be added together.
      *
      * @param content The content
      * @param styles  The styles
      * @return The text component.
-     * @implNote Any content will be auto escaped
-     * @implNote Styles will be added together.
      */
     @NotNull
     public static Component text(@Nullable String content, @NotNull Style... styles) {

@@ -14,17 +14,23 @@ import java.lang.annotation.Target;
 @SuppressWarnings("unused")
 public @interface CommandOption {
     /**
+     * Get the name of the option   1
+     *
      * @return The name of the option
      */
     String name();
 
     /**
+     * Get the descripion of the option
+     *
      * @return The description of the option
      */
     String description();
 
     /**
-     * @return Is this option required, options value will be null if not present
+     * Is this option required, options value will be null if not required and not present
+     *
+     * @return Is this option required
      */
     boolean required() default true;
 }

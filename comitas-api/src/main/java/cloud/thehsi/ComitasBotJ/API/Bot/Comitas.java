@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- *
+ * The comitas api, used for interaction with comitas backend, as well as the bot itself
  */
 @SuppressWarnings("unused")
 public class Comitas {

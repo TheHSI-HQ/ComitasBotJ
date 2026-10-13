@@ -13,38 +13,38 @@ public class Style {
     public @NotNull
     static final Style RESET = Style.fromMask(0);
     /**
-     * Makes the text <b>bold</b>
+     * Makes the text bold
      */
     public @NotNull
     static final Style BOLD = Style.fromMask(1);
     /**
-     * Makes the text <i>italic</i>
+     * Makes the text italic
      */
     public @NotNull
     static final Style ITALIC = Style.fromMask(2 << 1);
     /**
-     * <u>Underlines</u> the text
+     * Underlines the text
      */
     public @NotNull
     static final Style UNDERLINE = Style.fromMask(2 << 2);
     /**
-     * <s>Strikes through</s> the text
+     * Strikes through the text
      */
     public @NotNull
     static final Style STRIKETHROUGH = Style.fromMask(2 << 3);
 
     /**
-     * Marks this line as a <h1>big header</h1>
+     * Marks this line as a big header
      */
     public @NotNull
     static final Style BIG_HEADER = Style.fromMask(2 << 4);
     /**
-     * Marks this line as a <h1>big header</h1>
+     * Marks this line as a big header
      */
     public @NotNull
     static final Style SMALL_HEADER = Style.fromMask(2 << 5);
     /**
-     * Marks this line as a <h3>smaller header</h3>
+     * Marks this line as a smaller header
      */
     public @NotNull
     static final Style SMALLER_HEADER = Style.fromMask(2 << 6);
@@ -62,13 +62,13 @@ public class Style {
     static final Style QUOTE = Style.fromMask(2 << 8);
 
     /**
-     * Marks this line as a <li>bullet point</li>
+     * Marks this line as a bullet point
      */
     public @NotNull
     static final Style BULLET_POINTS = Style.fromMask(2 << 9);
 
     /**
-     * Makes this text <code>code</code>
+     * Makes this text code
      */
     public @NotNull
     static final Style CODE = Style.fromMask(2 << 10);
