@@ -52,23 +52,33 @@ jobs:
             -DnewVersion="$VERSION" \
             -DgenerateBackupPoms=false
 
-      - name: Build and sign bundle
-        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am clean deploy -DskipTests -DskipPublishing=true
+      - name: Build and sign
+        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am clean verify -DskipTests
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
 
-      - name: Clean and upload bundle
+      - name: Assemble and upload bundle
         run: |
-          BUNDLE=comitas-api/target/central-publishing/central-bundle.zip
-          zip -d "$BUNDLE" '*maven-metadata-local.xml*' '*_remote.repositories*'
-          unzip -l "$BUNDLE"
+          D="bundle/cloud/thehsi/ComitasBotJ/comitas-api/$VERSION"
+          mkdir -p "$D"
+
+          T=comitas-api/target
+          cp $T/comitas-api-$VERSION{.jar,-sources.jar,-javadoc.jar}{,.asc} "$D/"
+          cp comitas-api/.flattened-pom.xml "$D/comitas-api-$VERSION.pom"
+          cp $T/comitas-api-$VERSION.pom.asc "$D/"
+
+          for f in "$D"/*; do
+            md5sum  "$f" | cut -d' ' -f1 > "$f.md5"
+            sha1sum "$f" | cut -d' ' -f1 > "$f.sha1"
+          done
+
+          (cd bundle && zip -r ../central-bundle.zip .)
+          unzip -l central-bundle.zip
 
           TOKEN=$(printf '%s:%s' "$CENTRAL_USERNAME" "$CENTRAL_PASSWORD" | base64 -w0)
           curl --fail-with-body -sS \
             -H "Authorization: Bearer $TOKEN" \
-            -F bundle=@"$BUNDLE" \
+            -F bundle=@central-bundle.zip \
             "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC&name=comitas-api-$VERSION"
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
