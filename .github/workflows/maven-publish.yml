@@ -55,7 +55,7 @@ jobs:
             -DgenerateBackupPoms=false
 
       - name: Build and sign
-        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am clean verify -DskipTests
+        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am clean verify -DskipTests -Prelease-signing
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
