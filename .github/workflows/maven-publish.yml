@@ -85,13 +85,3 @@ jobs:
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
-
-      - name: Debug bundle
-        if: failure()
-        run: |
-          echo "--- staged files ---"
-          find comitas-api/target/central-staging -type f | sort
-          echo "--- bundle contents ---"
-          unzip -l comitas-api/target/central-publishing/central-bundle.zip
-          echo "--- flattened pom head ---"
-          head -40 comitas-api/.flattened-pom.xml 
