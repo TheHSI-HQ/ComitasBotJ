@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandContextType;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRanContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandType;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ public class DynamicCommandBuilder {
     boolean nsfw = false;
     @NotNull CommandType[] commandTypes = new CommandType[]{CommandType.GUILD_INSTALL};
     @NotNull CommandContextType[] commandContextTypes = new CommandContextType[]{CommandContextType.GUILD};
+    @NotNull Permission[] requiredPermissions = new Permission[]{};
 
     /**
      * Create a new {@link DynamicCommandBuilder}
@@ -133,6 +135,24 @@ public class DynamicCommandBuilder {
     @Contract("_ -> this")
     public DynamicCommandBuilder setCommandContextTypes(@NotNull CommandContextType... commandContextTypes) {
         this.commandContextTypes = commandContextTypes;
+        return this;
+    }
+
+    /**
+     * @return List the commands required permissions
+     */
+    public @NotNull Permission[] getRequiredPermissions() {
+        return requiredPermissions;
+    }
+
+    /**
+     * @param requiredPermissions The commands new required permissions
+     * @return The builder
+     */
+    @NotNull
+    @Contract("_ -> this")
+    public DynamicCommandBuilder setRequiredPermissions(@NotNull Permission... requiredPermissions) {
+        this.requiredPermissions = requiredPermissions;
         return this;
     }
 

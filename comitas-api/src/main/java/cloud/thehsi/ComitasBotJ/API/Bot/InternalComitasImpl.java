@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @hidden
  */
+@SuppressWarnings("doclint:missing")
 @ApiStatus.Internal
 public interface InternalComitasImpl {
     /**

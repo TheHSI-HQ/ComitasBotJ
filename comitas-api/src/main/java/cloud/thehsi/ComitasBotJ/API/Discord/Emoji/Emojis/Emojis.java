@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-@SuppressWarnings({"ALL"})
+@SuppressWarnings({"ALL", "doclint:missing"})
 public class Emojis {
     @NotNull public static Emoji HUNDRED() { return Objects.requireNonNull(Emoji.fromUnicode("\ud83d\udcaf")); }
     @NotNull public static Emoji ONE_TWO_THREE_FOUR() { return Objects.requireNonNull(Emoji.fromUnicode("\ud83d\udd22")); }

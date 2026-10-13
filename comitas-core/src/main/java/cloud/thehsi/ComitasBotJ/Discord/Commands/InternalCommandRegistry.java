@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBotJ.Discord.Commands;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentProvider;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.DynamicCommandBuilder;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.Dynamic.InternalCommandArgument;
@@ -17,6 +18,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.IntegrationType;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -136,6 +138,7 @@ public class InternalCommandRegistry implements CommandRegistry {
                 commandBuilder.isNsfw(),
                 commandBuilder.getCommandTypes(),
                 commandBuilder.getCommandContextTypes(),
+                commandBuilder.getRequiredPermissions(),
                 commandBuilder.getArguments(),
                 commandBuilder.getConsumer()
         );
@@ -173,7 +176,17 @@ public class InternalCommandRegistry implements CommandRegistry {
             arguments[i] = new CommandArgument<>(type, option.name(), option.description(), option.required());
         }
 
-        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), commandInfo.nsfw(), commandInfo.commandType(), commandInfo.commandContextType(), arguments, method, commandSupplier);
+        RegisteredCommand command = new RegisteredCommand(
+                commandInfo.name(),
+                commandInfo.description(),
+                commandInfo.nsfw(),
+                commandInfo.commandType(),
+                commandInfo.commandContextType(),
+                commandInfo.requiredPermissions(),
+                arguments,
+                method,
+                commandSupplier
+        );
 
         register(command);
 
@@ -222,6 +235,15 @@ public class InternalCommandRegistry implements CommandRegistry {
                         .toArray(IntegrationType[]::new)
         );
 
+        if (command.requiredPermissions.length == 0)
+            data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
+        else
+            data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(
+                    net.dv8tion.jda.api.Permission.getPermissions(
+                            Permission.asLong(command.requiredPermissions)
+                    )
+            ));
+
         data = data.setNSFW(command.nsfw());
 
         for (CommandArgument<?> arg : command.arguments())
@@ -250,6 +272,15 @@ public class InternalCommandRegistry implements CommandRegistry {
                         .map(e -> IntegrationType.fromKey(e.getKey()))
                         .toArray(IntegrationType[]::new)
         );
+
+        if (command.requiredPermissions.length == 0)
+            data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
+        else
+            data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(
+                net.dv8tion.jda.api.Permission.getPermissions(
+                    Permission.asLong(command.requiredPermissions)
+                )
+            ));
 
         data = data.setNSFW(command.nsfw());
 
@@ -311,10 +342,11 @@ public class InternalCommandRegistry implements CommandRegistry {
         };
     }
 
-    record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
+    record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, Permission[] requiredPermissions, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
 
     record RegisteredDynamicCommand(String name, String description, boolean nsfw, CommandType[] commandTypes,
                                     CommandContextType[] commandContextTypes,
+                                    Permission[] requiredPermissions,
                                     List<DynamicCommandBuilder.ICommandArgument> arguments,
                                     BiConsumer<CommandRanContext, CommandArgumentProvider> consumer) {
     }

@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Commands;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -37,5 +39,12 @@ public @interface Command {
      * @return The Command Context Types
      */
     CommandContextType[] commandContextType() default { CommandContextType.GUILD };
+
+    /**
+     * Leave emoty for everyone
+     *
+     * @return The Command Required Permissions
+     */
+    Permission[] requiredPermissions() default {};
 }
 
