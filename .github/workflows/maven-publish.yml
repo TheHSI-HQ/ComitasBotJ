@@ -52,6 +52,13 @@ jobs:
             -DnewVersion="$VERSION" \
             -DgenerateBackupPoms=false
 
+      - name: Build, test, sign and publish
+        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am  clean deploy -DskipTests
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Debug bundle
         if: failure()
         run: |
@@ -61,10 +68,3 @@ jobs:
           unzip -l comitas-api/target/central-publishing/central-bundle.zip
           echo "--- flattened pom head ---"
           head -40 comitas-api/.flattened-pom.xml 
-
-      - name: Build, test, sign and publish
-        run: mvn --batch-mode --no-transfer-progress -pl comitas-api -am  clean deploy -DskipTests
-        env:
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
