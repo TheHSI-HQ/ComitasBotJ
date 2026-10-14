@@ -4,14 +4,17 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageReaction;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -22,14 +25,28 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
-    public @NotNull List<Member> getReactors() {
+    public @NotNull @Unmodifiable List<User> getReactors() {
         DebugLogging.action();
+
+        return reaction.retrieveUsers()
+                .stream()
+                .map(InternalUser::new)
+                .map(user -> (User) user)
+                .toList();
+    }
+
+    @Override
+    public @Nullable @Unmodifiable List<Member> getReactorMemberss() {
+        DebugLogging.action();
+
+        if (reaction.isFromType(ChannelType.PRIVATE))
+            return null;
 
         Guild guild = reaction.getGuild();
 
         List<Long> userIds = reaction.retrieveUsers()
                 .stream()
-                .map(User::getIdLong)
+                .map(net.dv8tion.jda.api.entities.User::getIdLong)
                 .toList();
 
         return guild.retrieveMembersByIds(userIds)
@@ -43,15 +60,16 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     @Override
     public int getCount() {
         DebugLogging.action();
-        return reaction.getCount();
+        int count = reaction.getCount();
+        return count >= 0 ? count : (int) reaction.retrieveUsers().stream().count();
     }
 
     @Override
     public boolean haveIReacted() {
         DebugLogging.action();
 
-        return getReactors().stream()
-                .anyMatch(e -> e.getId() == reaction.getJDA().getSelfUser().getIdLong());
+        long self = reaction.getJDA().getSelfUser().getIdLong();
+        return reaction.retrieveUsers().stream().anyMatch(u -> u.getIdLong() == self);
     }
 
     @Override

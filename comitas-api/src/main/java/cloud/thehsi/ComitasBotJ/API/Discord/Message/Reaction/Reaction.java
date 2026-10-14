@@ -3,7 +3,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emoji;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -24,11 +26,20 @@ public interface Reaction {
     /**
      * Fetches a list of everyone who reacted to this message
      *
-     * @return A list of all reactors
+     * @return A list of all users
      */
     @NotNull
     @Unmodifiable
-    List<Member> getReactors();
+    List<User> getReactors();
+
+    /**
+     * Fetches a list of everyone who reacted to this message
+     *
+     * @return A list of all reactors as members, null if in a dm
+     */
+    @Nullable
+    @Unmodifiable
+    List<Member> getReactorMemberss();
 
     /**
      * Gets the amount of reactions
