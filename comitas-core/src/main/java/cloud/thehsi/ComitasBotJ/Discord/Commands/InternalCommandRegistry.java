@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentProv
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.DynamicCommandBuilder;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.Dynamic.InternalCommandArgument;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.Dynamic.InternalCommandArgumentProvider;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
@@ -107,10 +107,14 @@ public class InternalCommandRegistry implements CommandRegistry {
             if (argument == null)
                 return;
 
-            provider.addArgument(
-                    e.getName(),
-                    new InternalCommandArgument<>(extractValue(e, type), !argument.required(), type)
-            );
+            try {
+                provider.addArgument(
+                        e.getName(),
+                        new InternalCommandArgument<>(extractValue(e, type), !argument.required(), type)
+                );
+            } catch (Exception ex) {
+                logger.error("There was an error whilst parsing option '{}' of command '{}'", argument.identifier(), command.name(), ex);
+            }
         });
 
         CommandRanContext commandRanContext = new InternalCommandRanContext(
@@ -305,7 +309,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     private OptionType optionTypeFromCommandArgumentType(@NotNull cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<?> type) {
         return switch (type.name()) {
             case "STRING" -> OptionType.STRING;
-            case "INTEGER" -> OptionType.INTEGER;
+            case "NUMBER" -> OptionType.INTEGER;
             case "DOUBLE" -> OptionType.NUMBER;
             case "BOOLEAN" -> OptionType.BOOLEAN;
             case "USER" -> OptionType.USER;
@@ -320,7 +324,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     private cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<?> commandArgumentTypeFromOptionType(@NotNull OptionType type) {
         return switch (type) {
             case STRING -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.STRING;
-            case INTEGER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.INTEGER;
+            case INTEGER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.NUMBER;
             case NUMBER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.DOUBLE;
             case BOOLEAN -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.BOOLEAN;
             case USER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.USER;
@@ -335,11 +339,11 @@ public class InternalCommandRegistry implements CommandRegistry {
     private <T> T extractValue(@NotNull OptionMapping mapping, @NotNull cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<T> argumentType) {
         return switch (mapping.getType()) {
             case STRING -> argumentType.cast(mapping.getAsString());
-            case INTEGER -> argumentType.cast(mapping.getAsInt());
+            case INTEGER -> argumentType.cast(mapping.getAsLong());
             case NUMBER -> argumentType.cast(mapping.getAsDouble());
             case BOOLEAN -> argumentType.cast(mapping.getAsBoolean());
             case USER -> argumentType.cast(new InternalUser(mapping.getAsUser()));
-            case CHANNEL -> argumentType.cast(new InternalChannel(mapping.getAsChannel()));
+            case CHANNEL -> argumentType.cast(ChannelTypeResolver.resolve(mapping.getAsChannel()));
             case ROLE -> argumentType.cast(new InternalRole(mapping.getAsRole()));
             case ATTACHMENT -> argumentType.cast(new InternalAttachment(mapping.getAsAttachment()));
             default -> throw new IllegalStateException("Unexpected value: " + mapping.getType());

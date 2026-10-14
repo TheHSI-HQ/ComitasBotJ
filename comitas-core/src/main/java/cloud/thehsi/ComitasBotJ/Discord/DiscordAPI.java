@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -106,6 +107,7 @@ public class DiscordAPI {
                             GatewayIntent.MESSAGE_CONTENT,
                             GatewayIntent.GUILD_PRESENCES
                     )
+                    .enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setEventPassthrough(true)

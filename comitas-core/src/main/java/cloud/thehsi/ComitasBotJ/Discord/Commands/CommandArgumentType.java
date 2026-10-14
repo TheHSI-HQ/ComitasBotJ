@@ -24,7 +24,7 @@ public record CommandArgumentType<T>(String name, Class<T> type, @Nullable Optio
     public @NotNull
     static final CommandArgumentType<String> STRING = new CommandArgumentType<>("STRING", String.class, OptionType.STRING, OptionMapping::getAsString);
     public @NotNull
-    static final CommandArgumentType<Integer> INTEGER = new CommandArgumentType<>("INTEGER", Integer.class, OptionType.INTEGER, OptionMapping::getAsInt);
+    static final CommandArgumentType<Long> NUMBER = new CommandArgumentType<>("NUMBER", Long.class, OptionType.INTEGER, OptionMapping::getAsLong);
     public @NotNull
     static final CommandArgumentType<Double> DOUBLE = new CommandArgumentType<>("DOUBLE", Double.class, OptionType.NUMBER, OptionMapping::getAsDouble);
     public @NotNull
@@ -50,7 +50,7 @@ public record CommandArgumentType<T>(String name, Class<T> type, @Nullable Optio
     public static CommandArgumentType<?>[] values() {
         return new CommandArgumentType[]{
                 STRING,
-                INTEGER,
+                NUMBER,
                 DOUBLE,
                 BOOLEAN,
                 USER,
