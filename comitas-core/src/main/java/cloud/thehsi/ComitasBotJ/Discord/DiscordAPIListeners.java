@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -42,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPIListeners extends ListenerAdapter {
@@ -243,8 +243,23 @@ public class DiscordAPIListeners extends ListenerAdapter {
         switch (event.getEntry().getType()) {
             case ActionType.KICK:
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserKickedEvent.");
+
+                InternalUser user = (InternalUser) User.fromId(event.getEntry().getTargetIdLong());
+                if (user == null) return;
+
+                net.dv8tion.jda.api.entities.User mod_user = event.getEntry().getUser();
+                net.dv8tion.jda.api.entities.Member mod_member = null;
+                InternalMember moderator = null;
+
+                if (mod_user != null)
+                    mod_member = event.getGuild().getMember(mod_user);
+
+                if (mod_member != null)
+                    moderator = new InternalMember(mod_member);
+
                 eventManager.callEvent(new InternalUserKickedEvent(
-                        new InternalUser(Objects.requireNonNull(event.getEntry().getUser())),
+                        user,
+                        moderator,
                         new InternalGuild(event.getGuild())
                 ));
                 break;
