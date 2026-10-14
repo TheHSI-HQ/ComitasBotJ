@@ -80,11 +80,12 @@ public interface Invite {
     OffsetDateTime getTimeCreated();
 
     /**
-     * Get the time, when the invite expires
+     * Get the time, when the invite expires.
+     * Returns null, if the invite doesnt expire
      *
      * @return The invite's expiry time
      */
-    @NotNull
+    @Nullable
     OffsetDateTime getExpiryTime();
 
     /**
