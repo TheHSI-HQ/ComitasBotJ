@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.GuildChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
@@ -50,12 +50,12 @@ public interface Guild {
     Channel getChannelById(@NotNull String id);
 
     /**
-     * Returns the Default Channel of the guild.
+     * Returns the default channel of the guild
      *
      * @return The default channel of this guild.
      */
     @Nullable
-    TextChannel getDefaultChannel();
+    GuildChannel getDefaultChannel();
 
     /**
      * Get the guild icon
