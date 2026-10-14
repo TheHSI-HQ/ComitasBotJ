@@ -211,13 +211,13 @@ public class PluginLoaderManager {
                         if (allowedPlugin.toLowerCase().split("!sha256=").length < 2)
                             continue;
 
-                        String raw = allowedPlugin.split("!sha256=")[0];
-                        original_hash = allowedPlugin.split("!sha256=")[1];
+                        String raw = allowedPlugin.toLowerCase().split("!sha256=")[0];
+                        original_hash = allowedPlugin.toLowerCase().split("!sha256=")[1];
                         if (raw.equals(metadata.name()) || raw.equals(metadata.uuid().toString())) {
                             found = true;
                             try (InputStream jar_is = Files.newInputStream(jar.toPath())) {
                                 hash = DigestUtils.sha256Hex(jar_is);
-                                hashValid = Objects.equals(original_hash, hash);
+                                hashValid = Objects.equals(original_hash, hash.toLowerCase());
                             }
                             break;
                         }
@@ -256,7 +256,7 @@ public class PluginLoaderManager {
                                 metadata.name(), metadata.jarName());
                     if (found && !hashValid)
                         logger.warn("Plugin '{}' ({}) is whitelisted but its hash does not match the specified one:\n  Old: {} != New: {}.",
-                                metadata.name(), metadata.jarName(), original_hash, hash);
+                                metadata.name(), metadata.jarName(), original_hash, hash.toLowerCase());
                     if (!found || !hashValid) {
                         nonWhitelistedFound = true;
                         continue;
