@@ -74,7 +74,11 @@ public class InternalCommandRegistry implements CommandRegistry {
                 for (OptionMapping option : options) {
                     if (!option.getName().equals(argument.name())) continue;
                     if (argument.type().converter() == null) continue;
-                    args[i] = argument.type().converter().apply(option);
+                    try {
+                        args[i] = argument.type().converter().apply(option);
+                    } catch (Exception e) {
+                        logger.error("There was an error whilst parsing option '{}' of command '{}'", option.getName(), command.name(), e);
+                    }
                     options.remove(option);
                     break;
                 }

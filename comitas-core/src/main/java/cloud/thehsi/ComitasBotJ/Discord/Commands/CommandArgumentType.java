@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Commands.CommandRanContext;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.Attachment;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachment;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
@@ -32,7 +32,7 @@ public record CommandArgumentType<T>(String name, Class<T> type, @Nullable Optio
     public @NotNull
     static final CommandArgumentType<User> USER = new CommandArgumentType<>("USER", User.class, OptionType.USER, m -> new InternalUser(m.getAsUser()));
     public @NotNull
-    static final CommandArgumentType<Channel> CHANNEL = new CommandArgumentType<>("CHANNEL", Channel.class, OptionType.CHANNEL, m -> new InternalChannel(m.getAsChannel()));
+    static final CommandArgumentType<Channel> CHANNEL = new CommandArgumentType<>("CHANNEL", Channel.class, OptionType.CHANNEL, m -> ChannelTypeResolver.resolve(m.getAsChannel()));
     public @NotNull
     static final CommandArgumentType<Role> ROLE = new CommandArgumentType<>("ROLE", Role.class, OptionType.ROLE, m -> new InternalRole(m.getAsRole()));
     public @NotNull
