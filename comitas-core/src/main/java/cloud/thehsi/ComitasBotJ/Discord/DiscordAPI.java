@@ -103,7 +103,8 @@ public class DiscordAPI {
             api = JDABuilder.createDefault(BOT_TOKEN)
                     .enableIntents(
                             GatewayIntent.GUILD_MEMBERS,
-                            GatewayIntent.MESSAGE_CONTENT
+                            GatewayIntent.MESSAGE_CONTENT,
+                            GatewayIntent.GUILD_PRESENCES
                     )
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)

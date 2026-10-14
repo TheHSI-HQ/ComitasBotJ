@@ -75,8 +75,11 @@ java -jar comitas-core-<version>.jar
 6. Configure the Bot
 
     Before ComitasBotJ can connect to Discord, you must provide a valid Discord bot token.
-    
-    Open the generated `tokens.secret` file and add your token after `bot=`:
+
+   **In modern installs, ComitasBotJ will prompt you at first startup once for your bot token, so you can skip ahead**
+
+   If you decide not to use First Time Startup config,
+   open the generated `tokens.secret` file and add your token after `bot=`:
     
     ```properties
     bot=YOUR_DISCORD_BOT_TOKEN
@@ -91,6 +94,10 @@ java -jar comitas-core-<version>.jar
 > For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
 >
 > Only give the bot permissions it actuall needs, in case it gets compromised.
+
+> [!IMPORTANT]
+> Due to current lmitations, the bot requires all of these intents: `GUILD_MEMBERS`, `MESSAGE_CONTENT`,
+`GUILD_PRESENCES`!
 
 ## Security
 
