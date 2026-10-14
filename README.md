@@ -113,12 +113,12 @@ java -jar comitas-core-<version>.jar
 
 The `server.properties` file is automatically created on the first startup. It is used to persistently configure ComitasBotJ.
 
-| Property            | Type     | Default       | Description                                                                                              |
-|---------------------|----------|---------------|----------------------------------------------------------------------------------------------------------|
-| `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                              |
-| `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                               |
-| `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. |
-| `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                  |
+| Property            | Type     | Default       | Description                                                                                                                                                                 |
+|---------------------|----------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                                                                                                 |
+| `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                                                                                                  |
+| `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. Optionally, suffix the plugin name / uuid with `!sha256=FILE_HASH` |
+| `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                                                                                     |
 
 ### File Structure
 

@@ -138,5 +138,10 @@
             <artifactId>gson</artifactId>
             <version>2.14.0</version>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.16.0</version>
+        </dependency>
     </dependencies>
 </project>

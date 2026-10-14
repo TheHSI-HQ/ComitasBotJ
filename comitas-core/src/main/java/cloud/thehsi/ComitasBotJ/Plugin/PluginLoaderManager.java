@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -204,36 +206,72 @@ public class PluginLoaderManager {
                         props, jar.getName()
                 );
 
-                if (!allowedPlugins.isEmpty())
-                    if (!allowedPlugins.contains(metadata.name()) && !allowedPlugins.contains(metadata.uuid().toString())) {
-                        if (!nonWhitelistedFound)
-                            logger.warn("""
-        {}
-        ╔══════════════════════════════════════════════════════════════════╗
-        ║                       PLUGIN SECURITY WARNING                    ║
-        ╚══════════════════════════════════════════════════════════════════╝
+                if (!allowedPlugins.isEmpty()) {
+                    boolean found = false;
+                    boolean hashValid = true;
+                    String hash = "";
+                    String original_hash = "";
+                    for (String allowedPlugin : allowedPlugins) {
+                        if (allowedPlugin.equals(metadata.name()) || allowedPlugin.equals(metadata.uuid().toString())) {
+                            found = true;
+                            break;
+                        }
 
-        Plugin whitelist enforcement is enabled, and one or more plugins
-        in the plugins directory are not whitelisted. These plugins will
-        NOT be loaded.
+                        if (allowedPlugin.toLowerCase().split("!sha256=").length < 2)
+                            continue;
 
-        If you did not intentionally place these plugins here, treat this
-        as a potential security issue. Review your access logs, deployment
-        history, filesystem changes, and other relevant audit logs to
-        determine how they got there.
+                        String raw = allowedPlugin.split("!sha256=")[0];
+                        original_hash = allowedPlugin.split("!sha256=")[1];
+                        if (raw.equals(metadata.name()) || raw.equals(metadata.uuid().toString())) {
+                            found = true;
+                            try (InputStream jar_is = Files.newInputStream(jar.toPath())) {
+                                hash = DigestUtils.sha256Hex(jar_is);
+                                hashValid = Objects.equals(original_hash, hash);
+                            }
+                        }
 
-        Do NOT leave unrecognized or unwhitelisted plugins in the plugins
-        directory in a production environment. Remove them and investigate
-        their origin before continuing.
+                        break;
+                    }
 
-        Whitelist only plugins that you explicitly trust and intend to run.
+                    if (!nonWhitelistedFound && !found)
+                        logger.warn("""
+                                {}
+                                ╔══════════════════════════════════════════════════════════════════╗
+                                ║                       PLUGIN SECURITY WARNING                    ║
+                                ╚══════════════════════════════════════════════════════════════════╝
+                                
+                                Plugin whitelist enforcement is enabled, and one or more plugins
+                                in the plugins directory are not whitelisted. These plugins will
+                                NOT be loaded.
+                                
+                                If you did not intentionally place these plugins here, treat this
+                                as a potential security issue. Review your access logs, deployment
+                                history, filesystem changes, and other relevant audit logs to
+                                determine how they got there.
+                                
+                                Do NOT leave unrecognized or unwhitelisted plugins in the plugins
+                                directory in a production environment. Remove them and investigate
+                                their origin before continuing.
+                                
+                                Whitelist only plugins that you explicitly trust and intend to run.
+                                
+                                For production use, it is recommended to also validate the file hash,
+                                by adding !sha256= to the end of the uuid or plugin name and
+                                prepending the hash afterwards.
+                                
+                                """, ConsoleColor.YELLOW);
 
-        """, ConsoleColor.YELLOW);
+                    if (!found)
                         logger.warn("Plugin '{}' ({}) is not whitelisted and will be skipped because the plugin whitelist is enabled.",
                                 metadata.name(), metadata.jarName());
+                    if (found && !hashValid)
+                        logger.warn("Plugin '{}' ({}) is whitelisted but its hash does not match the specified one:\n  Old: {} != New: {}.",
+                                metadata.name(), metadata.jarName(), original_hash, hash);
+                    if (!found || !hashValid) {
                         nonWhitelistedFound = true;
                         continue;
                     }
+                }
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating UUID ({}) for: {}", props.getProperty("uuid"), jar.getName());
                 if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
@@ -241,7 +279,7 @@ public class PluginLoaderManager {
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating name ({}) for: {}", metadata.name(), jar.getName());
                 if (metadata.name().contains(","))
-                    logger.warn("Plugin {} is has an illegal character in its name [,]", metadata.name());
+                    logger.warn("Plugin {} contains an illegal character in its name [,]", metadata.name());
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking compatibility ({}) for: {}", props.getProperty("api-target"), jar.getName());
                 if (!isApiTargetCompatible(props.getProperty("api-target")))
