@@ -192,15 +192,6 @@ public class PluginLoaderManager {
                 String mainClass =
                         props.getProperty("main");
 
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reflecting main class for: {}", jar.getName());
-                Class<? extends Plugin> clazz =
-                        loader.loadClass(mainClass)
-                                .asSubclass(Plugin.class);
-
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Instancing main class for : {}", jar.getName());
-                Plugin plugin = clazz.getDeclaredConstructor()
-                        .newInstance();
-
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Prepping internal plugin metadata for: {}", jar.getName());
                 Plugin.PluginMetadata metadata = Plugin.PluginMetadata.fromProperties(
                         props, jar.getName()
@@ -289,6 +280,15 @@ public class PluginLoaderManager {
                         throw new PluginCompatibilityException(
                                 props.getProperty("api-target"), Comitas.getServerVersion()
                         );
+
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reflecting main class for: {}", jar.getName());
+                Class<? extends Plugin> clazz =
+                        loader.loadClass(mainClass)
+                                .asSubclass(Plugin.class);
+
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Instancing main class for : {}", jar.getName());
+                Plugin plugin = clazz.getDeclaredConstructor()
+                        .newInstance();
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Adding {} as a loaded plugin", jar.getName());
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
