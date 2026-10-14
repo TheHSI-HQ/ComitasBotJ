@@ -219,9 +219,8 @@ public class PluginLoaderManager {
                                 hash = DigestUtils.sha256Hex(jar_is);
                                 hashValid = Objects.equals(original_hash, hash);
                             }
+                            break;
                         }
-
-                        break;
                     }
 
                     if (!nonWhitelistedFound && !found)
