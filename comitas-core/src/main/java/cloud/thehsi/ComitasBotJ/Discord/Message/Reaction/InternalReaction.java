@@ -24,35 +24,40 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     @Override
     public @NotNull List<Member> getReactors() {
         DebugLogging.action();
+
         Guild guild = reaction.getGuild();
 
-        return reaction.retrieveUsers().stream()
-                .map(e -> (Member) new InternalMember(
-                        guild.retrieveMember(e).complete()
-                ))
+        List<Long> userIds = reaction.retrieveUsers()
+                .stream()
+                .map(User::getIdLong)
+                .toList();
+
+        return guild.retrieveMembersByIds(userIds)
+                .get()
+                .stream()
+                .map(InternalMember::new)
+                .map(member -> (Member) member)
                 .toList();
     }
 
     @Override
     public int getCount() {
         DebugLogging.action();
-        return reaction.retrieveUsers().complete().size();
+        return reaction.getCount();
     }
 
     @Override
     public boolean haveIReacted() {
         DebugLogging.action();
-        for (User user : reaction.retrieveUsers().complete())
-            if (user.getIdLong() == reaction.getJDA().getSelfUser().getIdLong())
-                return true;
 
-        return false;
+        return getReactors().stream()
+                .anyMatch(e -> e.getId() == reaction.getJDA().getSelfUser().getIdLong());
     }
 
     @Override
     public boolean exists() {
         DebugLogging.action();
-        return !reaction.retrieveUsers().complete().isEmpty();
+        return reaction.getCount() > 0;
     }
 
     @Override
