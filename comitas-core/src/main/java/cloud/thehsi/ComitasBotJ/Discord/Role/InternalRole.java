@@ -70,7 +70,7 @@ public record InternalRole(net.dv8tion.jda.api.entities.Role role) implements Ro
     public @NotNull List<Permission> getPermissions() {
         DebugLogging.action();
         return role.getPermissions().stream()
-                .map(e -> Permission.fromValue(e.getName()))
+                .map(e -> Permission.fromValue(e.name()))
                 .toList();
     }
 }
