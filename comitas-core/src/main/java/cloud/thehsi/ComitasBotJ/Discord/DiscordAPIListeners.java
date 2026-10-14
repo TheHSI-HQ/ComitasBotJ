@@ -38,7 +38,9 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -245,7 +247,16 @@ public class DiscordAPIListeners extends ListenerAdapter {
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserKickedEvent.");
 
                 InternalUser user = (InternalUser) User.fromId(event.getEntry().getTargetIdLong());
-                if (user == null) return;
+
+                if (user == null) try {
+                    user = new InternalUser(
+                            event.getJDA().retrieveUserById(event.getEntry().getTargetIdLong()).complete()
+                    );
+                } catch (ErrorResponseException e) {
+                    if (e.getErrorResponse() == ErrorResponse.UNKNOWN_USER)
+                        return;
+                    throw e;
+                }
 
                 net.dv8tion.jda.api.entities.User mod_user = event.getEntry().getUser();
                 net.dv8tion.jda.api.entities.Member mod_member = null;
