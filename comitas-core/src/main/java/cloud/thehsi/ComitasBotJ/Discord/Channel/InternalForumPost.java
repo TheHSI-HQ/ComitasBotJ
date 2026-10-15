@@ -6,18 +6,19 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ForumPost;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.Forum.InternalForumTag;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class InternalForumPost extends InternalThreadChannel implements ForumPost {
     @NotNull
-    final net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel channel;
+    final ThreadChannel channel;
 
-    public InternalForumPost(@NotNull net.dv8tion.jda.api.entities.channel.forums.ForumPost channel) {
-        super(channel.getThreadChannel());
+    public InternalForumPost(@NotNull ThreadChannel channel) {
+        super(channel);
 
-        this.channel = channel.getThreadChannel();
+        this.channel = channel;
     }
 
     @NotNull

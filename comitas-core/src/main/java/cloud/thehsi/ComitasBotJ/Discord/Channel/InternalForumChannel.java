@@ -127,8 +127,8 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     @Override
     public @NotNull @Unmodifiable List<ForumPost> getPosts() {
         return channel.getThreadChannels().stream()
-                .filter(e -> e instanceof net.dv8tion.jda.api.entities.channel.forums.ForumPost)
-                .map(e -> (ForumPost) new InternalForumPost((net.dv8tion.jda.api.entities.channel.forums.ForumPost) e))
+                .map(InternalForumPost::new)
+                .map(post -> (ForumPost) post)
                 .toList();
     }
 
@@ -157,7 +157,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
         AtomicReference<InternalForumPost> result = new AtomicReference<>();
         MessageDataParser.send(messageData, data -> {
             result.set(
-                    new InternalForumPost(channel.createForumPost(title, data).complete())
+                    new InternalForumPost(channel.createForumPost(title, data).complete().getThreadChannel())
             );
             return null;
         });
