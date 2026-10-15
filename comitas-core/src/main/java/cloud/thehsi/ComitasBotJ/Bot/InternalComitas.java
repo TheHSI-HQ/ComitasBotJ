@@ -203,7 +203,7 @@ public class InternalComitas implements InternalComitasImpl {
         }
 
         // Prepare EventManager
-        logger.info("Loading API Integrations...");
+        if (!Main.props().quiet()) logger.info("Loading API Integrations...");
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Event Manager");
         eventManager = new EventManager();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Scheduler");
@@ -212,7 +212,7 @@ public class InternalComitas implements InternalComitasImpl {
         commandRegistry = new InternalCommandRegistry();
 
         // Load Plugins from ./plugins
-        logger.info("Loading Plugins...");
+        if (!Main.props().quiet()) logger.info("Loading Plugins...");
         pluginLoaderManager = new PluginLoaderManager();
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Plugin Manager");
@@ -226,10 +226,10 @@ public class InternalComitas implements InternalComitasImpl {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
-        logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
+        if (!Main.props().quiet()) logger.info("Loaded {} plugin(s).", pluginLoaderManager.count());
 
         // Start Bot
-        logger.info("Starting Bot...");
+        if (!Main.props().quiet()) logger.info("Starting Bot...");
         DiscordAPI api = new DiscordAPI(bot_token, eventManager, commandRegistry);
 
         pluginManager.setDiscordApi(api);

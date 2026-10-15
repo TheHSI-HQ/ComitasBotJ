@@ -47,26 +47,36 @@ public class Main implements Runnable {
     static ServerConfig.ParsedServerConfig conf;
     private @NotNull
     final Logger debugLogger = DebugLogging.getLogger();
+
     @CommandLine.Option(
             names = "--no-cmd",
             description = "Disable command line"
     )
     private boolean noCmd;
+
     @CommandLine.Option(
             names = "--ignore-api-target",
             description = "Ignore API Version specification in Plugins"
     )
     private boolean ignoreApiTarget;
+
     @CommandLine.Option(
             names = { "--safe-mode", "-s" },
             description = "Enable safe mode (No Plugin loading)."
     )
     private boolean safeMode;
+
     @CommandLine.Option(
             names = "--strict-safe-mode",
             description = "Same as safe mode but also skips base plugin."
     )
     private boolean strictSafeMode;
+
+    @CommandLine.Option(
+            names = {"-q", "--quiet"},
+            description = "Quiet mode, supresses all info logging."
+    )
+    private boolean quiet;
 
     @CommandLine.Option(
             names = { "--list-plugins", "-l" },
@@ -150,19 +160,22 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Starting ComitasBotJ v{}...", getServerVersion());
+        quiet &= !DebugLogging.isBasicEnabled(); // Disables quiet if debug logging enabled
+
+        if (!quiet) logger.info("Starting ComitasBotJ v{}...", getServerVersion());
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating Startup Properties");
         Main.props = new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
-                strictSafeMode, listPlugins, invitePermissions
+                strictSafeMode, quiet,
+                listPlugins, invitePermissions
         );
 
         if (!skipFirstTimeStartup && FirstTimeStartup.shouldFirstTimeStartup())
             FirstTimeStartup.showFirstTimeStartup();
 
         // Load Configuration from ./server.properties
-        logger.info("Loading Configuration...");
+        if (!props().quiet()) logger.info("Loading Configuration...");
         try {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating and Reading ServerConfig");
             ServerConfig rawServerConfig = new ServerConfig();
@@ -181,7 +194,7 @@ public class Main implements Runnable {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Computing config values");
         takeConfigActions();
 
-        logger.info("Loaded {} configuration value(s).", conf.count());
+        if (!props().quiet()) logger.info("Loaded {} configuration value(s).", conf.count());
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
         Comitas comitas = Comitas.getInstance();
@@ -199,13 +212,13 @@ public class Main implements Runnable {
 
     private void takeConfigActions() {
         if (props().invitePermissions() != 0) {
-            logger.info("Generating invite...");
+            if (!props().quiet()) logger.info("Generating invite...");
 
             if (props().invitePermissions() == 8)
                 logger.warn("No permissions specified (or Administrator permission specified), granting Administator permission (8). Not recommended for production");
 
             Permission[] permissions = Permission.fromLong(props().invitePermissions());
-            logger.info("Granting permissions: {}",
+            if (!props().quiet()) logger.info("Granting permissions: {}",
                 String.join(", ", Arrays.stream(permissions).map(Enum::name).toArray(String[]::new))
             );
 
@@ -218,14 +231,15 @@ public class Main implements Runnable {
                     ConsoleColor.RESET
             );
 
-            logger.info("Exiting...");
+            if (!props().quiet()) logger.info("Exiting...");
             System.exit(0);
         }
 
         if (props().listPlugins()) {
-            logger.info("Loadable Plugins:");
+            if (!props().quiet()) logger.info("Loadable Plugins:");
             PluginLister.listAllPlugins();
-            logger.info("Exiting...");
+            if (!props().quiet()) //noinspection LoggingSimilarMessage
+                logger.info("Exiting...");
             System.exit(0);
         }
 
@@ -236,7 +250,7 @@ public class Main implements Runnable {
             System.exit(0);
         }
 
-        if (Objects.equals(conf().allowedPlugins.get(), "*")) {
+        if (Objects.equals(conf().allowedPlugins.get(), "*") && !props().quiet()) {
             logger.warn("""
                         {}
                         Plugin whitelist is not enabled.
@@ -247,7 +261,7 @@ public class Main implements Runnable {
                         """, ConsoleColor.YELLOW);
         }
 
-        if (props().ignoreApiTarget())
+        if (props().ignoreApiTarget() && !props().quiet())
             logger.warn("""
                         {}
                         Plugin compatibility checks are disabled.
@@ -259,7 +273,7 @@ public class Main implements Runnable {
                         Proceed with caution.
                         """, ConsoleColor.YELLOW);
 
-        if (props().safeMode() && !props().strictSafeMode())
+        if (props().safeMode() && !props().strictSafeMode() && !props().quiet())
             logger.warn("""
                     {}
                     Safe Mode is enabled.
@@ -269,7 +283,7 @@ public class Main implements Runnable {
                     and should not be used in production environments.
                     """, ConsoleColor.YELLOW);
 
-        if (props().strictSafeMode())
+        if (props().strictSafeMode() && !props().quiet())
             logger.warn("""
                     {}
                     Strict Safe Mode is enabled.

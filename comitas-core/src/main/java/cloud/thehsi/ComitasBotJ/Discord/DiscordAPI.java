@@ -96,7 +96,8 @@ public class DiscordAPI {
                         LoggerFactory.getLogger("net.dv8tion.jda");
 
         jdaLogger.setLevel(
-                DebugLogging.isAPIEnabled() ? Level.DEBUG : Level.INFO
+                DebugLogging.isAPIEnabled() ? Level.DEBUG :
+                        Main.props().quiet() ? Level.WARN : Level.INFO
         );
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot");
