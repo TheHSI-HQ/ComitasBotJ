@@ -128,7 +128,7 @@ public class ServerConfig {
     }
 
     public void setIfNotExist(@NotNull String key, @NotNull String value) {
-        if (!properties.contains(key)) properties.setProperty(key, value);
+        if (properties.getProperty(key) == null) properties.setProperty(key, value);
     }
 
     public void setIfNotExist(@NotNull String key, boolean value) {
@@ -136,7 +136,7 @@ public class ServerConfig {
     }
 
     public void setIfNotExist(@NotNull String key, double value) {
-        if (!properties.contains(key)) properties.setProperty(key, fromNumber(value));
+        if (properties.getProperty(key) == null) properties.setProperty(key, fromNumber(value));
     }
 
     public void save() throws IOException {

@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a formatted message in a tree like structure
@@ -43,6 +44,23 @@ public class Component {
     @NotNull
     public static Component empty() {
         return new Component();
+    }
+
+    /**
+     * Runs .toString on the passed object and returns as a raw component
+     *
+     * @param object The object to turn into a raw component
+     * @return The parsed component
+     */
+    @NotNull
+    public static Component of(@Nullable Object object) {
+        return Component.raw(
+                Objects.requireNonNullElse(
+                                object,
+                                "null"
+                        )
+                        .toString()
+        );
     }
 
     /**

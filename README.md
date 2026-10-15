@@ -93,11 +93,11 @@ java -jar comitas-core-<version>.jar
 > [!IMPORTANT]
 > For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
 >
-> Only give the bot permissions it actuall needs, in case it gets compromised.
+> Only give the bot permissions it actually needs, in case it gets compromised.
 
 > [!IMPORTANT]
-> Due to current lmitations, the bot requires all of these intents: `GUILD_MEMBERS`, `MESSAGE_CONTENT`,
-`GUILD_PRESENCES`!
+> Due to current limitations, the bot requires all of these intents: `GUILD_MEMBERS`, `MESSAGE_CONTENT`,
+> `GUILD_PRESENCES`!
 
 ## Security
 
