@@ -1,3 +1,4 @@
+<!-- @formatter:off -->
 # ComitasBotJ Plugin Development (API Docs)
 
 ComitasBotJ plugins are Java projects that extend the functionality of a running ComitasBotJ instance. A plugin can respond to events, register commands, interact with the bot API, and provide additional functionality.
@@ -8,9 +9,7 @@ ComitasBotJ plugins are Java projects that extend the functionality of a running
 > [!NOTE]
 > This documentation is a work in progress.
 
-This guide walks you through creating your first ComitasBotJ plugin using IntelliJ IDEA, then covers the rest of the API
-in reference form: events, messages, components, embeds, attachments, reactions & emoji, buttons, commands (static,
-console and dynamic), the scheduler, persistent data and the plugin manager.
+This guide walks you through creating your first ComitasBotJ plugin using IntelliJ IDEA, then covers the rest of the API in reference form: events, messages, components, embeds, attachments, reactions & emoji, buttons, commands (static, console and dynamic), the scheduler, persistent data and the plugin manager.
 
 ## Table of Contents
 
@@ -215,61 +214,53 @@ Now that you know how the plugins work and how to install them, let's get the Bo
 
 ### Available Events
 
-A `Listener` class can hold as many `@EventHandler` methods as you want, each one listening for a single event type.
-Every event lives in `cloud.thehsi.ComitasBotJ.API.Event.Events`:
+A `Listener` class can hold as many `@EventHandler` methods as you want, each one listening for a single event type. Every event lives in `cloud.thehsi.ComitasBotJ.API.Event.Events`:
 
-| Event                              | Fired when...                                                                                                                     |
-|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `BotReadyEvent`                    | The bot has finished connecting and is ready to use.                                                                              |
-| `BotUpdatePresenceEvent`           | The bot's own presence (status/activity) is updated.                                                                              |
-| `MessageReceivedEvent`             | Any message is sent in a channel the bot can see.                                                                                 |
-| `MessageEditedEvent`               | A message is edited.                                                                                                              |
-| `MessageDeletedEvent`              | A message is deleted.                                                                                                             |
-| `ReactionUpdatedEvent`             | A reaction on a message is added, removed, or cleared.                                                                            |
-| `UserJoinGuildEvent`               | A member joins a guild.                                                                                                           |
-| `UserLeaveGuildEvent`              | A member leaves a guild.                                                                                                          |
-| `UserKickedEvent`                  | A member is kicked.                                                                                                               |
-| `UserBannedEvent`                  | A member is banned.                                                                                                               |
-| `UserUnbannedEvent`                | A user is unbanned.                                                                                                               |
-| `UserRoleAddedEvent`               | A role is added to a member.                                                                                                      |
-| `UserRoleRemovedEvent`             | A role is removed from a member.                                                                                                  |
-| `UserChangeUserNameEvent`          | A user changes their username.                                                                                                    |
-| `UserChangeGlobalDisplayNameEvent` | A user changes their global display name.                                                                                         |
-| `UserChangeGuildDisplayNameEvent`  | A member changes their guild-specific display name (nickname).                                                                    |
-| `PackageSentEvent<T>`              | A plugin broadcasts a `Package` (see [Plugin Manager & Cross-Plugin Communication](#plugin-manager--cross-plugin-communication)). |
+| Event | Fired when... |
+|---|---|
+| `BotReadyEvent` | The bot has finished connecting and is ready to use. |
+| `BotUpdatePresenceEvent` | The bot's own presence (status/activity) is updated. |
+| `MessageReceivedEvent` | Any message is sent in a channel the bot can see. |
+| `MessageEditedEvent` | A message is edited. |
+| `MessageDeletedEvent` | A message is deleted. |
+| `ReactionUpdatedEvent` | A reaction on a message is added, removed, or cleared. |
+| `UserJoinGuildEvent` | A member joins a guild. |
+| `UserLeaveGuildEvent` | A member leaves a guild. |
+| `UserKickedEvent` | A member is kicked. |
+| `UserBannedEvent` | A member is banned. |
+| `UserUnbannedEvent` | A user is unbanned. |
+| `UserRoleAddedEvent` | A role is added to a member. |
+| `UserRoleRemovedEvent` | A role is removed from a member. |
+| `UserChangeUserNameEvent` | A user changes their username. |
+| `UserChangeGlobalDisplayNameEvent` | A user changes their global display name. |
+| `UserChangeGuildDisplayNameEvent` | A member changes their guild-specific display name (nickname). |
+| `PackageSentEvent<T>` | A plugin broadcasts a `Package` (see [Plugin Manager & Cross-Plugin Communication](#plugin-manager--cross-plugin-communication)). |
 
-Every event implements the marker interface `Event`, which exposes `getOrigin()` — either `EventOrigin.EXTERNAL` (caused
-by Discord/Comitas) or `EventOrigin.UNDO` (caused by undoing another event, see below).
+Every event implements the marker interface `Event`, which exposes `getOrigin()` — either `EventOrigin.EXTERNAL` (caused by Discord/Comitas) or `EventOrigin.UNDO` (caused by undoing another event, see below).
 
 ### Event Priority
 
-`@EventHandler` accepts an optional `priority`, controlling the order in which listeners across all plugins are called
-for the same event:
+`@EventHandler` accepts an optional `priority`, controlling the order in which listeners across all plugins are called for the same event:
 
 ```java
-
 @EventHandler(priority = EventPriority.HIGH)
 public void onMessage(MessageReceivedEvent event) {
-   // ...
+    // ...
 }
 ```
 
-Priorities run in this order: `LOWEST` → `LOW` → `NORMAL` (default) → `HIGH` → `HIGHEST` → `MONITOR`. Use `LOWEST` if
-you want other plugins to be able to override your changes, and `MONITOR` for pure observation — handlers at `MONITOR`
-priority should not modify the event.
+Priorities run in this order: `LOWEST` → `LOW` → `NORMAL` (default) → `HIGH` → `HIGHEST` → `MONITOR`. Use `LOWEST` if you want other plugins to be able to override your changes, and `MONITOR` for pure observation — handlers at `MONITOR` priority should not modify the event.
 
 ### Undoable Events
 
-Some events (member bans, role changes, reaction updates, etc.) implement `UndoableEvent`, letting you veto the action
-that already happened by instructing Comitas to immediately reverse it:
+Some events (member bans, role changes, reaction updates, etc.) implement `UndoableEvent`, letting you veto the action that already happened by instructing Comitas to immediately reverse it:
 
 ```java
-
 @EventHandler
 public void onRoleAdded(UserRoleAddedEvent event) {
-   if (event.getRole().getName().equals("Muted")) {
-      event.setUndo(true); // or event.undo();
-   }
+    if (event.getRole().getName().equals("Muted")) {
+        event.setUndo(true); // or event.undo();
+    }
 }
 ```
 
@@ -277,52 +268,34 @@ public void onRoleAdded(UserRoleAddedEvent event) {
 * `setUndo(boolean)` — mark/unmark the event for undoing.
 * `undo()` — mark the event for undoing (shorthand for `setUndo(true)`).
 
-When an undo is executed, Comitas typically fires a corresponding follow-up event with
-`getOrigin() == EventOrigin.UNDO`, so make sure your handlers don't get stuck in a loop reacting to their own undos.
+When an undo is executed, Comitas typically fires a corresponding follow-up event with `getOrigin() == EventOrigin.UNDO`, so make sure your handlers don't get stuck in a loop reacting to their own undos.
 
-`MessageReceivedEvent` and `MessageEditedEvent` offer the same pattern for deletion instead of undoing:
-`markedForDeletion()`, `setDelete(boolean)` and `deleteMessage()`.
+`MessageReceivedEvent` and `MessageEditedEvent` offer the same pattern for deletion instead of undoing: `markedForDeletion()`, `setDelete(boolean)` and `deleteMessage()`.
 
 ```java
-
 @EventHandler
 public void onMessage(MessageReceivedEvent event) {
-   if (event.getRawContent().contains("secret-link.invalid")) {
-      event.deleteMessage();
-   }
+    if (event.getRawContent().contains("secret-link.invalid")) {
+        event.deleteMessage();
+    }
 }
 ```
 
 ## The Comitas Entry Point
 
-`cloud.thehsi.ComitasBotJ.API.Bot.Comitas` is the static entry point into everything the API offers. All of its
-accessors are static and usable from anywhere in your plugin once the bot has started (i.e. not before `onEnable()`/
-`BotReadyEvent`):
+`cloud.thehsi.ComitasBotJ.API.Bot.Comitas` is the static entry point into everything the API offers. All of its accessors are static and usable from anywhere in your plugin once the bot has started (i.e. not before `onEnable()`/`BotReadyEvent`):
 
 ```java
 Comitas.getBot();                     // The running Bot
-Comitas.
-
-getPluginManager();           // PluginManager — events, metadata, packages, persistent storage
-Comitas.
-
-getCommandRegistry();         // CommandRegistry — register slash commands
-Comitas.
-
-getConsoleCommandRegistry();  // ConsoleCommandRegistry — register console commands
-Comitas.
-
-getScheduler();               // Scheduler — async & repeating tasks
-Comitas.
-
-getServerVersion();           // The running Comitas server version
-Comitas.
-
-shutdown();                   // Shuts down the bot
+Comitas.getPluginManager();           // PluginManager — events, metadata, packages, persistent storage
+Comitas.getCommandRegistry();         // CommandRegistry — register slash commands
+Comitas.getConsoleCommandRegistry();  // ConsoleCommandRegistry — register console commands
+Comitas.getScheduler();               // Scheduler — async & repeating tasks
+Comitas.getServerVersion();           // The running Comitas server version
+Comitas.shutdown();                   // Shuts down the bot
 ```
 
-`Bot` (via `Comitas.getBot()`) extends `User` and adds bot-specific helpers such as `isMe(User)` / `isMeOrNull(User)` —
-always use these instead of comparing IDs manually when guarding against your own messages in a listener.
+`Bot` (via `Comitas.getBot()`) extends `User` and adds bot-specific helpers such as `isMe(User)` / `isMeOrNull(User)` — always use these instead of comparing IDs manually when guarding against your own messages in a listener.
 
 ## Messages
 
@@ -334,8 +307,7 @@ Any `MessageChannel` (e.g. a `TextChannel`, `ThreadChannel`, or a DM channel) ca
 MyMessage sent = channel.sendMessage(Component.text("Hello there!"));
 ```
 
-For anything beyond plain text/embeds use `MessageData`, the shared builder behind every message-sending and
-message-editing method in the API:
+For anything beyond plain text/embeds use `MessageData`, the shared builder behind every message-sending and message-editing method in the API:
 
 ```java
 MessageData data = new MessageData(Component.text("Here's your file:"))
@@ -343,38 +315,29 @@ MessageData data = new MessageData(Component.text("Here's your file:"))
         .addEmbed(myEmbed)
         .addActionRowComponent(myButton);
 
-channel.
-
-sendMessage(data);
+channel.sendMessage(data);
 ```
 
-`MessageData` has convenience constructors for the common cases: `new MessageData(Component)`,
-`new MessageData(Embed...)`, `new MessageData(AttachmentUpload...)`, or combinations thereof.
+`MessageData` has convenience constructors for the common cases: `new MessageData(Component)`, `new MessageData(Embed...)`, `new MessageData(AttachmentUpload...)`, or combinations thereof.
 
 ### Replying
 
-Inside events like `MessageReceivedEvent`/`MessageEditedEvent`, or on any `Message`, you can reply directly in the same
-channel without looking the channel up yourself:
+Inside events like `MessageReceivedEvent`/`MessageEditedEvent`, or on any `Message`, you can reply directly in the same channel without looking the channel up yourself:
 
 ```java
-
 @EventHandler
 public void onMessage(MessageReceivedEvent event) {
-   event.reply(Component.text("Got it!"));
-   // or with full MessageData:
-   event.reply(new MessageData(Component.text("Got it, with an embed!"), myEmbed));
+    event.reply(Component.text("Got it!"));
+    // or with full MessageData:
+    event.reply(new MessageData(Component.text("Got it, with an embed!"), myEmbed));
 }
 ```
 
-Command executions and button presses use `RepliableInteraction` instead, which additionally supports ephemeral replies
-(visible only to the invoking user) and throws `InteractionAlreadyUsedException` if you try to reply to the same
-interaction twice:
+Command executions and button presses use `RepliableInteraction` instead, which additionally supports ephemeral replies (visible only to the invoking user) and throws `InteractionAlreadyUsedException` if you try to reply to the same interaction twice:
 
 ```java
 commandRanContext.reply(Component.text("Visible to everyone"));
-        commandRanContext.
-
-replyEphemeral(Component.text("Only you can see this"));
+commandRanContext.replyEphemeral(Component.text("Only you can see this"));
 ```
 
 ### Editing & Deleting
@@ -385,41 +348,27 @@ Messages the bot itself sent are returned as `MyMessage`, a `Message` subtype th
 MyMessage sent = channel.sendMessage(Component.text("Loading..."));
 
 // later...
-sent.
-
-setContent(Component.text("Done!"));
+sent.setContent(Component.text("Done!"));
 // or replace embeds/attachments/components entirely:
-        sent.
-
-setMessageData(new MessageData(Component.text("Done!"),resultEmbed));
+sent.setMessageData(new MessageData(Component.text("Done!"), resultEmbed));
 ```
 
 Any `Message` — yours or someone else's — can be deleted and queried:
 
 ```java
 message.delete();
-message.
-
-isDeleted();
+message.isDeleted();
 ```
 
-To intercept edits made by users before you act on them, listen for `MessageEditedEvent`, which exposes both the new
-`getRawContent()`/`getContent()` and the full `getMessage()`, plus the same `markedForDeletion()`/`deleteMessage()`
-moderation hooks as `MessageReceivedEvent`.
+To intercept edits made by users before you act on them, listen for `MessageEditedEvent`, which exposes both the new `getRawContent()`/`getContent()` and the full `getMessage()`, plus the same `markedForDeletion()`/`deleteMessage()` moderation hooks as `MessageReceivedEvent`.
 
 ### Forwarding, Replies & History
 
 ```java
 message.isReply();            // Is this message a reply?
-message.
-
-getRepliedMessage();  // The message it replies to, if any
-message.
-
-isForwarded();        // Is this message a forward?
-message.
-
-forward(otherChannel); // Forward this message into another channel
+message.getRepliedMessage();  // The message it replies to, if any
+message.isForwarded();        // Is this message a forward?
+message.forward(otherChannel); // Forward this message into another channel
 
 MessageHistory history = channel.getMessageHistory();
 List<Message> lastTen = history.retrieve(10);
@@ -429,9 +378,7 @@ Message byId = channel.getMessageById(123456789L);
 
 ## Components & Text Styling
 
-Discord messages are built as a `Component` tree instead of raw markdown strings. `Component.text(...)` auto-escapes
-markdown special characters (`*_~|` etc.) so user-provided content can't break your formatting; use `Component.raw(...)`
-when you want markdown to pass through untouched (e.g. content you've built yourself).
+Discord messages are built as a `Component` tree instead of raw markdown strings. `Component.text(...)` auto-escapes markdown special characters (`*_~|` etc.) so user-provided content can't break your formatting; use `Component.raw(...)` when you want markdown to pass through untouched (e.g. content you've built yourself).
 
 ```java
 Component message = Component.text("Welcome, ")
@@ -454,9 +401,7 @@ Useful factory methods on `Component`:
 * `Component.of(Object)` — calls `toString()` and wraps it as a raw component.
 * `Component.empty()` — an empty component (default content of `MessageData`).
 
-`Style` flags can be combined with `.add(Style)`/`.remove(Style)` or passed as varargs to `Component.text(...)`: `BOLD`,
-`ITALIC`, `UNDERLINE`, `STRIKETHROUGH`, `BIG_HEADER`, `SMALL_HEADER`, `SMALLER_HEADER`, `SUBTEXT`, `QUOTE`,
-`BULLET_POINTS`, `CODE`, `CODE_BLOCK`, `SPOILER`.
+`Style` flags can be combined with `.add(Style)`/`.remove(Style)` or passed as varargs to `Component.text(...)`: `BOLD`, `ITALIC`, `UNDERLINE`, `STRIKETHROUGH`, `BIG_HEADER`, `SMALL_HEADER`, `SMALLER_HEADER`, `SUBTEXT`, `QUOTE`, `BULLET_POINTS`, `CODE`, `CODE_BLOCK`, `SPOILER`.
 
 ## Embeds
 
@@ -476,18 +421,12 @@ Embed embed = new EmbedBuilder()
         .setTimestamp(Instant.now())
         .build();
 
-channel.
-
-sendMessage(new MessageData(Component.empty(),embed));
+channel.sendMessage(new MessageData(Component.empty(), embed));
 // or, shorter:
-        channel.
-
-sendMessage(embed.asMessageData());
+channel.sendMessage(embed.asMessageData());
 ```
 
-Setter overloads accept either a plain `String` (`setTitle("...")`, `setAuthor("...")`, `setFooter("...")`) or the
-richer `EmbedTitle`/`EmbedAuthor`/`EmbedFooter` objects when you also need a URL/image. `EmbedField`'s third constructor
-argument controls whether the field renders inline (defaults to `true`).
+Setter overloads accept either a plain `String` (`setTitle("...")`, `setAuthor("...")`, `setFooter("...")`) or the richer `EmbedTitle`/`EmbedAuthor`/`EmbedFooter` objects when you also need a URL/image. `EmbedField`'s third constructor argument controls whether the field renders inline (defaults to `true`).
 
 ## Attachments & Uploads
 
@@ -497,44 +436,25 @@ To send a new file, build an `AttachmentUpload` from a local file path or raw by
 AttachmentUpload fromDisk = AttachmentUpload.from(Path.of("logs/latest.log"));
 AttachmentUpload fromMemory = AttachmentUpload.from("hello.txt", "Hello, world!".getBytes());
 
-fromDisk.
+fromDisk.setSpoiler(true).setDescription("Latest server log");
 
-setSpoiler(true).
-
-setDescription("Latest server log");
-
-channel.
-
-sendMessage(new MessageData(Component.text("Here's the log:"))
-        .
-
-addAttachment(fromDisk)
-        .
-
-addAttachment(fromMemory));
+channel.sendMessage(new MessageData(Component.text("Here's the log:"))
+        .addAttachment(fromDisk)
+        .addAttachment(fromMemory));
 ```
 
-Attachments already on a message (yours or someone else's) are exposed as `MessageAttachment`s via
-`message.getAttachments()`. Both `Attachment` and `MessageAttachment` let you read the file back:
+Attachments already on a message (yours or someone else's) are exposed as `MessageAttachment`s via `message.getAttachments()`. Both `Attachment` and `MessageAttachment` let you read the file back:
 
 ```java
-for(MessageAttachment attachment :message.
-
-getAttachments()){
-String fileName = attachment.getFileName();
-    attachment.
-
-getContent().
-
-thenAccept(bytes ->{
+for (MessageAttachment attachment : message.getAttachments()) {
+    String fileName = attachment.getFileName();
+    attachment.getContent().thenAccept(bytes -> {
         // process the downloaded file, off the calling thread's critical path
-        });
-        }
+    });
+}
 ```
 
-`getHash()` and `getContent()` return `CompletableFuture`s since fetching attachment bytes requires a network
-round-trip. Any `Attachment`/`AttachmentUpload` can also be converted straight into a sendable `MessageData` via
-`asMessageData()` — handy for quickly re-sending/forwarding a file.
+`getHash()` and `getContent()` return `CompletableFuture`s since fetching attachment bytes requires a network round-trip. Any `Attachment`/`AttachmentUpload` can also be converted straight into a sendable `MessageData` via `asMessageData()` — handy for quickly re-sending/forwarding a file.
 
 ## Reactions & Emoji
 
@@ -544,153 +464,112 @@ round-trip. Any `Attachment`/`AttachmentUpload` can also be converted straight i
 Emoji thumbsUp = Emojis.THUMBSUP();           // One of hundreds of built-in Unicode presets
 Emoji custom = Emoji.fromId(123456789L);      // A custom guild emoji by id
 
-Component.
-
-text("Nice! ").
-
-append(thumbsUp);    // Emoji can be appended into any Component
+Component.text("Nice! ").append(thumbsUp);    // Emoji can be appended into any Component
 ```
 
-`Emojis` (in `cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis`) ships a static method per standard Unicode emoji
-(`WAVE()`, `THUMBSUP()`, `HUNDRED()`, `TRIANGULAR_FLAG_ON_POST()`, ...) so you rarely need to fall back to
-`Emoji.fromUnicode(String)`/hardcoded Unicode escapes yourself — reach for `Emoji.fromUnicode(...)`/`Emoji.fromId(...)`
-only when there's no matching `Emojis` preset (e.g. a custom guild emoji).
+`Emojis` (in `cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis`) ships a static method per standard Unicode emoji (`WAVE()`, `THUMBSUP()`, `HUNDRED()`, `TRIANGULAR_FLAG_ON_POST()`, ...) so you rarely need to fall back to `Emoji.fromUnicode(String)`/hardcoded Unicode escapes yourself — reach for `Emoji.fromUnicode(...)`/`Emoji.fromId(...)` only when there's no matching `Emojis` preset (e.g. a custom guild emoji).
 
 ### Reacting
 
 ```java
 message.react(Emojis.THUMBSUP());
-        message.
+message.unreact(Emojis.THUMBSUP());
 
-unreact(Emojis.THUMBSUP());
-
-        for(
-Reaction reaction :message.
-
-getReactions()){
-        reaction.
-
-getEmoji();
-    reaction.
-
-getCount();
-    reaction.
-
-haveIReacted();
-    reaction.
-
-getReactors();         // Everyone who reacted, as Users
-    reaction.
-
-getReactorMemberss();  // Same, as Members (null in DMs)
+for (Reaction reaction : message.getReactions()) {
+    reaction.getEmoji();
+    reaction.getCount();
+    reaction.haveIReacted();
+    reaction.getReactors();         // Everyone who reacted, as Users
+    reaction.getReactorMemberss();  // Same, as Members (null in DMs)
 }
 ```
 
-A `Reaction` can also act on itself: `react()`/`unreact()` toggle the bot's own reaction, `clear()` removes the reaction
-entirely, and `removeReaction(Member)` strips a specific member's reaction (useful for moderation).
+A `Reaction` can also act on itself: `react()`/`unreact()` toggle the bot's own reaction, `clear()` removes the reaction entirely, and `removeReaction(Member)` strips a specific member's reaction (useful for moderation).
 
 ### Listening for Reaction Changes
 
 ```java
-
 @EventHandler
 public void onReaction(ReactionUpdatedEvent event) {
-   Reaction reaction = event.reaction();
-   ReactionAction action = event.reactionAction();
+    Reaction reaction = event.reaction();
+    ReactionAction action = event.reactionAction();
 
-   Emoji flag = Emojis.TRIANGULAR_FLAG_ON_POST();
-   if (action.isIncrease() && reaction.getEmoji().getName().equals(flag.getName())) {
-      event.message().getChannel().sendMessage(
-              Component.text("Message flagged by ").append(event.member().mention())
-      );
-   }
+    Emoji flag = Emojis.TRIANGULAR_FLAG_ON_POST();
+    if (action.isIncrease() && reaction.getEmoji().getName().equals(flag.getName())) {
+        event.message().getChannel().sendMessage(
+                Component.text("Message flagged by ").append(event.member().mention())
+        );
+    }
 
-   if (action.isRemoved()) {
-      // the reaction group disappeared entirely (count hit zero)
-   }
+    if (action.isRemoved()) {
+        // the reaction group disappeared entirely (count hit zero)
+    }
 }
 ```
 
-`ReactionUpdatedEvent` is also an `UndoableEvent` — call `event.setUndo(true)` to automatically remove the reaction that
-just caused the event (e.g. to enforce a single-reaction-per-poll rule).
+`ReactionUpdatedEvent` is also an `UndoableEvent` — call `event.setUndo(true)` to automatically remove the reaction that just caused the event (e.g. to enforce a single-reaction-per-poll rule).
 
 ## Buttons & Action Rows
 
-Buttons are created via static factories on `Button` and attached to a message through
-`MessageData#addActionRowComponent`:
+Buttons are created via static factories on `Button` and attached to a message through `MessageData#addActionRowComponent`:
 
 ```java
 Button confirm = Button.success("confirm", "Confirm", ctx -> {
-   ctx.reply(Component.text("Confirmed by ").append(ctx.getUser().mention()), true);
-   ctx.getMessage().setContent(Component.text("✅ Confirmed"));
+    ctx.reply(Component.text("Confirmed by ").append(ctx.getUser().mention()), true);
+    ctx.getMessage().setContent(Component.text("✅ Confirmed"));
 });
 
 Button cancel = Button.danger("cancel", "Cancel", ctx -> ctx.replyEphemeral(Component.text("Cancelled.")));
 Button docs = Button.link("https://example.com/docs", "Docs");
 
-channel.
-
-sendMessage(new MessageData(Component.text("Proceed?"))
-        .
-
-addActionRowComponent(confirm)
-        .
-
-addActionRowComponent(cancel)
-        .
-
-addActionRowComponent(docs));
+channel.sendMessage(new MessageData(Component.text("Proceed?"))
+        .addActionRowComponent(confirm)
+        .addActionRowComponent(cancel)
+        .addActionRowComponent(docs));
 ```
 
-Available styles: `primary`, `secondary`, `success`, `danger` (each take either a `String` label or an `Emoji`, plus a
-callback), and `link` (no callback — it just opens a URL). Button ids must be ≤ `Button.ID_MAX_LENGTH` (100) characters
-and labels ≤ `Button.LABEL_MAX_LENGTH` (80).
+Available styles: `primary`, `secondary`, `success`, `danger` (each take either a `String` label or an `Emoji`, plus a callback), and `link` (no callback — it just opens a URL). Button ids must be ≤ `Button.ID_MAX_LENGTH` (100) characters and labels ≤ `Button.LABEL_MAX_LENGTH` (80).
 
-The callback receives a `ButtonPressedContext`, a `RepliableInteraction` that additionally exposes `getButtonId()` and
-`getMessage()` (the `MyMessage` the button is attached to, so you can edit it in place as shown above).
+The callback receives a `ButtonPressedContext`, a `RepliableInteraction` that additionally exposes `getButtonId()` and `getMessage()` (the `MyMessage` the button is attached to, so you can edit it in place as shown above).
 
 ## Commands
 
-ComitasBotJ supports three ways to register commands: **static** slash commands (compile-time, type-safe, preferred),
-**dynamic** slash commands (built at runtime), and **console** commands (typed into the bot's console, not Discord).
+ComitasBotJ supports three ways to register commands: **static** slash commands (compile-time, type-safe, preferred), **dynamic** slash commands (built at runtime), and **console** commands (typed into the bot's console, not Discord).
 
 ### Static (Annotated) Commands
 
-Implement `CommandSupplier` and annotate a method with `@Command`; each `@CommandOption`-annotated parameter becomes a
-command argument, type-mapped automatically from the Java parameter type:
+Implement `CommandSupplier` and annotate a method with `@Command`; each `@CommandOption`-annotated parameter becomes a command argument, type-mapped automatically from the Java parameter type:
 
 ```java
 public class ExampleCommand implements CommandSupplier {
-   @Command(
-           name = "example",
-           description = "An example command",
-           commandContextType = {CommandContextType.GUILD, CommandContextType.BOT_DM},
-           requiredPermissions = {Permission.ADMINISTRATOR}
-   )
-   public void exampleCommand(
-           @NotNull CommandRanContext ctx,
-           @CommandOption(name = "target", description = "The target user") @NotNull User target,
-           @CommandOption(name = "message", description = "An optional message", required = false) @Nullable String message
-   ) {
-      ctx.replyEphemeral(Component.text("Ok, telling ").append(Component.text(target.getDisplayName())));
+    @Command(
+            name = "example",
+            description = "An example command",
+            commandContextType = { CommandContextType.GUILD, CommandContextType.BOT_DM },
+            requiredPermissions = { Permission.ADMINISTRATOR }
+    )
+    public void exampleCommand(
+            @NotNull CommandRanContext ctx,
+            @CommandOption(name = "target", description = "The target user") @NotNull User target,
+            @CommandOption(name = "message", description = "An optional message", required = false) @Nullable String message
+    ) {
+        ctx.replyEphemeral(Component.text("Ok, telling ").append(Component.text(target.getDisplayName())));
 
-      ctx.getChannel().sendMessage(
-              message != null
-                      ? target.mention().append(Component.text(", you've got a message: ")).append(Component.text(message, Style.CODE))
-                      : Component.text("Hi ").append(target.mention())
-      );
-   }
+        ctx.getChannel().sendMessage(
+                message != null
+                        ? target.mention().append(Component.text(", you've got a message: ")).append(Component.text(message, Style.CODE))
+                        : Component.text("Hi ").append(target.mention())
+        );
+    }
 }
 ```
 
-Register it once, typically in `onEnable()` or in a `BotReadyEvent` handler (commands need the bot connection to be
-registered with Discord):
+Register it once, typically in `onEnable()` or in a `BotReadyEvent` handler (commands need the bot connection to be registered with Discord):
 
 ```java
-
 @EventHandler
 public void onBotReady(BotReadyEvent event) {
-   Comitas.getCommandRegistry().register(new ExampleCommand());
+    Comitas.getCommandRegistry().register(new ExampleCommand());
 }
 ```
 
@@ -699,198 +578,145 @@ Notes on `@Command`:
 * `commandType` controls installability — `GUILD_INSTALL` (default), `USER_INSTALL`, or both.
 * `commandContextType` controls where it can be run — `GUILD` (default), `BOT_DM`, `PRIVATE_CHANNEL`.
 * `requiredPermissions` restricts who can see/run the command; leave it empty to allow everyone.
-* Optional arguments (`required = false` on `@CommandOption`) must use a `@Nullable`/boxed parameter type and will be
-  `null` if omitted.
+* Optional arguments (`required = false` on `@CommandOption`) must use a `@Nullable`/boxed parameter type and will be `null` if omitted.
 
 ### Dynamic Commands
 
-Use `DynamicCommandBuilder` when the set of commands (or their arguments) isn't known until runtime — e.g. generated
-from a config file:
+Use `DynamicCommandBuilder` when the set of commands (or their arguments) isn't known until runtime — e.g. generated from a config file:
 
 ```java
 DynamicCommandBuilder sayCommand = new DynamicCommandBuilder(
         "say", "Make the bot say something",
         (ctx, args) -> {
-           CommandArgument<String> text = args.get("text", CommandArgumentType.STRING);
-           ctx.getChannel().sendMessage(Component.raw(String.valueOf(text.getValue())));
-           ctx.acknowledge();
+            CommandArgument<String> text = args.get("text", CommandArgumentType.STRING);
+            ctx.getChannel().sendMessage(Component.raw(String.valueOf(text.getValue())));
+            ctx.acknowledge();
         }
 ).addArgument("text", "What to say", CommandArgumentType.STRING)
-        .setRequiredPermissions(Permission.MANAGE_MESSAGES);
+ .setRequiredPermissions(Permission.MANAGE_MESSAGES);
 
-Comitas.
-
-getCommandRegistry().
-
-register(sayCommand);
+Comitas.getCommandRegistry().register(sayCommand);
 ```
 
-`CommandArgumentType` ships typed constants: `STRING`, `NUMBER` (`Long`), `DOUBLE`, `BOOLEAN`, `USER`, `CHANNEL`,
-`ROLE`, `ATTACHMENT`. Use `CommandArgumentProvider#has(identifier)` to check presence before reading an optional
-argument.
+`CommandArgumentType` ships typed constants: `STRING`, `NUMBER` (`Long`), `DOUBLE`, `BOOLEAN`, `USER`, `CHANNEL`, `ROLE`, `ATTACHMENT`. Use `CommandArgumentProvider#has(identifier)` to check presence before reading an optional argument.
 
 ### Permissions
 
-Both command flavors take `Permission[]` to gate access — e.g. `Permission.ADMINISTRATOR`, `Permission.MANAGE_MESSAGES`,
-`Permission.BAN_MEMBERS`, `Permission.KICK_MEMBERS`. Leave the array empty to allow anyone to use the command.
+Both command flavors take `Permission[]` to gate access — e.g. `Permission.ADMINISTRATOR`, `Permission.MANAGE_MESSAGES`, `Permission.BAN_MEMBERS`, `Permission.KICK_MEMBERS`. Leave the array empty to allow anyone to use the command.
 
 ## Console Commands
 
-Console commands run only from the server operator's console/terminal, not from Discord — useful for admin tooling that
-shouldn't be exposed to guild members:
+Console commands run only from the server operator's console/terminal, not from Discord — useful for admin tooling that shouldn't be exposed to guild members:
 
 ```java
 public class ReloadConsoleCommand extends ConsoleCommandExecutor {
-   @Override
-   public void execute(@NotNull String[] args) {
-      getConsoleLogger().info("Reloading plugins...");
-      Comitas.getPluginManager().reloadSoft();
-   }
+    @Override
+    public void execute(@NotNull String[] args) {
+        getConsoleLogger().info("Reloading plugins...");
+        Comitas.getPluginManager().reloadSoft();
+    }
 }
 ```
 
 ```java
-Comitas.getConsoleCommandRegistry().
-
-register(
+Comitas.getConsoleCommandRegistry().register(
         new ReloadConsoleCommand(),
         "Reloads all plugins",
-                "reload","rl" // aliases
-                );
+        "reload", "rl" // aliases
+);
 ```
 
-`ConsoleCommandRegistry#registeredCommands()` lists every console command currently registered, across all plugins, as
-`ConsoleCommand` records. For colored console output outside of a command (e.g. in `getLogger()` calls that bypass SLF4J
-formatting), `ConsoleColor` provides ANSI constants (`ConsoleColor.RED`, `ConsoleColor.BOLD`,
-`ConsoleColor.BG_BLUE`, ...) plus `ConsoleColor.of(Color)` for arbitrary RGB colors.
+`ConsoleCommandRegistry#registeredCommands()` lists every console command currently registered, across all plugins, as `ConsoleCommand` records. For colored console output outside of a command (e.g. in `getLogger()` calls that bypass SLF4J formatting), `ConsoleColor` provides ANSI constants (`ConsoleColor.RED`, `ConsoleColor.BOLD`, `ConsoleColor.BG_BLUE`, ...) plus `ConsoleColor.of(Color)` for arbitrary RGB colors.
 
 ## Scheduler
 
-Use `Comitas.getScheduler()` instead of spawning raw threads, so tasks are tracked and can be cancelled when your plugin
-is disabled/reloaded:
+Use `Comitas.getScheduler()` instead of spawning raw threads, so tasks are tracked and can be cancelled when your plugin is disabled/reloaded:
 
 ```java
 Scheduler scheduler = Comitas.getScheduler();
 
 // Fire-and-forget, off the calling thread
-scheduler.
-
-runTaskAsynchronously(this,() ->
-
-getLogger().
-
-info("Running in the background"));
+scheduler.runTaskAsynchronously(this, () -> getLogger().info("Running in the background"));
 
 // Once, after a delay
 Task reminder = scheduler.runTaskLaterAsynchronously(this, () -> {
-   channel.sendMessage(Component.text("5 minutes are up!"));
+    channel.sendMessage(Component.text("5 minutes are up!"));
 }, 5, TimeUnit.MINUTES);
 
 // Repeating, with an initial delay then a fixed interval
 Task heartbeat = scheduler.runTaskTimerAsynchronously(this, () -> {
-   getLogger().info("Still alive");
+    getLogger().info("Still alive");
 }, 0, 1, TimeUnit.MINUTES);
 
 // Later...
-heartbeat.
-
-cancel();
-heartbeat.
-
-isCancelled();
+heartbeat.cancel();
+heartbeat.isCancelled();
 ```
 
-`this` in these calls refers to your `Plugin` instance (e.g. your `Main` class extending `Plugin`) — the scheduler uses
-it to track which plugin owns each `Task`, via `Task#getOwner()`.
+`this` in these calls refers to your `Plugin` instance (e.g. your `Main` class extending `Plugin`) — the scheduler uses it to track which plugin owns each `Task`, via `Task#getOwner()`.
 
 ## Persistent Data Storage
 
-`PersistentDataStorage` persists simple key/value data across bot restarts, scoped per-plugin. Access it either
-statically from within a `Plugin` subclass, or via the `PluginManager`:
+`PersistentDataStorage` persists simple key/value data across bot restarts, scoped per-plugin. Access it either statically from within a `Plugin` subclass, or via the `PluginManager`:
 
 ```java
 PersistentDataStorage storage = getPersistentDataStorage(); // from within your Plugin class
 // or: Comitas.getPluginManager().getPersistentDataStorage();
 
-storage.
-
-set("welcome-message",PersistentDataTypes.STRING, "Hello!");
+storage.set("welcome-message", PersistentDataTypes.STRING, "Hello!");
 
 String message = storage.get("welcome-message", PersistentDataTypes.STRING, "Hi there!"); // with fallback
 
-if(storage.
-
-has("welcome-message",PersistentDataTypes.STRING)){
-        storage.
-
-remove("welcome-message");
+if (storage.has("welcome-message", PersistentDataTypes.STRING)) {
+    storage.remove("welcome-message");
 }
 ```
 
-`PersistentDataTypes` provides: `STRING`, `INTEGER`, `LONG`, `DOUBLE`, `BYTE`, `SHORT`, `BOOLEAN`, and array variants of
-each (`STRING_ARRAY`, `INTEGER_ARRAY`, ...). `PersistentDataTypes.get(String name)` resolves a type by its registered
-name if you need to persist the type alongside the key dynamically.
+`PersistentDataTypes` provides: `STRING`, `INTEGER`, `LONG`, `DOUBLE`, `BYTE`, `SHORT`, `BOOLEAN`, and array variants of each (`STRING_ARRAY`, `INTEGER_ARRAY`, ...). `PersistentDataTypes.get(String name)` resolves a type by its registered name if you need to persist the type alongside the key dynamically.
 
 ## Plugin Manager & Cross-Plugin Communication
 
-`PluginManager` (via `Comitas.getPluginManager()`) is the hub for plugin introspection, event registration and
-inter-plugin messaging:
+`PluginManager` (via `Comitas.getPluginManager()`) is the hub for plugin introspection, event registration and inter-plugin messaging:
 
 ```java
 PluginManager pm = Comitas.getPluginManager();
 
-pm.
-
-countPlugins();
-pm.
-
-getAllPluginMetadata();          // name, version, jarName, targetAPI, uuid, consoleCommandPrefix per plugin
-pm.
-
-lookupPlugin(somePluginInstance);
-pm.
-
-reloadSoft();                    // reload plugins + fire a synthetic BotReadyEvent
-pm.
-
-reloadHard();                    // reload plugins, config and the bot connection itself
-pm.
-
-registerEvents(this,listener);  // same call used for your Main class's own listeners
+pm.countPlugins();
+pm.getAllPluginMetadata();          // name, version, jarName, targetAPI, uuid, consoleCommandPrefix per plugin
+pm.lookupPlugin(somePluginInstance);
+pm.reloadSoft();                    // reload plugins + fire a synthetic BotReadyEvent
+pm.reloadHard();                    // reload plugins, config and the bot connection itself
+pm.registerEvents(this, listener);  // same call used for your Main class's own listeners
 ```
 
 ### Sending Packages
 
-Plugins can talk to each other without a hard compile-time dependency by broadcasting a `Package` — any class
-implementing the single-method `Package` interface — and having other plugins listen for it with `PackageSentEvent<T>`:
+Plugins can talk to each other without a hard compile-time dependency by broadcasting a `Package` — any class implementing the single-method `Package` interface — and having other plugins listen for it with `PackageSentEvent<T>`:
 
 ```java
 public record EconomyBalanceRequest(long userId) implements Package {
-   @Override
-   public @NotNull String getIdentifier() {
-      return "economy:balance-request";
-   }
+    @Override
+    public @NotNull String getIdentifier() {
+        return "economy:balance-request";
+    }
 }
 ```
 
 ```java
 // Plugin A: broadcasts the package
-Comitas.getPluginManager().
-
-sendPackage(new EconomyBalanceRequest(user.getId()));
+Comitas.getPluginManager().sendPackage(new EconomyBalanceRequest(user.getId()));
 ```
 
 ```java
 // Plugin B: listens for it
 @EventHandler
 public void onBalanceRequest(PackageSentEvent<EconomyBalanceRequest> event) {
-   EconomyBalanceRequest request = event.getPackage();
-   getLogger().info("Balance requested for user {}", request.userId());
+    EconomyBalanceRequest request = event.getPackage();
+    getLogger().info("Balance requested for user {}", request.userId());
 }
 ```
 
-Packages are mutable objects shared by reference across every listening plugin, so a plugin further down the call chain
-can read (and, if the package type exposes setters, modify) the same instance other plugins received — keep that in mind
-when designing a package's fields for multi-plugin integrations.
+Packages are mutable objects shared by reference across every listening plugin, so a plugin further down the call chain can read (and, if the package type exposes setters, modify) the same instance other plugins received — keep that in mind when designing a package's fields for multi-plugin integrations.
 
 [^1]: We are not affiliated with JetBrains. We use IntelliJ IDEA because, in our opinion, it provides the easiest development experience for this project.
+<!-- @formatter:on -->
