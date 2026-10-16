@@ -74,4 +74,16 @@ public interface PluginManager {
      * @param listener The event listener
      */
     void registerEvents(@NotNull Plugin plugin, @NotNull Listener listener);
+
+    /**
+     * Broadcasts (sends) a package to ALL plugins,
+     * packages are mutible and plugins can modify
+     * them.
+     * <p>
+     * These can be listened for {@link cloud.thehsi.ComitasBotJ.API.Event.Events.PackageSentEvent}
+     *
+     * @param pack The package to broadcast
+     * @param <T>  The class of the package
+     */
+    <T extends Package> void sendPackage(@NotNull T pack);
 }

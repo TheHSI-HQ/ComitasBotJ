@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
+import cloud.thehsi.ComitasBotJ.API.Plugin.Package;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
@@ -11,6 +12,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotReadyEvent;
+import cloud.thehsi.ComitasBotJ.Event.Events.InternalPackageSentEvent;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
@@ -389,6 +391,11 @@ public class InternalPluginManager implements PluginManager {
     public void registerEvents(@NotNull Plugin plugin, @NotNull Listener listener) {
         DebugLogging.action(plugin, listener);
         eventManager.registerListener(plugin, listener);
+    }
+
+    @Override
+    public <T extends Package> void sendPackage(@NotNull T pack) {
+        eventManager.callEvent(new InternalPackageSentEvent<>(pack));
     }
 
     public void setDiscordApi(@NotNull DiscordAPI api) {

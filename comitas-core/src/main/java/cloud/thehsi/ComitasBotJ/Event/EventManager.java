@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.Event;
+import cloud.thehsi.ComitasBotJ.API.Event.Events.PackageSentEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UndoableEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
@@ -19,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +50,28 @@ public class EventManager {
                 return t;
             });
 
+    /**
+     * Extracts the concrete generic type argument of a single-parameter event
+     * handler method (e.g. the {@code TestPackage} in
+     * {@code PackageSentEvent<TestPackage>}), so dispatch can later filter by it.
+     * <p>
+     * Returns {@code null} when the parameter isn't parameterized, or its type
+     * argument isn't a concrete class (e.g. a wildcard or type variable), in
+     * which case no filtering is applied and the handler receives every event.
+     */
+    @Nullable
+    private static Class<?> extractGenericFilter(@NotNull Method method) {
+        Type[] genericParams = method.getGenericParameterTypes();
+        if (genericParams.length != 1 || !(genericParams[0] instanceof ParameterizedType parameterizedType))
+            return null;
+
+        Type[] typeArgs = parameterizedType.getActualTypeArguments();
+        if (typeArgs.length != 1 || !(typeArgs[0] instanceof Class<?> typeArgClass))
+            return null;
+
+        return typeArgClass;
+    }
+
     public void registerListener(@NotNull Plugin plugin, @NotNull Listener listener) {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Listener {}", listener.getClass());
         for (Method method : listener.getClass().getDeclaredMethods()) {
@@ -65,6 +90,8 @@ public class EventManager {
             Class<? extends Event> eventClass =
                     (Class<? extends Event>) params[0];
 
+            Class<?> genericFilter = extractGenericFilter(method);
+
             if (DebugLogging.isBasicEnabled())
                 debugLogger.debug("Registered Listener Method {}({}) of {}",
                         method.getName(), eventClass.getName(), listener.getClass());
@@ -74,7 +101,7 @@ public class EventManager {
                 MethodHandle handle = lookup.unreflect(method);
 
                 int slot = handler.priority().getSlot();
-                RegisteredListener newListener = new RegisteredListener(slot, listener, plugin, handle);
+                RegisteredListener newListener = new RegisteredListener(slot, listener, plugin, handle, genericFilter);
 
                 List<RegisteredListener> handlerList = listeners.computeIfAbsent(eventClass, k -> new ArrayList<>());
 
@@ -153,6 +180,12 @@ public class EventManager {
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Found {} handlers for {}", handlers.size(), eventClass.getName());
 
         for (RegisteredListener handler : handlers) {
+            if (handler.genericFilter() != null
+                    && event instanceof PackageSentEvent<?> packageSentEvent
+                    && !handler.genericFilter().isInstance(packageSentEvent.getPackage())) {
+                continue;
+            }
+
             try {
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.methodHandle(), eventClass.getName());
                 InternalPluginManager.setContextPlugin(handler.plugin());
@@ -198,7 +231,8 @@ public class EventManager {
             int slot,
             Listener listener,
             Plugin plugin,
-            MethodHandle methodHandle
+            MethodHandle methodHandle,
+            @Nullable Class<?> genericFilter
     ) {
     }
 }

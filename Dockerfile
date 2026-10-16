@@ -5,7 +5,7 @@ FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /build
 COPY . .
 
-RUN mvn -B -ntp -pl comitas-core -am clean package \
+RUN mvn -B -ntp -pl comitas-core -am package \
     && cp comitas-core/target/comitas-core-*.jar /tmp/server.jar
 
 # Create a minimal Java 25 runtime
@@ -15,7 +15,8 @@ WORKDIR /srv
 COPY --from=builder /tmp/server.jar /srv/server.jar
 
 # Detect required Java modules and build a trimmed runtime
-RUN MODULES="$(jdeps \
+RUN set -eu; \
+    MODULES="$(jdeps \
         --multi-release 25 \
         --ignore-missing-deps \
         --print-module-deps \
@@ -34,8 +35,9 @@ FROM alpine:3.24.2
 
 WORKDIR /srv
 
-RUN apk --no-cache update && apk --no-cache upgrade
-RUN apk add --no-cache ca-certificates
+RUN apk -U upgrade \
+    && apk add --no-cache ca-certificates \
+    && rm -rf /var/cache/apk/*
 
 COPY --from=jre-builder /opt/java-minimal /opt/java
 COPY --from=jre-builder /srv/server.jar /srv/server.jar

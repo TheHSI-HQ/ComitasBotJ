@@ -259,8 +259,12 @@ public class InternalComitas implements InternalComitasImpl {
             TuiAppender.setBypassMode(true);
         }
 
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("FLushing Console Output");
-        consolePrompt.lineReader().getTerminal().writer().flush();
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Flushing console output");
+        try {
+            consolePrompt.lineReader().getTerminal().writer().flush();
+        } catch (IllegalStateException e) {
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Cannoot flush console output. Continuing");
+        }
 
         logger.info("Shutting down ComitasBotJ");
 
