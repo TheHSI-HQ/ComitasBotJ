@@ -20,7 +20,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".ConsoleCommandRegistry");
 
     private boolean isCommandMeant(@NotNull String command, @NotNull ConsoleCommand consoleCommand) {
-        return List.of(consoleCommand.aliases()).contains(command);
+        return consoleCommand.aliases().contains(command);
     }
 
     public boolean runCommand(@NotNull String command, @NotNull String @NotNull [] args) {
@@ -42,7 +42,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     public String[] validCommandList() {
         List<String> commandList = new ArrayList<>();
 
-        consoleCommands.forEach(cmd -> commandList.addAll(List.of(cmd.aliases())));
+        consoleCommands.forEach(cmd -> commandList.addAll(cmd.aliases()));
 
         return commandList.toArray(new String[0]);
     }
@@ -51,7 +51,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     public void register(@NotNull ConsoleCommandExecutor executor, @Nullable String description, @NotNull String... aliases) {
         DebugLogging.action(executor, description, aliases);
         consoleCommands.add(
-                new ConsoleCommand(aliases, Comitas.getPluginManager().getPlugin(), description == null ? "" : description, executor)
+                new ConsoleCommand(List.of(aliases), Comitas.getPluginManager().getPlugin(), description == null ? "" : description, executor)
         );
     }
 

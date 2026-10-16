@@ -32,12 +32,12 @@ public interface ConsoleCommandRegistry {
     /**
      * Represents a registered console command
      *
-     * @param aliases                An array of aliases for this command
+     * @param aliases                The aliases for this command
      * @param plugin                 The plugin owning this command0
      * @param description            The command description
      * @param consoleCommandExecutor The console command executor bleonging to this command
      */
-    record ConsoleCommand(@NotNull String[] aliases, @NotNull Plugin plugin, @NotNull String description,
+    record ConsoleCommand(@NotNull List<String> aliases, @NotNull Plugin plugin, @NotNull String description,
                           @NotNull ConsoleCommandExecutor consoleCommandExecutor) {
     }
 }

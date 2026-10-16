@@ -22,11 +22,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class EventManager {
@@ -36,7 +35,7 @@ public class EventManager {
     final Logger debugLogger = DebugLogging.getLogger();
 
     private @NotNull
-    final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new HashMap<>();
+    final Map<Class<? extends Event>, List<RegisteredListener>> listeners = new ConcurrentHashMap<>();
 
     private @NotNull
     static final ConcurrentHashMap<Long, Long> undoLoopFixCache = new ConcurrentHashMap<>();
@@ -72,6 +71,29 @@ public class EventManager {
         return typeArgClass;
     }
 
+    public static void addUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
+        long identifier = computeHash(clazz, args);
+        if (DebugLogging.isEventEnabled())
+            debugLogger.debug("Adding a UndoLoopFix, as event {} was marked to be undone", clazz.getSimpleName());
+
+        long now = System.currentTimeMillis();
+        undoLoopFixCache.entrySet().removeIf(entry -> (now - entry.getValue()) >= UNDO_PREVENTION_TTL_MS);
+        undoLoopFixCache.put(identifier, now);
+    }
+
+    @NotNull
+    public static EventOrigin resolveUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
+        long identifier = computeHash(clazz, args);
+        Long timestamp = undoLoopFixCache.remove(identifier);
+
+        if (timestamp != null && (System.currentTimeMillis() - timestamp) < UNDO_PREVENTION_TTL_MS) {
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
+            return EventOrigin.UNDO;
+        }
+        return EventOrigin.EXTERNAL;
+    }
+
     public void registerListener(@NotNull Plugin plugin, @NotNull Listener listener) {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering Listener {}", listener.getClass());
         for (Method method : listener.getClass().getDeclaredMethods()) {
@@ -103,7 +125,7 @@ public class EventManager {
                 int slot = handler.priority().getSlot();
                 RegisteredListener newListener = new RegisteredListener(slot, listener, plugin, handle, genericFilter);
 
-                List<RegisteredListener> handlerList = listeners.computeIfAbsent(eventClass, k -> new ArrayList<>());
+                List<RegisteredListener> handlerList = listeners.computeIfAbsent(eventClass, k -> new CopyOnWriteArrayList<>());
 
                 int insertIndex = 0;
                 for (int i = 0; i < handlerList.size(); i++) {
@@ -119,26 +141,6 @@ public class EventManager {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    @NotNull
-    public static EventOrigin resolveUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
-        long identifier = computeHash(clazz, args);
-        Long timestamp = undoLoopFixCache.remove(identifier);
-
-        if (timestamp != null && (System.currentTimeMillis() - timestamp) < UNDO_PREVENTION_TTL_MS) {
-            if (DebugLogging.isEventEnabled())
-                debugLogger.debug("Ignoring event {}, prevented by UndoLoopFix", clazz.getSimpleName());
-            return EventOrigin.UNDO;
-        }
-        return EventOrigin.EXTERNAL;
-    }
-
-    public static void addUndoLoopPrevention(@NotNull Class<? extends UndoableEvent> clazz, @Nullable Object... args) {
-        long identifier = computeHash(clazz, args);
-        if (DebugLogging.isEventEnabled())
-            debugLogger.debug("Adding a UndoLoopFix, as event {} was marked to be undone", clazz.getSimpleName());
-        undoLoopFixCache.put(identifier, System.currentTimeMillis());
     }
 
     private static long computeHash(@NotNull Class<?> clazz, @Nullable Object... args) {

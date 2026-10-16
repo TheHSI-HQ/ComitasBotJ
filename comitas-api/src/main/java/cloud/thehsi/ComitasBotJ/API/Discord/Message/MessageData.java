@@ -148,7 +148,7 @@ public class MessageData {
      */
     @NotNull
     public List<Embed> getEmbeds() {
-        return embeds;
+        return new ArrayList<>(embeds);
     }
 
     /**
@@ -156,7 +156,7 @@ public class MessageData {
      */
     @NotNull
     public List<AttachmentUpload> getAttachmentUploads() {
-        return attachmentUploads;
+        return new ArrayList<>(attachmentUploads);
     }
 
     /**
@@ -164,7 +164,7 @@ public class MessageData {
      */
     @NotNull
     public List<Attachment> getAttachments() {
-        return attachments;
+        return new ArrayList<>(attachments);
     }
 
     /**
@@ -172,7 +172,7 @@ public class MessageData {
      */
     @NotNull
     public List<ActionRowComponent> getActionRowComponents() {
-        return actionRowComponents;
+        return new ArrayList<>(actionRowComponents);
     }
 
     @Override

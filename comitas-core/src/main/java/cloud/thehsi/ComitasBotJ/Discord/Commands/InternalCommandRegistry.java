@@ -226,6 +226,7 @@ public class InternalCommandRegistry implements CommandRegistry {
 
         jda.updateCommands().complete();
         commands.clear();
+        dynamicCommands.clear();
     }
 
     void register(@NotNull RegisteredCommand command) {

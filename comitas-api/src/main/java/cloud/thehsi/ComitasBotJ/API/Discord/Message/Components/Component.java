@@ -291,9 +291,10 @@ public class Component {
     @NotNull
     public Component append(@NotNull Component... children) {
         for (Component child : children) {
-            this.children.add(child);
-            this.children.addAll(child.children);
-            child.children.clear();
+            Component flattened = new Component(child);
+            this.children.add(flattened);
+            this.children.addAll(flattened.children);
+            flattened.children.clear();
         }
         return this;
     }

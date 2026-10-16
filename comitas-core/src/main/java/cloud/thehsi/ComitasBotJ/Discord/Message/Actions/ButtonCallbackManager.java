@@ -7,7 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -15,8 +16,18 @@ import java.util.function.Consumer;
 public class ButtonCallbackManager {
     private @NotNull
     static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Message.Actions.ButtonCallbackManager");
+
+    private static final int MAX_CACHED_CALLBACKS = 10_000;
+
     private @NotNull
-    static final Map<String, ButtomMetadata> metadataMap = new HashMap<>();
+    static final Map<String, ButtomMetadata> metadataMap = Collections.synchronizedMap(
+            new LinkedHashMap<>(16, 0.75f, false) {
+                @Override
+                protected boolean removeEldestEntry(@NotNull Map.Entry<String, ButtomMetadata> eldest) {
+                    return size() > MAX_CACHED_CALLBACKS;
+                }
+            }
+    );
     private @NotNull
     static final Random rng = new Random(System.currentTimeMillis());
 
