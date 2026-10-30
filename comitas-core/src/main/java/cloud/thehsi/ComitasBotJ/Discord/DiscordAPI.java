@@ -8,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
@@ -32,10 +33,10 @@ public class DiscordAPI {
     @Nullable
     private final String BOT_TOKEN;
 
-    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager) {
+    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager, @NotNull InstanceLock instanceLock) {
         this.BOT_TOKEN = BOT_TOKEN;
 
-        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry, pluginManager);
+        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry, pluginManager, instanceLock);
 
         connect();
     }
@@ -91,6 +92,12 @@ public class DiscordAPI {
         return new DiscordAPI();
     }
 
+    public static void disconnect() {
+        if (api == null) return;
+
+        api.shutdown();
+    }
+
     private void connect() {
         ch.qos.logback.classic.Logger jdaLogger =
                 (ch.qos.logback.classic.Logger)
@@ -114,6 +121,8 @@ public class DiscordAPI {
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setEventPassthrough(true)
                     .addEventListeners(listeners)
+                    .setEnableShutdownHook(false)
+                    .setStatus(OnlineStatus.INVISIBLE)
                     .build();
         } catch (ErrorResponseException e) {
             logger.error("Unable to connect to discord. Aborting!", e);

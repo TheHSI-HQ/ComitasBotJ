@@ -15,6 +15,7 @@ import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
+import cloud.thehsi.ComitasBotJ.Discord.InstanceLock;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
@@ -56,6 +57,8 @@ public class InternalComitas implements InternalComitasImpl {
     final PluginLoaderManager pluginLoaderManager = new PluginLoaderManager();
     private @NotNull
     final InternalPluginManager pluginManager;
+    private @NotNull
+    final InstanceLock instanceLock = new InstanceLock();
     private @Nullable InternalBot bot;
 
     public InternalComitas(@NotNull InternalConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
@@ -117,7 +120,7 @@ public class InternalComitas implements InternalComitasImpl {
 
     private void connect(@NotNull String token) {
         info("Starting Bot...");
-        pluginManager.setDiscordApi(new DiscordAPI(token, eventManager, commandRegistry, pluginManager));
+        pluginManager.setDiscordApi(new DiscordAPI(token, eventManager, commandRegistry, pluginManager, instanceLock));
     }
 
     @Override
@@ -170,6 +173,11 @@ public class InternalComitas implements InternalComitasImpl {
 
         DebugLogging.basic("Shutting down Event Listeners");
         eventManager.shutdown();
+
+        instanceLock.release();
+
+        DebugLogging.basic("Disconnecting from Discord");
+        DiscordAPI.disconnect();
     }
 
     private void closeTerminal(@Nullable Terminal terminal) {

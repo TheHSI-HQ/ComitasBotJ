@@ -82,6 +82,12 @@ public class Main implements Runnable {
     private boolean listPlugins;
 
     @CommandLine.Option(
+            names = "--allow-concurrent-instances",
+            description = "Start even if another ComitasBotJ instance is already controlling this bot."
+    )
+    private boolean allowConcurrentInstances;
+
+    @CommandLine.Option(
             names = {"--skip-fts"},
             description = "Skip the first time startup screen."
     )
@@ -184,7 +190,8 @@ public class Main implements Runnable {
         return new StartupProperties(
                 noCmd, ignoreApiTarget, safeMode,
                 strictSafeMode, quiet && !DebugLogging.isBasicEnabled(),
-                listPlugins, invitePermissions
+                listPlugins, invitePermissions,
+                allowConcurrentInstances
         );
     }
 

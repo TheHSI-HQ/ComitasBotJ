@@ -55,12 +55,14 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final @NotNull EventManager eventManager;
     final @NotNull InternalCommandRegistry commandRegistry;
     final @NotNull InternalPluginManager pluginManager;
+    final @NotNull InstanceLock instanceLock;
     boolean firstStartup = true;
 
-    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager) {
+    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager, @NotNull InstanceLock instanceLock) {
         this.eventManager = eventManager;
         this.commandRegistry = commandRegistry;
         this.pluginManager = pluginManager;
+        this.instanceLock = instanceLock;
         this.api = api;
     }
 
@@ -76,6 +78,11 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         super.onReady(event);
+
+        if (!instanceLock.acquire(event.getJDA(), Main.props().allowConcurrentInstances())) {
+            new Thread(() -> System.exit(1), "ComitasInstanceLockExit").start();
+            return;
+        }
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Setting Bot Presence.");
 
         if (!Main.conf().botActivityName.get().isBlank())
