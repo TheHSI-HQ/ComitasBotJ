@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.App.FirstTimeStartup;
+import cloud.thehsi.ComitasBotJ.App.StartupWarnings;
 import cloud.thehsi.ComitasBotJ.App.VersionProvider;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
@@ -21,7 +22,6 @@ import picocli.CommandLine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Properties;
 
 @CommandLine.Command(
@@ -40,13 +40,10 @@ public class Main implements Runnable {
     static final ConsolePrompt consolePrompt = new ConsolePrompt(consoleCommandRegistry);
     private @NotNull
     static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
-    // Properties
     private @Nullable
     static StartupProperties props;
     private @Nullable
     static ServerConfig.ParsedServerConfig conf;
-    private @NotNull
-    final Logger debugLogger = DebugLogging.getLogger();
 
     @CommandLine.Option(
             names = "--no-cmd",
@@ -158,141 +155,109 @@ public class Main implements Runnable {
         return SERVER_VERSION;
     }
 
+    private static void info(@NotNull String message, @Nullable Object... args) {
+        if (!props().quiet()) logger.info(message, args);
+    }
+
     @Override
     public void run() {
-        quiet &= !DebugLogging.isBasicEnabled(); // Disables quiet if debug logging enabled
-
-        if (!quiet) logger.info("Starting ComitasBotJ v{}...", getServerVersion());
-
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating Startup Properties");
-        Main.props = new StartupProperties(
-                noCmd, ignoreApiTarget, safeMode,
-                strictSafeMode, quiet,
-                listPlugins, invitePermissions
-        );
+        props = createStartupProperties();
+        info("Starting ComitasBotJ v{}...", getServerVersion());
 
         if (!skipFirstTimeStartup && FirstTimeStartup.shouldFirstTimeStartup())
             FirstTimeStartup.showFirstTimeStartup();
 
-        // Load Configuration from ./server.properties
-        if (!props().quiet()) logger.info("Loading Configuration...");
+        conf = loadConfig();
+
+        if (props.invitePermissions() != 0) printInviteAndExit();
+        if (props.listPlugins()) listPluginsAndExit();
+        if (!conf.enabled.get()) disabledExit();
+
+        StartupWarnings.log(props, conf);
+        startComitas();
+        awaitShutdown();
+    }
+
+    @NotNull
+    private StartupProperties createStartupProperties() {
+        DebugLogging.basic("Creating Startup Properties");
+        return new StartupProperties(
+                noCmd, ignoreApiTarget, safeMode,
+                strictSafeMode, quiet && !DebugLogging.isBasicEnabled(),
+                listPlugins, invitePermissions
+        );
+    }
+
+    @NotNull
+    private ServerConfig.ParsedServerConfig loadConfig() {
+        info("Loading Configuration...");
         try {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating and Reading ServerConfig");
-            ServerConfig rawServerConfig = new ServerConfig();
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsing ServerConfig");
-            conf = rawServerConfig.asParsed();
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Rewriting ServerConfig");
-            if (conf == null)
-                throw new IllegalStateException("ServerConfig not initialized");
-            conf.load();
-            conf.save();
+            DebugLogging.basic("Reading and Rewriting ServerConfig");
+            ServerConfig.ParsedServerConfig config = new ServerConfig().asParsed();
+            config.save();
+            info("Loaded {} configuration value(s).", config.count());
+            return config;
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
             System.exit(1);
+            throw new IllegalStateException(e);
         }
+    }
 
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Computing config values");
-        takeConfigActions();
+    private void startComitas() {
+        DebugLogging.basic("Initializing Comitas API");
+        Comitas.getInstance().init(new InternalComitas(consoleCommandRegistry, consolePrompt));
 
-        if (!props().quiet()) logger.info("Loaded {} configuration value(s).", conf.count());
-
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Initializing Comitas API");
-        Comitas comitas = Comitas.getInstance();
-        comitas.init(new InternalComitas(consoleCommandRegistry, consolePrompt));
-
-        if (!noCmd)
+        if (!props().noCmd())
             consolePrompt.run();
+    }
 
+    private void awaitShutdown() {
+        DebugLogging.basic("Sleeping Main Process");
         try {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Sleeping Main Process");
             Thread.currentThread().join();
         } catch (InterruptedException ignored) {
         }
     }
 
-    private void takeConfigActions() {
-        if (props().invitePermissions() != 0) {
-            if (!props().quiet()) logger.info("Generating invite...");
+    private void printInviteAndExit() {
+        info("Generating invite...");
 
-            if (props().invitePermissions() == 8)
-                logger.warn("No permissions specified (or Administrator permission specified), granting Administator permission (8). Not recommended for production");
+        if (props().invitePermissions() == 8)
+            logger.warn("No permissions specified (or Administrator permission specified), granting Administator permission (8). Not recommended for production");
 
-            Permission[] permissions = Permission.fromLong(props().invitePermissions());
-            if (!props().quiet()) logger.info("Granting permissions: {}",
+        Permission[] permissions = Permission.fromLong(props().invitePermissions());
+        info("Granting permissions: {}",
                 String.join(", ", Arrays.stream(permissions).map(Enum::name).toArray(String[]::new))
-            );
+        );
 
-            logger.info(
-                    "Invitation Link: {}{}https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions={}{}",
-                    ConsoleColor.BRIGHT_BLUE,
-                    ConsoleColor.BOLD,
-                    InternalComitas.minimalStartupAndFetchBotID(),
-                    Permission.asLong(permissions),
-                    ConsoleColor.RESET
-            );
+        logger.info(
+                "Invitation Link: {}{}https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions={}{}",
+                ConsoleColor.BRIGHT_BLUE,
+                ConsoleColor.BOLD,
+                InternalComitas.minimalStartupAndFetchBotID(),
+                Permission.asLong(permissions),
+                ConsoleColor.RESET
+        );
 
-            if (!props().quiet()) logger.info("Exiting...");
-            System.exit(0);
-        }
+        exit();
+    }
 
-        if (props().listPlugins()) {
-            if (!props().quiet()) logger.info("Loadable Plugins:");
-            PluginLister.listAllPlugins();
-            if (!props().quiet()) //noinspection LoggingSimilarMessage
-                logger.info("Exiting...");
-            System.exit(0);
-        }
+    private void listPluginsAndExit() {
+        info("Loadable Plugins:");
+        PluginLister.listAllPlugins();
+        exit();
+    }
 
-        if (!conf().enabled.get()) {
-            logger.warn("This Server is disabled!");
-            logger.warn("To change this, go to ./server.properties and set enabled=true");
-            logger.warn("This Server will now shut down");
-            System.exit(0);
-        }
+    private void disabledExit() {
+        logger.warn("This Server is disabled!");
+        logger.warn("To change this, go to ./server.properties and set enabled=true");
+        logger.warn("This Server will now shut down");
+        System.exit(0);
+    }
 
-        if (Objects.equals(conf().allowedPlugins.get(), "*") && !props().quiet()) {
-            logger.warn("""
-                        {}
-                        Plugin whitelist is not enabled.
-                
-                        For production environments, enabling the plugin whitelist is
-                        strongly recommended to prevent unexpected or untrusted plugins
-                        from being loaded.
-                        """, ConsoleColor.YELLOW);
-        }
-
-        if (props().ignoreApiTarget() && !props().quiet())
-            logger.warn("""
-                        {}
-                        Plugin compatibility checks are disabled.
-                        
-                        ComitasBotJ will load plugins regardless of their compatibility
-                        status. This feature is intended for development and testing only
-                        and must not be used in production environments.
-                        
-                        Proceed with caution.
-                        """, ConsoleColor.YELLOW);
-
-        if (props().safeMode() && !props().strictSafeMode() && !props().quiet())
-            logger.warn("""
-                    {}
-                    Safe Mode is enabled.
-                    
-                    ComitasBotJ will not load any plugins.
-                    This mode is intended only for debugging and testing
-                    and should not be used in production environments.
-                    """, ConsoleColor.YELLOW);
-
-        if (props().strictSafeMode() && !props().quiet())
-            logger.warn("""
-                    {}
-                    Strict Safe Mode is enabled.
-                    
-                    Plugin loading and all built-in commands are disabled.
-                    To quit ComitasBotJ, press Ctrl+C (^C).
-                    
-                    This mode is intended only for debugging and testing
-                    and should not be used in production environments.
-                    """, ConsoleColor.YELLOW);
+    private void exit() {
+        info("Exiting...");
+        System.exit(0);
     }
 }
