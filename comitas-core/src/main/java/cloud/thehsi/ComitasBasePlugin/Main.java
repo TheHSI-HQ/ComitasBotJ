@@ -5,10 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 
 public class Main extends Plugin {
     @Override
-    public void onEnable() {
-        getLogger().info("Base Loaded");
-
-        // Initialize Commands
+    public void onLoad() {
+        // Initialize Commands, on load, so the console is usable before the bot is connected
         new HelpConsoleCommand();
         new UpdateConsoleCommand();
         new VersionConsoleCommand();
@@ -16,6 +14,11 @@ public class Main extends Plugin {
         new StopConsoleCommand();
         new ReloadConsoleCommand();
         new InviteConsoleCommand();
+    }
+
+    @Override
+    public void onEnable() {
+        getLogger().info("Base Loaded");
     }
 
     @Override

@@ -24,7 +24,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,11 +33,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 public class InternalCommandRegistry implements CommandRegistry {
-    final @NotNull List<RegisteredCommand> commands = new ArrayList<>();
-    final @NotNull List<RegisteredDynamicCommand> dynamicCommands = new ArrayList<>();
+    final @NotNull List<RegisteredCommand> commands = new CopyOnWriteArrayList<>();
+    final @NotNull List<RegisteredDynamicCommand> dynamicCommands = new CopyOnWriteArrayList<>();
+    final @NotNull Logger debugLogger = DebugLogging.getLogger();
 
     public InternalCommandRegistry() {}
     private @NotNull
@@ -203,30 +204,45 @@ public class InternalCommandRegistry implements CommandRegistry {
         );
     }
 
-    public void unregisterAll() {
-        if (DiscordAPI.nullableApi() == null)
-            throw new IllegalStateException("Command un-registration requested before ready");
-
-        var jda = DiscordAPI.nullableApi();
-
-        List<RestAction<List<Command>>> retrieveActions = new ArrayList<>();
-        retrieveActions.add(jda.retrieveCommands());
-
-        for (Guild guild : jda.getGuilds())
-            retrieveActions.add(guild.retrieveCommands());
-
-        RestAction.allOf(retrieveActions).flatMap(results -> {
-            List<RestAction<Void>> deleteActions = results.stream()
-                    .flatMap(Collection::stream)
-                    .map(Command::delete)
-                    .toList();
-
-            return RestAction.allOf(deleteActions);
-        }).complete();
-
-        jda.updateCommands().complete();
+    /**
+     * Drops all local command handlers, so commands of unloaded plugins aren't executed anymore.
+     * Commands stay registered on Discord, as plugins re-register them after loading.
+     */
+    public void clearHandlers() {
         commands.clear();
         dynamicCommands.clear();
+    }
+
+    /**
+     * Asynchronously deletes all commands on Discord, which have no registered handler.
+     * Global commands are compared by name, guild commands are always unused, as only global commands get registered.
+     */
+    public void pruneUnusedCommands() {
+        var jda = DiscordAPI.nullableApi();
+        if (jda == null)
+            throw new IllegalStateException("Command pruning requested before ready");
+
+        jda.retrieveCommands().queue(remoteCommands -> {
+            // Resolve names on arrival, so commands registered in the meantime are kept
+            Set<String> used = new HashSet<>();
+            commands.forEach(cmd -> used.add(cmd.name()));
+            dynamicCommands.forEach(cmd -> used.add(cmd.name()));
+
+            for (Command command : remoteCommands) {
+                if (used.contains(command.getName())) continue;
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Removing unused command '{}'", command.getName());
+                command.delete().queue(null, e -> logger.warn("Failed to remove unused command '{}'", command.getName(), e));
+            }
+        }, e -> logger.warn("Failed to retrieve commands for pruning", e));
+
+        for (Guild guild : jda.getGuilds())
+            guild.retrieveCommands().queue(remoteCommands -> {
+                for (Command command : remoteCommands) {
+                    if (DebugLogging.isBasicEnabled())
+                        debugLogger.debug("Removing unused guild command '{}' from {}", command.getName(), guild.getName());
+                    command.delete().queue(null, e -> logger.warn("Failed to remove unused guild command '{}'", command.getName(), e));
+                }
+            }, e -> logger.warn("Failed to retrieve guild commands of {} for pruning", guild.getName(), e));
     }
 
     void register(@NotNull RegisteredCommand command) {

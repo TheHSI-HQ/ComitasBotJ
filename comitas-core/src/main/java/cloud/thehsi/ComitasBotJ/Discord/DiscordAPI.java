@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -31,10 +32,10 @@ public class DiscordAPI {
     @Nullable
     private final String BOT_TOKEN;
 
-    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
+    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager) {
         this.BOT_TOKEN = BOT_TOKEN;
 
-        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry);
+        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry, pluginManager);
 
         connect();
     }

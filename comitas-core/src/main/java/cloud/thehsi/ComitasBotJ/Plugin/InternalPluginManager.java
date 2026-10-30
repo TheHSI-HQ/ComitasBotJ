@@ -6,12 +6,11 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Bot.InternalBot;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
+import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
-import cloud.thehsi.ComitasBotJ.Event.Events.InternalBotReadyEvent;
 import cloud.thehsi.ComitasBotJ.Event.Events.InternalPackageSentEvent;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStorage;
@@ -48,6 +47,8 @@ public class InternalPluginManager implements PluginManager {
     private @NotNull
     final InternalCommandRegistry commandRegistry;
     private @NotNull
+    final InternalConsoleCommandRegistry consoleCommandRegistry;
+    private @NotNull
     final Map<UUID, InternalPersistentDataStorage> pluginDataStores = new HashMap<>();
     private @NotNull
     final Logger debugLogger;
@@ -59,12 +60,14 @@ public class InternalPluginManager implements PluginManager {
             @NotNull PluginLoaderManager pluginLoaderManager,
             @NotNull EventManager eventManager,
             @NotNull InternalScheduler scheduler,
-            @NotNull InternalCommandRegistry commandRegistry
+            @NotNull InternalCommandRegistry commandRegistry,
+            @NotNull InternalConsoleCommandRegistry consoleCommandRegistry
     ) {
         this.pluginLoaderManager = pluginLoaderManager;
         this.eventManager = eventManager;
         this.scheduler = scheduler;
         this.commandRegistry = commandRegistry;
+        this.consoleCommandRegistry = consoleCommandRegistry;
         this.debugLogger = DebugLogging.getLogger();
         this.logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginManager");
 
@@ -316,12 +319,14 @@ public class InternalPluginManager implements PluginManager {
         return pluginLoaderManager.lookupPlugin(plugin);
     }
 
-    private void unloadPlugins(boolean hard) {
+    private void unloadPlugins() {
+        // Grab the base plugin before unloading, as it isn't re-enabled on load and keeps its console commands
+        Plugin basePlugin = pluginLoaderManager.getBasePlugin();
         pluginLoaderManager.unloadPlugins();
-        if (hard) {
-            logger.info("Unregistering all commands...");
-            commandRegistry.unregisterAll();
-        }
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Command Handlers");
+        commandRegistry.clearHandlers();
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Plugin Console Commands");
+        consoleCommandRegistry.unregisterAllExcept(basePlugin);
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Canceling all Schedulers");
         scheduler.cancelAll();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing all Events");
@@ -333,19 +338,27 @@ public class InternalPluginManager implements PluginManager {
         DebugLogging.action();
         long reloadTime = System.currentTimeMillis();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Unloading Plugins in soft mode");
-        unloadPlugins(false);
+        unloadPlugins();
         if (DebugLogging.isBasicEnabled())
             debugLogger.debug("Loading Plugins");
         pluginLoaderManager.loadPlugins();
 
-        // Fake the bot being ready, so plugins listening for it can react
+        // The bot stays connected, so plugins can be enabled right away
         if (DiscordAPI.nullableApi() != null) {
-            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Faking and Firing a BotReadyEvent");
-            eventManager.callEvent(new InternalBotReadyEvent(
-                    new InternalBot(DiscordAPI.nullableApi().getSelfUser(), eventManager)
-            ));
+            enablePlugins();
+
+            // Plugins re-registered their commands in onEnable, drop everything else
+            commandRegistry.pruneUnusedCommands();
         }
         logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
+    }
+
+    /**
+     * Enables all loaded plugins, called once the bot is connected.
+     */
+    public void enablePlugins() {
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Enabling Plugins");
+        pluginLoaderManager.enablePlugins();
     }
 
     @Override
@@ -353,7 +366,7 @@ public class InternalPluginManager implements PluginManager {
         DebugLogging.action();
         long reloadTime = System.currentTimeMillis();
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Unloading Plugins in hard mode");
-        unloadPlugins(true);
+        unloadPlugins();
 
         try {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reloading Config");

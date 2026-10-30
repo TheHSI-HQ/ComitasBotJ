@@ -73,8 +73,18 @@ You will also need the [ComitasBotJ Dev Plugin for IntelliJ IDEA](https://github
 
 The project should contain the plugin lifecycle methods:
 
-* `onEnable()` — called when the plugin is enabled.
-* `onDisable()` — called when the plugin is disabled.
+* `onLoad()` — *optional*, called as soon as the plugin is loaded, before the bot is connected to Discord.
+* `onEnable()` — called once the bot is connected to Discord. The whole API is available from here on, so this is where commands and listeners are registered.
+* `onDisable()` — called when the plugin is disabled (only if it was enabled before).
+
+Override `onLoad()` only for setup that has to happen before the bot connects, e.g. registering console commands or reading config files:
+
+```java
+@Override
+public void onLoad() {
+    // Discord isn't connected yet, Comitas.getBot() and command registration aren't available
+}
+```
 
 ### Hello World
 
@@ -218,7 +228,6 @@ A `Listener` class can hold as many `@EventHandler` methods as you want, each on
 
 | Event | Fired when... |
 |---|---|
-| `BotReadyEvent` | The bot has finished connecting and is ready to use. |
 | `BotUpdatePresenceEvent` | The bot's own presence (status/activity) is updated. |
 | `MessageReceivedEvent` | Any message is sent in a channel the bot can see. |
 | `MessageEditedEvent` | A message is edited. |
@@ -283,7 +292,7 @@ public void onMessage(MessageReceivedEvent event) {
 
 ## The Comitas Entry Point
 
-`cloud.thehsi.ComitasBotJ.API.Bot.Comitas` is the static entry point into everything the API offers. All of its accessors are static and usable from anywhere in your plugin once the bot has started (i.e. not before `onEnable()`/`BotReadyEvent`):
+`cloud.thehsi.ComitasBotJ.API.Bot.Comitas` is the static entry point into everything the API offers. All of its accessors are static and usable from anywhere in your plugin once the bot has started (i.e. from `onEnable()` on, not in `onLoad()`):
 
 ```java
 Comitas.getBot();                     // The running Bot
@@ -564,14 +573,16 @@ public class ExampleCommand implements CommandSupplier {
 }
 ```
 
-Register it once, typically in `onEnable()` or in a `BotReadyEvent` handler (commands need the bot connection to be registered with Discord):
+Register it once in `onEnable()` (commands need the bot connection to be registered with Discord, which is guaranteed there):
 
 ```java
-@EventHandler
-public void onBotReady(BotReadyEvent event) {
+@Override
+public void onEnable() {
     Comitas.getCommandRegistry().register(new ExampleCommand());
 }
 ```
+
+Commands that are no longer registered by any plugin are removed from Discord automatically once all plugins are enabled.
 
 Notes on `@Command`:
 
@@ -684,8 +695,8 @@ PluginManager pm = Comitas.getPluginManager();
 pm.countPlugins();
 pm.getAllPluginMetadata();          // name, version, jarName, targetAPI, uuid, consoleCommandPrefix per plugin
 pm.lookupPlugin(somePluginInstance);
-pm.reloadSoft();                    // reload plugins + fire a synthetic BotReadyEvent
-pm.reloadHard();                    // reload plugins, config and the bot connection itself
+pm.reloadSoft();                    // reload plugins, onLoad() and onEnable() run right after each other
+pm.reloadHard();                    // reload plugins, config and the bot connection itself, onEnable() runs once reconnected
 pm.registerEvents(this, listener);  // same call used for your Main class's own listeners
 ```
 

@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings({"deprecation", "removal"})
 public record InternalBotReadyEvent(Bot bot) implements BotReadyEvent {
     @Override
     public @NotNull String getUserName() {

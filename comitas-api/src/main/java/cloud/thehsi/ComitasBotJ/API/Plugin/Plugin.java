@@ -36,12 +36,26 @@ public abstract class Plugin {
     }
 
     /**
-     * The plugins on-enable function
+     * The plugins on-load function, optional.
+     * <p>
+     * Called as soon as the plugin is loaded, before the bot is connected to Discord.
+     * Discord dependant parts of the API (e.g. {@link Comitas#getBot()} or command registration) are not available yet.
+     */
+    public void onLoad() {
+    }
+
+    /**
+     * The plugins on-enable function.
+     * <p>
+     * Called once the bot is connected to Discord, the whole API is available from here on.
+     * This is the place to register commands and listeners.
      */
     public abstract void onEnable();
 
     /**
-     * The plugins on-disable function
+     * The plugins on-disable function.
+     * <p>
+     * Called when the plugin is unloaded, only if {@link #onEnable()} was called before.
      */
     public abstract void onDisable();
 

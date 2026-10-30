@@ -18,6 +18,7 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
@@ -53,11 +54,13 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final @NotNull DiscordAPI api;
     final @NotNull EventManager eventManager;
     final @NotNull InternalCommandRegistry commandRegistry;
+    final @NotNull InternalPluginManager pluginManager;
     boolean firstStartup = true;
 
-    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
+    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager) {
         this.eventManager = eventManager;
         this.commandRegistry = commandRegistry;
+        this.pluginManager = pluginManager;
         this.api = api;
     }
 
@@ -80,10 +83,18 @@ public class DiscordAPIListeners extends ListenerAdapter {
                     Activity.watching(Main.conf().botActivityName.get())
             );
 
+        // Plugins get enabled once connected, so the whole API is available to them
+        pluginManager.enablePlugins();
+
+        // Deprecated, but still fired for plugins which haven't migrated to onEnable yet
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a BotReadyEvent.");
         eventManager.callEvent(new InternalBotReadyEvent(
-                new InternalBot(DiscordAPI.api().getSelfUser(), eventManager)
+                new InternalBot(event.getJDA().getSelfUser(), eventManager)
         ));
+
+        // Plugins registered their commands in onEnable, drop everything else
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Pruning unused commands.");
+        commandRegistry.pruneUnusedCommands();
 
         if (firstStartup) {
             if (Main.props().noCmd() || Main.props().strictSafeMode())

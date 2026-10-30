@@ -58,12 +58,16 @@ public interface PluginManager {
     Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin);
 
     /**
-     * Reloads all plugins and sends a fake bot ready even
+     * Reloads all plugins, without reconnecting the bot.
+     * <p>
+     * Plugins get {@link Plugin#onLoad()} and {@link Plugin#onEnable()} called right after each other.
      */
     void reloadSoft();
 
     /**
      * Reloads all plugins, the config and the bot itself.
+     * <p>
+     * Plugins get {@link Plugin#onLoad()} called right away and {@link Plugin#onEnable()} once the bot reconnected.
      */
     void reloadHard();
 

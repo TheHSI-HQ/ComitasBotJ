@@ -4,9 +4,16 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Bot;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The event fired when the Bot is ready
+ * The event fired when the Bot is ready, after all plugins got enabled.
+ * <p>
+ * Only fired when the bot (re-)connects to Discord, not on soft reloads.
+ *
+ * @deprecated Plugins are enabled once the bot is connected, use
+ * {@link cloud.thehsi.ComitasBotJ.API.Plugin.Plugin#onEnable()} for setup instead.
+ * This event may be removed in a future version.
  */
-@SuppressWarnings("unused")
+@Deprecated(forRemoval = true)
+@SuppressWarnings({"unused", "DeprecatedIsStillUsed"})
 public interface BotReadyEvent extends Event {
     /**
      * Returns the bot's Username.

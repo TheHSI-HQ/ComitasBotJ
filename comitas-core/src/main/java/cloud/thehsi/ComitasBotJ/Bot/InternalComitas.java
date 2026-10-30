@@ -10,6 +10,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
 import cloud.thehsi.ComitasBotJ.API.Scheduler.Scheduler;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
+import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Console.TuiAppender;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
@@ -45,7 +46,7 @@ public class InternalComitas implements InternalComitasImpl {
     private @Nullable
     static String bot_token;
     private @NotNull
-    final ConsoleCommandRegistry consoleCommandRegistry;
+    final InternalConsoleCommandRegistry consoleCommandRegistry;
     private @NotNull
     final InternalUtilityBackend utilityBackend = new InternalUtilityBackend();
     private @NotNull
@@ -57,9 +58,9 @@ public class InternalComitas implements InternalComitasImpl {
     private @Nullable InternalPluginManager pluginManager;
     private @Nullable InternalScheduler scheduler;
     private @Nullable EventManager eventManager;
-    private @Nullable Bot bot;
+    private @Nullable InternalBot bot;
 
-    public InternalComitas(@NotNull ConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
+    public InternalComitas(@NotNull InternalConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
         this.consoleCommandRegistry = consoleCommandRegistry;
         this.consolePrompt = consolePrompt;
     }
@@ -172,6 +173,11 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public @NotNull Bot getBot() {
         DebugLogging.action();
+        // Created lazily and rebuilt once the connection changed (e.g. after a hard reload),
+        // so the bot never wraps the self user of a shut down connection
+        var api = DiscordAPI.nullableApi();
+        if (api != null && eventManager != null && (bot == null || bot.bot().getJDA() != api))
+            bot = new InternalBot(api.getSelfUser(), eventManager);
         if (bot == null)
             throw new IllegalStateException("Bot not initialized");
 
@@ -220,7 +226,8 @@ public class InternalComitas implements InternalComitasImpl {
                 pluginLoaderManager,
                 eventManager,
                 scheduler,
-                commandRegistry
+                commandRegistry,
+                consoleCommandRegistry
         );
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugins");
@@ -230,11 +237,9 @@ public class InternalComitas implements InternalComitasImpl {
 
         // Start Bot
         if (!Main.props().quiet()) logger.info("Starting Bot...");
-        DiscordAPI api = new DiscordAPI(bot_token, eventManager, commandRegistry);
+        DiscordAPI api = new DiscordAPI(bot_token, eventManager, commandRegistry, pluginManager);
 
         pluginManager.setDiscordApi(api);
-
-        bot = new InternalBot(DiscordAPI.api().getSelfUser(), eventManager);
     }
 
     @Override

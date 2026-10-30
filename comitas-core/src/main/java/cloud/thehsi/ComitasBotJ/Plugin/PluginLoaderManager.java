@@ -27,6 +27,8 @@ public class PluginLoaderManager {
     private @NotNull
     final Map<UUID, Plugin> uuidToPluginCache = new HashMap<>();
     private @NotNull
+    final Set<Plugin> enabledPlugins = new HashSet<>();
+    private @NotNull
     final Logger debugLogger = DebugLogging.getLogger();
     private @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
@@ -116,7 +118,7 @@ public class PluginLoaderManager {
 
                 plugins.add(basePlugin);
 
-                plugin.onEnable();
+                plugin.onLoad();
 
             } catch (Exception e) {
                 logger.error("Error loading base plugin: ", e);
@@ -300,8 +302,16 @@ public class PluginLoaderManager {
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
                 pluginManager.loadDataStore(metadata.uuid());
 
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Calling onEnable on: {}", jar.getName());
-                plugin.onEnable();
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Calling onLoad on: {}", jar.getName());
+                try {
+                    plugin.onLoad();
+                } catch (Exception e) {
+                    // Don't keep a half loaded plugin around, it would get enabled later on
+                    plugins.removeIf(loaded -> loaded.plugin() == plugin);
+                    loaderToPluginCache.remove(loader);
+                    uuidToPluginCache.remove(metadata.uuid());
+                    throw e;
+                }
             } catch (PluginCompatibilityException e) {
                 logger.error("Incompatible plugin found: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
@@ -348,13 +358,32 @@ public class PluginLoaderManager {
         return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
     }
 
+    /**
+     * Calls onEnable on all loaded plugins, which aren't enabled yet.
+     * Must only be called once the bot is connected.
+     */
+    public void enablePlugins() {
+        for (LoadedPlugin loaded : plugins) {
+            if (!enabledPlugins.add(loaded.plugin())) continue;
+
+            try {
+                if (DebugLogging.isBasicEnabled())
+                    debugLogger.debug("Calling onEnable on: {}", loaded.metadata().name());
+                loaded.plugin().onEnable();
+            } catch (Exception e) {
+                logger.error("Error when enabling: \"{}\":", loaded.metadata().name(), e);
+            }
+        }
+    }
+
     public void unloadPlugins() {
         if (pluginManager == null)
             throw new IllegalStateException("Plugin Manager not initialized");
 
         for (LoadedPlugin loaded : plugins) {
             try {
-                loaded.plugin().onDisable();
+                if (enabledPlugins.remove(loaded.plugin()))
+                    loaded.plugin().onDisable();
 
                 pluginManager.saveDataStore(loaded.metadata().uuid());
 

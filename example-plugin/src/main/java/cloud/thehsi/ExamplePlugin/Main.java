@@ -14,7 +14,6 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedField;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserJoinGuildEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
@@ -28,24 +27,16 @@ import java.awt.*;
 public class Main extends Plugin implements Listener {
     @Override
     public void onEnable() {
-        getLogger().info("Hello World from Example Plugin");
+        getLogger().info("Hello World from Example Plugin, running as {}", Comitas.getBot().getUserName());
 
         Comitas.getPluginManager().registerEvents(this, this);
+
+        Comitas.getCommandRegistry().register(new ExampleCommand());
     }
 
     @Override
     public void onDisable() {
         getLogger().info("Bye Bye from ExamplePlugin!");
-    }
-
-    @SuppressWarnings({"unused"})
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBotConnect(@NotNull BotReadyEvent event) {
-        getLogger().info("Hello from {}", event.getUserName());
-
-        Comitas.getPluginManager().getPersistentDataStorage();
-
-        Comitas.getCommandRegistry().register(new ExampleCommand());
     }
 
     @EventHandler(priority = EventPriority.LOW)
