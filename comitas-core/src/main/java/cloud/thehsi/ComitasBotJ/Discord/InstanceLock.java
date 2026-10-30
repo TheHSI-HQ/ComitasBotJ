@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Discord;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import net.dv8tion.jda.api.JDA;
@@ -35,7 +36,7 @@ public class InstanceLock {
     private @NotNull
     static final Duration STALE_AFTER = Duration.ofSeconds(90);
     private @NotNull
-    static final Path CACHE_DIRECTORY = Path.of(".cache");
+    static final Path CACHE_DIRECTORY = DataPaths.CACHE;
     private @NotNull
     static final Path TOKEN_FILE = CACHE_DIRECTORY.resolve("concurrency_token");
     private @NotNull

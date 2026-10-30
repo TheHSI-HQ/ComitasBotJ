@@ -14,7 +14,7 @@ import java.util.Properties;
 
 public class Secrets {
     private @NotNull
-    static final Path TOKEN_PATH = Path.of("tokens.secret");
+    static final Path TOKEN_PATH = DataPaths.TOKEN;
     private @NotNull
     static final String BOT_TOKEN_KEY = "bot";
     private @NotNull
@@ -68,6 +68,7 @@ public class Secrets {
     }
 
     private static void store(@NotNull Properties props) throws IOException {
+        Files.createDirectories(DataPaths.DATA);
         try (OutputStream out = Files.newOutputStream(TOKEN_PATH)) {
             props.store(out, "ComitasBotJ Discord Tokens");
         }

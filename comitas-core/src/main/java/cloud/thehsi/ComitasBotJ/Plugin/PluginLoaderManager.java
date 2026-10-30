@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
@@ -169,14 +170,14 @@ public class PluginLoaderManager {
 
         if (!Main.props().strictSafeMode()) loadBasePlugin();
 
-        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking and creating plugins and plugin_data directories");
+        if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking and creating plugins and plugin data directories");
 
-        File pluginDir = new File("plugins");
-        File pluginDataDir = new File("plugin_data");
+        File pluginDir = DataPaths.PLUGINS.toFile();
+        File pluginDataDir = DataPaths.PLUGIN_DATA.toFile();
 
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
         if (!pluginDataDir.exists())
-            if (!pluginDataDir.mkdir()) throw new RuntimeException("Couldn't create plugin_data folder");
+            if (!pluginDataDir.mkdirs()) throw new RuntimeException("Couldn't create " + pluginDataDir + " folder");
 
         if (Main.props().strictSafeMode() || Main.props().safeMode() || !Main.conf().loadPlugins.get()) return;
 
@@ -297,14 +298,6 @@ public class PluginLoaderManager {
                 if (uuidToPluginCache.containsKey(metadata.uuid()))
                     throw new RuntimeException("Another loaded plugin already uses the uuid " + metadata.uuid());
 
-                // Plugins with the same (file system) name would share the plugin folder and security settings
-                String safeName = PluginSecurity.safeName(metadata.name());
-                for (LoadedPlugin other : plugins)
-                    if (PluginSecurity.safeName(other.metadata().name()).equalsIgnoreCase(safeName))
-                        throw new PluginPermissionException("Plugin " + metadata.name() + " would use the same plugin folder "
-                                + PluginSecurity.dataFolder(metadata.name()) + " as the loaded plugin " + other.metadata().name()
-                                + ", rename one of them");
-
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resolving sandbox permissions for: {}", jar.getName());
                 PluginSandbox sandbox = security.resolve(metadata, props);
 
@@ -328,7 +321,7 @@ public class PluginLoaderManager {
                 loaderToPluginCache.put(loadedLoader, plugin);
                 uuidToPluginCache.put(metadata.uuid(), plugin);
 
-                logger.info("Loaded Plugin {} {}", metadata.name(), metadata.version());
+                logger.info("Loaded Plugin {} {} ({})", metadata.name(), metadata.version(), metadata.uuid());
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
                 pluginManager.loadDataStore(metadata.uuid());

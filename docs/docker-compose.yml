@@ -6,11 +6,9 @@ services:
     volumes:
       - ./plugins:/srv/plugins
       - ./server.properties:/srv/server.properties
-      - ./tokens.secret:/srv/tokens.secret
+      # Bot token, plugin data, plugin permissions and plugin files
+      - ./data:/srv/data
       # - ./logs:/srv/logs
-      - comitas_plugin_data:/srv/plugin_data
     # The following allow `docker attach comitas` to work
     stdin_open: true
     tty: true
-volumes:
-  comitas_plugin_data:

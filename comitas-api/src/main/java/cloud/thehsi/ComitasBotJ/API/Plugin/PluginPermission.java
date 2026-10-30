@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * </pre>
  * The server owner is asked on first install, which of the requested permissions should be granted.
  * A plugin isn't loaded, if a permission marked as {@code required} isn't granted.
- * The decision is stored in {@code plugins/<Plugin Name>.security.properties}.
+ * The decision is stored in {@code data/security/<Plugin UUID>.security.properties}.
  */
 @SuppressWarnings("unused")
 public enum PluginPermission {
@@ -26,7 +26,7 @@ public enum PluginPermission {
     NETWORK("network", "Network Access"),
 
     /**
-     * Allows writing files inside the plugin's own data folder ({@code plugins/<Plugin Name>/}),
+     * Allows writing files inside the plugin's own data folder ({@code data/volumes/<Plugin UUID>/}),
      * see {@link Plugin#getDataFolder()}. Without it, the data folder is read-only.
      */
     FILE_STORAGE("file_storage", "File Storage");

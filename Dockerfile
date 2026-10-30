@@ -42,6 +42,6 @@ RUN apk -U upgrade \
 COPY --from=jre-builder /opt/java-minimal /opt/java
 COPY --from=jre-builder /srv/server.jar /srv/server.jar
 
-RUN touch /srv/server.properties /srv/tokens.secret
+RUN mkdir -p /srv/data && touch /srv/server.properties
 
 CMD ["/opt/java/bin/java", "--enable-native-access=ALL-UNNAMED", "-jar", "server.jar"]

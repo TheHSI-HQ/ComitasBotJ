@@ -79,7 +79,7 @@ java -jar comitas-core-<version>.jar
    **In modern installs, ComitasBotJ will prompt you at first startup once for your bot token, so you can skip ahead**
 
    If you decide not to use First Time Startup config,
-   open the generated `tokens.secret` file and add your token after `bot=`:
+   open the generated `data/token.secret` file and add your token after `bot=`:
     
     ```properties
     bot=YOUR_DISCORD_BOT_TOKEN
@@ -112,9 +112,9 @@ Comitas API and a safe subset of the JDK:
 | Permission     | Allows                                                                          |
 |----------------|---------------------------------------------------------------------------------|
 | `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)              |
-| `file_storage` | Writing files in the plugin's own folder, `plugins/<Plugin Name>/` (always readable) |
+| `file_storage` | Writing files in the plugin's own folder, `data/volumes/<Plugin UUID>/` (always readable) |
 
-Each plugin sees its own, fake file system: `/` is `plugins/<Plugin Name>/` and `/mnt/<name>` are its mount points.
+Each plugin sees its own, fake file system: `/` is `data/volumes/<Plugin UUID>/` and `/mnt/<name>` are its mount points.
 Without `file_storage`, the plugin can only read its folder.
 
 When a plugin requesting permissions is installed, ComitasBotJ asks on the console:
@@ -133,7 +133,7 @@ What do you grant?
 `all`, `required` or `none`). A plugin isn't loaded, if one of its required permissions isn't granted. Without an
 interactive console (e.g. `--no-cmd` or Docker without a TTY), requested permissions are denied until they are decided.
 
-The answers are stored in `plugins/<Plugin Name>.security.properties`, which can also be edited by hand
+The answers are stored in `data/security/<Plugin UUID>.security.properties`, which can also be edited by hand
 (changes apply on the next reload). It can additionally make host directories available to the plugin:
 
 ```properties
@@ -158,8 +158,7 @@ Do you grant it?
 
 After `Y`, you enter the directory, which is saved to the security file. `I` saves `denied-mount.<name>=true`.
 
-Directories overlapping the token, `server.properties`, `plugins/`, `plugin_data/`, `logs/` or the Comitas jar can't
-be mounted.
+Directories overlapping `data/`, `server.properties`, `plugins/`, `logs/` or the Comitas jar can't be mounted.
 
 > [!WARNING]
 > The sandbox protects your token and files, but a plugin can still use the bot through the Comitas API
@@ -187,20 +186,29 @@ The following files and directories are created and used by ComitasBotJ:
 .
 ├── comitas-core-<version>.jar # The ComitasBotJ executable JAR file
 ├── server.properties          # The main configuration file
-├── tokens.secret              # The file containing the Discord bot token
 ├── logs/                      # Logs from the last 365 days
 │   ├── latest.log             # The current log file
 │   └── ...
-├── plugin_data/               # Persistent data used by plugins
-│   └── <uuid>.dat             # Persistent data storage of a plugin
-└── plugins/                   # Directory from which plugins are loaded
-    ├── <plugin>.jar
-    ├── <Plugin Name>/         # Files of a plugin, its root directory (writable with file_storage)
-    └── <Plugin Name>.security.properties # Granted permissions & mount points of a plugin
+├── plugins/                   # Directory from which plugins are loaded
+│   └── <plugin>.jar
+└── data/                      # Everything ComitasBotJ manages, never accessible to plugins
+    ├── token.secret           # The file containing the Discord bot token
+    ├── .cache/                # Instance lock, prevents two instances controlling the same bot
+    ├── plugins/
+    │   └── <uuid>.dat         # Persistent data storage of a plugin
+    ├── security/
+    │   └── <uuid>.security.properties # Granted permissions & mount points of a plugin
+    └── volumes/
+        └── <uuid>/            # Files of a plugin, its root directory (writable with file_storage)
 ```
 
+Plugins are identified by the `uuid` in their `plugin.properties`, it is also shown when the plugin is loaded.
+Files of older versions (`tokens.secret`, `.cache/`, `plugin_data/`, `plugins/<Plugin Name>.security.properties`)
+are moved into `data/` automatically on startup.
+
 > [!WARNING]
-> Do not modify or delete files in `plugin_data/` unless you know exactly what you are doing. Plugins may rely on the data stored in this directory.
+> Never share the `data/` directory, it contains your bot token. Do not modify or delete files in `data/plugins/`
+> unless you know exactly what you are doing, plugins rely on the data stored in this directory.
 
 
 ## Plugin Development

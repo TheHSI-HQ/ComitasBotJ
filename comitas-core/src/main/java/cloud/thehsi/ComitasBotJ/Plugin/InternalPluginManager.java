@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Package;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
@@ -230,12 +231,12 @@ public class InternalPluginManager implements PluginManager {
 
     public void loadDataStore(@NotNull UUID pluginUUID) {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading data stores for {}.", pluginUUID);
-        Path dataDirectory = Path.of("plugin_data");
-        Path dataFile = dataDirectory.resolve(pluginUUID + ".dat");
+        Path dataDirectory = DataPaths.PLUGIN_DATA;
+        Path dataFile = DataPaths.pluginDataFile(pluginUUID);
 
         try {
             if (DebugLogging.isBasicEnabled())
-                debugLogger.debug("Creating plugin_data directory if it doesn't exist.");
+                debugLogger.debug("Creating plugin data directory if it doesn't exist.");
             Files.createDirectories(dataDirectory);
 
             if (Files.notExists(dataFile)) {
@@ -282,10 +283,8 @@ public class InternalPluginManager implements PluginManager {
             return;
         }
 
-        Path directory = Path.of("plugin_data");
-        Path target = directory.resolve(
-                pluginUUID + ".dat"
-        );
+        Path directory = DataPaths.PLUGIN_DATA;
+        Path target = DataPaths.pluginDataFile(pluginUUID);
         Path temporary = directory.resolve(
                 pluginUUID + ".dat.tmp"
         );
@@ -301,7 +300,7 @@ public class InternalPluginManager implements PluginManager {
         while (true) {
             try {
                 if (DebugLogging.isBasicEnabled())//noinspection LoggingSimilarMessage
-                    debugLogger.debug("Creating plugin_data directory if it doesn't exist.");
+                    debugLogger.debug("Creating plugin data directory if it doesn't exist.");
                 Files.createDirectories(directory);
 
                 // Write the complete data first

@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
@@ -23,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 /**
- * Manages the {@code plugins/<Plugin Name>.security.properties} files, the permission prompt and mount requests.
+ * Manages the {@code data/security/<uuid>.security.properties} files, the permission prompt and mount requests.
  * <p>
  * Plugins request permissions in their {@code plugin.properties}:
  * <pre>
@@ -38,9 +39,6 @@ import java.util.regex.Pattern;
 public final class PluginSecurity {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Sandbox");
     private static final Pattern MOUNT_NAME = Pattern.compile("[A-Za-z0-9_-]+");
-    private static final Pattern WINDOWS_RESERVED = Pattern.compile("(?i)(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\\..*)?");
-    private static final Path PLUGINS_DIRECTORY = Path.of("plugins");
-    private static final Path PLUGIN_DATA_DIRECTORY = Path.of("plugin_data");
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_DIRECTORY_ATTEMPTS = 3;
 
@@ -51,27 +49,17 @@ public final class PluginSecurity {
         this.prompter = prompter;
     }
 
-    /**
-     * The plugin name, usable as a file name.
-     */
     @NotNull
-    public static String safeName(@NotNull String pluginName) {
-        String safe = pluginName.replaceAll("[^A-Za-z0-9._ -]", "_").strip().replaceAll("[. ]+$", "");
-        if (safe.isEmpty() || safe.startsWith(".") || WINDOWS_RESERVED.matcher(safe).matches()) safe = "_" + safe;
-        return safe;
-    }
-
-    @NotNull
-    public static Path securityFile(@NotNull String pluginName) {
-        return PLUGINS_DIRECTORY.resolve(safeName(pluginName) + ".security.properties");
+    public static Path securityFile(@NotNull UUID uuid) {
+        return DataPaths.securityFile(uuid);
     }
 
     /**
      * The host directory, the plugin sees as {@code /}.
      */
     @NotNull
-    public static Path dataFolder(@NotNull String pluginName) {
-        return PLUGINS_DIRECTORY.resolve(safeName(pluginName));
+    public static Path dataFolder(@NotNull UUID uuid) {
+        return DataPaths.volume(uuid);
     }
 
     /**
@@ -122,7 +110,7 @@ public final class PluginSecurity {
     @NotNull
     public PluginSandbox resolve(@NotNull Plugin.PluginMetadata metadata, @NotNull Properties pluginProperties) throws IOException {
         String name = metadata.name();
-        Path file = securityFile(name);
+        Path file = securityFile(metadata.uuid());
         LinkedHashMap<PluginPermission, Request> requests = parseRequests(pluginProperties, name);
 
         Properties config = new Properties();
@@ -134,9 +122,8 @@ public final class PluginSecurity {
 
             String configuredUuid = config.getProperty("uuid", "").strip();
             if (!configuredUuid.isEmpty() && !configuredUuid.equalsIgnoreCase(metadata.uuid().toString()))
-                throw new PluginPermissionException(file + " (and the plugin folder " + dataFolder(name) + ") belongs to "
-                        + "the plugin with the uuid " + configuredUuid + ", but " + name + " has the uuid " + metadata.uuid()
-                        + ". If this is the same plugin, fix the uuid in the file, otherwise rename one of the plugins.");
+                throw new PluginPermissionException(file + " contains the uuid " + configuredUuid + ", but belongs to "
+                        + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
         }
 
         Map<PluginPermission, Boolean> decisions = new EnumMap<>(PluginPermission.class);
@@ -186,7 +173,7 @@ public final class PluginSecurity {
                     + " in " + file + " and reload to load it.");
 
         Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
-        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(name));
+        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()));
         for (String key : config.stringPropertyNames())
             if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
                 sandbox.addNeverMount(key.substring("denied-mount.".length()));
@@ -307,7 +294,7 @@ public final class PluginSecurity {
                 logger.warn("Plugin {} requested the permissions [{}], but there is no interactive console to ask. "
                                 + "They are denied, edit {} to grant them and reload.",
                         name, String.join(", ", undecided.stream().map(r -> r.permission().getKey()).toList()),
-                        securityFile(name));
+                        securityFile(metadata.uuid()));
                 return null;
             }
 
@@ -436,7 +423,7 @@ public final class PluginSecurity {
                 sandbox.addNeverMount(name);
                 append(sandbox, "denied-mount." + name + "=true\n", "was denied the mount point /mnt/" + name);
                 logger.info("Plugin {} will never be given /mnt/{}, remove denied-mount.{} from {} to undo this",
-                        sandbox.pluginName(), name, name, securityFile(sandbox.pluginName()));
+                        sandbox.pluginName(), name, name, securityFile(sandbox.uuid()));
                 yield CompletableFuture.completedFuture(null);
             }
             case NO -> CompletableFuture.completedFuture(null);
@@ -450,7 +437,7 @@ public final class PluginSecurity {
             if (answer == null) {
                 logger.warn("Plugin {} requested a directory as /mnt/{}, but there is no interactive console to ask. "
                         + "Add mount.{}=<directory> to {} and reload to grant it.", sandbox.pluginName(), name, name,
-                        securityFile(sandbox.pluginName()));
+                        securityFile(sandbox.uuid()));
                 return CompletableFuture.completedFuture(MountDecision.NO);
             }
 
@@ -505,11 +492,11 @@ public final class PluginSecurity {
                 + ": " + sandbox.pluginName() + " " + what + "\n" + lines;
         synchronized (fileLock) {
             try {
-                Files.createDirectories(PLUGINS_DIRECTORY);
-                Files.writeString(securityFile(sandbox.pluginName()), content, StandardCharsets.UTF_8,
+                Files.createDirectories(DataPaths.SECURITY);
+                Files.writeString(securityFile(sandbox.uuid()), content, StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (IOException e) {
-                logger.warn("Couldn't save the decision to {}", securityFile(sandbox.pluginName()), e);
+                logger.warn("Couldn't save the decision to {}", securityFile(sandbox.uuid()), e);
             }
         }
     }
@@ -554,14 +541,13 @@ public final class PluginSecurity {
     }
 
     /**
-     * Mounts must neither contain nor be inside the bot token, the configuration, the plugins
-     * (and their security settings and folders), the plugin data or the Comitas jar.
+     * Mounts must neither contain nor be inside the data directory (bot token, plugin data, security settings and
+     * plugin files), the configuration, the plugin jars, the logs or the Comitas jar.
      */
     @Nullable
     static String protectedConflict(@NotNull Path mountRoot) {
         List<Path> protectedPaths = new ArrayList<>(List.of(
-                Path.of("tokens.secret"), Path.of("server.properties"), PLUGINS_DIRECTORY, PLUGIN_DATA_DIRECTORY,
-                Path.of("logs")
+                DataPaths.DATA, DataPaths.SERVER_PROPERTIES, DataPaths.PLUGINS, DataPaths.LOGS
         ));
         try {
             protectedPaths.add(Path.of(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
@@ -589,7 +575,7 @@ public final class PluginSecurity {
                 .append("# Plugin: ").append(metadata.name()).append(' ').append(metadata.version())
                 .append(" (").append(metadata.jarName()).append(")\n")
                 .append("#\n")
-                .append("# The plugin sees ").append(dataFolder(metadata.name()).toString().replace('\\', '/'))
+                .append("# The plugin sees ").append(dataFolder(metadata.uuid()).toString().replace('\\', '/'))
                 .append("/ as its root directory, it is only writable with file_storage.\n")
                 .append("#\n")
                 .append("# Permissions (true = granted, false = denied):\n");
@@ -601,8 +587,8 @@ public final class PluginSecurity {
                 .append("#   mount.<name>=<directory>        (use / or \\\\ as path separator)\n")
                 .append("#   mount.<name>.read-only=true\n")
                 .append("#   denied-mount.<name>=true        (the plugin may not request it anymore)\n")
-                .append("# Directories overlapping the bot token, server.properties, plugins, plugin_data,\n")
-                .append("# logs or the Comitas jar can't be mounted.\n")
+                .append("# Directories overlapping data, server.properties, plugins, logs or the Comitas jar\n")
+                .append("# can't be mounted.\n")
                 .append("#\n")
                 .append("# Changes are applied on the next reload or restart.\n")
                 .append("uuid=").append(metadata.uuid()).append('\n');
@@ -613,7 +599,7 @@ public final class PluginSecurity {
                     .append(decisions.getOrDefault(permission, false)).append('\n');
         }
 
-        Files.createDirectories(PLUGINS_DIRECTORY);
+        Files.createDirectories(DataPaths.SECURITY);
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8);
     }
 

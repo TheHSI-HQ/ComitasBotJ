@@ -755,7 +755,7 @@ deny them.
 ### Files
 
 Plugins can't access the host's file system, each plugin has its own, isolated one. Its root `/` is the folder
-`plugins/<Plugin Name>/`, which is always readable, but only writable with `file_storage`.
+`data/volumes/<Plugin UUID>/` on the host, which is always readable, but only writable with `file_storage`.
 `Path.of`, `Paths.get` and `FileSystems.getDefault()` resolve in it, as does `getDataFolder()`:
 
 ```java

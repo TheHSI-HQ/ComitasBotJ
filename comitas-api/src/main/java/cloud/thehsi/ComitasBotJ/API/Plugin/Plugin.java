@@ -33,7 +33,7 @@ public abstract class Plugin {
     }
 
     /**
-     * Gets the plugin's data folder ({@code plugins/<Plugin Name>/} on the host).
+     * Gets the plugin's data folder ({@code data/volumes/<Plugin UUID>/} on the host).
      * <p>
      * Plugins run in a sandbox and can't access the host's file system directly,
      * the returned path is the root ({@code /}) of the plugin's own, isolated file system.

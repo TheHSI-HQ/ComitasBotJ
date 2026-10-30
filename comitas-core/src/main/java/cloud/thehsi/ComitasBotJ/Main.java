@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
@@ -169,6 +170,7 @@ public class Main implements Runnable {
     public void run() {
         props = createStartupProperties();
         info("Starting ComitasBotJ v{}...", getServerVersion());
+        DataPaths.migrate();
 
         if (!skipFirstTimeStartup && FirstTimeStartup.shouldFirstTimeStartup())
             FirstTimeStartup.showFirstTimeStartup();

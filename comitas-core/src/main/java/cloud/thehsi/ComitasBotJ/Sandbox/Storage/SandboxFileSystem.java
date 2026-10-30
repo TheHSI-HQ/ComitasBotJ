@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * The isolated file system of one plugin.
  * <p>
- * {@code /} is the plugin's data folder ({@code plugins/<Plugin Name>/}, always readable, writable only with the file_storage permission),
+ * {@code /} is the plugin's data folder ({@code data/volumes/<uuid>/}, always readable, writable only with the file_storage permission),
  * {@code /mnt/<name>} are the mount points configured by the server owner.
  * Paths of this file system can't be turned into host paths, so plugins can never leave these directories.
  */

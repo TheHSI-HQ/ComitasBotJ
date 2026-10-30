@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
@@ -24,7 +25,7 @@ public class PluginLister {
     static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
     public static void listAllPlugins() {
-        File pluginDir = new File("plugins");
+        File pluginDir = DataPaths.PLUGINS.toFile();
 
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
 
