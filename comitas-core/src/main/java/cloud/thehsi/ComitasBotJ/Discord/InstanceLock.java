@@ -83,6 +83,25 @@ public class InstanceLock {
         }
     }
 
+    /**
+     * The lock file only means a crash, if the process that wrote it is gone.
+     * A running process means the same directory is started twice.
+     */
+    private static boolean previousRunCrashed() {
+        if (Files.notExists(LOCK_FILE)) return false;
+
+        try {
+            String firstLine = Files.readAllLines(LOCK_FILE).stream().findFirst().orElse("").strip();
+            long pid = Long.parseLong(firstLine);
+            // In containers the restarted process usually has the same pid
+            if (pid == ProcessHandle.current().pid()) return true;
+            return ProcessHandle.of(pid).map(handle -> !handle.isAlive()).orElse(true);
+        } catch (IOException | NumberFormatException e) {
+            DebugLogging.basic("Unreadable lock file, treating it as a crash");
+            return true;
+        }
+    }
+
     @NotNull
     private static String loadOrCreateToken() {
         try {
@@ -109,7 +128,7 @@ public class InstanceLock {
             return true;
         }
 
-        boolean crashed = Files.exists(LOCK_FILE);
+        boolean crashed = previousRunCrashed();
         DebugLogging.basic("Checking for other backends controlling this bot (token {}, previous run crashed: {})", token, crashed);
 
         List<Marker> markers = jda.retrieveApplicationEmojis().complete().stream()

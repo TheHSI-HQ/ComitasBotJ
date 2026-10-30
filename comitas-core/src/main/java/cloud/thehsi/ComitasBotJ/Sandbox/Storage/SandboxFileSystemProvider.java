@@ -47,6 +47,18 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
         return resolved.host();
     }
 
+    /**
+     * Resolves a path, which data is written to, deletes stay allowed beyond the quota.
+     */
+    @NotNull
+    private Path hostForWriting(@NotNull Path path, boolean write) throws IOException {
+        SandboxFileSystem.Resolved resolved = fs.resolve(check(path), write);
+        if (resolved.host() == null)
+            throw new AccessDeniedException(resolved.path().toString(), null, "the mount directory is virtual");
+        if (write) fs.checkQuota(resolved);
+        return resolved.host();
+    }
+
     private static boolean writes(@NotNull Collection<? extends OpenOption> options) {
         for (OpenOption option : options)
             if (WRITE_OPTIONS.contains(option)) return true;
@@ -108,7 +120,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
     @Override
     public SeekableByteChannel newByteChannel(@NotNull Path path, @NotNull Set<? extends OpenOption> options,
                                               @NotNull FileAttribute<?>... attrs) throws IOException {
-        Path host = host(path, writes(options));
+        Path host = hostForWriting(path, writes(options));
         try {
             return Files.newByteChannel(host, options, attrs);
         } catch (IOException e) {
@@ -120,7 +132,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
     @Override
     public FileChannel newFileChannel(@NotNull Path path, @NotNull Set<? extends OpenOption> options,
                                       @NotNull FileAttribute<?>... attrs) throws IOException {
-        Path host = host(path, writes(options));
+        Path host = hostForWriting(path, writes(options));
         try {
             return FileChannel.open(host, options, attrs);
         } catch (IOException e) {
@@ -133,7 +145,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
     public AsynchronousFileChannel newAsynchronousFileChannel(@NotNull Path path, @NotNull Set<? extends OpenOption> options,
                                                               @Nullable ExecutorService executor,
                                                               @NotNull FileAttribute<?>... attrs) throws IOException {
-        Path host = host(path, writes(options));
+        Path host = hostForWriting(path, writes(options));
         try {
             return AsynchronousFileChannel.open(host, options, executor, attrs);
         } catch (IOException e) {
@@ -156,7 +168,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
     @NotNull
     @Override
     public OutputStream newOutputStream(@NotNull Path path, @NotNull OpenOption... options) throws IOException {
-        Path host = host(path, true);
+        Path host = hostForWriting(path, true);
         try {
             return Files.newOutputStream(host, options);
         } catch (IOException e) {
@@ -207,7 +219,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
 
                     @Override
                     public boolean hasNext() {
-                        while (next == null && hostIterator.hasNext()) {
+                        while (next == null && hostHasNext()) {
                             String name = Objects.requireNonNull(hostIterator.next().getFileName()).toString();
                             // /mnt is reserved for mount points
                             if (dataRoot && name.equals(SandboxFileSystem.MOUNT_DIRECTORY)) continue;
@@ -224,6 +236,15 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
                             }
                         }
                         return next != null;
+                    }
+
+                    private boolean hostHasNext() {
+                        try {
+                            return hostIterator.hasNext();
+                        } catch (DirectoryIteratorException e) {
+                            // Thrown by the host stream, so its message names the host path
+                            throw new DirectoryIteratorException(translate(e.getCause(), dir, null));
+                        }
                     }
 
                     @Override
@@ -245,7 +266,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void createDirectory(@NotNull Path dir, @NotNull FileAttribute<?>... attrs) throws IOException {
-        Path host = host(dir, true);
+        Path host = hostForWriting(dir, true);
         try {
             Files.createDirectory(host, attrs);
         } catch (IOException e) {
@@ -271,6 +292,7 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
         SandboxFileSystem.Resolved to = fs.resolve(check(target), true);
         if (to.areaRoot() || to.host() == null)
             throw new AccessDeniedException(target.toString(), null, "can't replace a root directory");
+        fs.checkQuota(to);
         try {
             Files.copy(from, to.host(), options);
         } catch (IOException e) {

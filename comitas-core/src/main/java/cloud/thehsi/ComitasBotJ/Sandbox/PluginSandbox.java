@@ -42,7 +42,12 @@ public final class PluginSandbox {
         this.granted = Set.copyOf(granted);
         this.mounts.putAll(mounts);
         this.fileSystem = new SandboxFileSystem(dataRoot.toAbsolutePath().normalize(),
-                has(PluginPermission.FILE_STORAGE), this.mounts);
+                has(PluginPermission.FILE_STORAGE), this.mounts, dataQuotaBytes());
+    }
+
+    private static long dataQuotaBytes() {
+        if (cloud.thehsi.ComitasBotJ.Main.conf() == null) return 0;
+        return (long) (cloud.thehsi.ComitasBotJ.Main.conf().pluginDataQuotaMb.get() * 1024 * 1024);
     }
 
     @NotNull

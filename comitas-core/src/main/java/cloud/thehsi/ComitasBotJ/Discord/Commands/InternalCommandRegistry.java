@@ -151,8 +151,19 @@ public class InternalCommandRegistry implements CommandRegistry {
                 commandBuilder.getArguments(),
                 commandBuilder.getConsumer()
         );
+        requireUnusedName(command.name());
         register(command);
         dynamicCommands.add(command);
+    }
+
+    /**
+     * Discord only knows one command per name, a second handler would silently run as well.
+     */
+    private synchronized void requireUnusedName(@NotNull String name) {
+        boolean taken = commands.stream().anyMatch(cmd -> cmd.name().equals(name))
+                || dynamicCommands.stream().anyMatch(cmd -> cmd.name().equals(name));
+        if (taken)
+            throw new IllegalArgumentException("A command named '" + name + "' is already registered");
     }
 
     void registerMethod(@NotNull Method method, @NotNull CommandSupplier commandSupplier) {
@@ -197,6 +208,7 @@ public class InternalCommandRegistry implements CommandRegistry {
                 commandSupplier
         );
 
+        requireUnusedName(command.name());
         register(command);
 
         commands.add(
@@ -216,6 +228,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     /**
      * Asynchronously deletes all commands on Discord, which have no registered handler.
      * Global commands are compared by name, guild commands are always unused, as only global commands get registered.
+     * Guild commands are only removed with prune-guild-commands, as they aren't necessarily created by ComitasBotJ.
      */
     public void pruneUnusedCommands() {
         var jda = DiscordAPI.nullableApi();
@@ -234,6 +247,8 @@ public class InternalCommandRegistry implements CommandRegistry {
                 command.delete().queue(null, e -> logger.warn("Failed to remove unused command '{}'", command.getName(), e));
             }
         }, e -> logger.warn("Failed to retrieve commands for pruning", e));
+
+        if (!Main.conf().pruneGuildCommands.get()) return;
 
         for (Guild guild : jda.getGuilds())
             guild.retrieveCommands().queue(remoteCommands -> {

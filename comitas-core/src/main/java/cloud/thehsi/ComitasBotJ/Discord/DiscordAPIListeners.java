@@ -155,49 +155,61 @@ public class DiscordAPIListeners extends ListenerAdapter {
 
     @Override
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
-        if (event.getMember() == null) return;
+        net.dv8tion.jda.api.entities.Member member = event.getMember();
+        if (member == null) return;
 
-        InternalMessage message = new InternalMessage(event.retrieveMessage().complete());
+        // Queued, blocking here would stall the JDA event thread for every reaction
+        event.retrieveMessage().queue(retrieved -> {
+            InternalMessage message = new InternalMessage(retrieved);
 
-        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
-                new InternalMember(event.getMember()),
-                message,
-                new InternalReaction(event.getReaction(), message),
-                ReactionAction.INCREASED,
-                EventOrigin.EXTERNAL
-        );
+            ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
+                    new InternalMember(member),
+                    message,
+                    new InternalReaction(event.getReaction(), message),
+                    ReactionAction.INCREASED,
+                    EventOrigin.EXTERNAL
+            );
 
-        if (DebugLogging.isEventEnabled())
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(reactionUpdatedEvent);
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Firing a ReactionUpdatedEvent.");
+            eventManager.callEvent(reactionUpdatedEvent);
 
-        if (reactionUpdatedEvent.willUndo()) {
-            EventManager.addUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
-            message.message.removeReaction(event.getReaction().getEmoji(), event.getMember().getUser()).queue();
-        }
+            if (reactionUpdatedEvent.willUndo()) {
+                EventManager.addUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", member.getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
+                retrieved.removeReaction(event.getReaction().getEmoji(), member.getUser()).queue();
+            }
+        }, error -> logger.warn("Failed to retrieve the message of a reaction", error));
     }
 
     @Override
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
-        if (event.getMember() == null) return;
+        net.dv8tion.jda.api.entities.Member member = event.getMember();
+        if (member == null) return;
 
-        Message message = new InternalMessage(event.retrieveMessage().complete());
+        // Resolved now, so a queued callback can't consume the prevention of a later removal
+        EventOrigin origin = EventManager.resolveUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", member.getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
 
-        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
-                new InternalMember(event.getMember()),
-                message,
-                new InternalReaction(event.getReaction(), message),
-                event.getReaction().retrieveUsers().complete().isEmpty() ? ReactionAction.REMOVED : ReactionAction.DECREASED,
-                EventManager.resolveUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName())
-        );
+        event.retrieveMessage().queue(retrieved -> {
+            Message message = new InternalMessage(retrieved);
+            // The fetched message only lists reactions that still have users
+            ReactionAction action = retrieved.getReaction(event.getEmoji()) == null ? ReactionAction.REMOVED : ReactionAction.DECREASED;
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(reactionUpdatedEvent);
+            ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
+                    new InternalMember(member),
+                    message,
+                    new InternalReaction(event.getReaction(), message),
+                    action,
+                    origin
+            );
 
-        if (reactionUpdatedEvent.willUndo()) {
-            logger.warn("Cannot undo ReactionUpdatedEvent with a ReactionAction of DECREASED / REMOVED");
-        }
+            if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
+                debugLogger.debug("Firing a ReactionUpdatedEvent.");
+            eventManager.callEvent(reactionUpdatedEvent);
+
+            if (reactionUpdatedEvent.willUndo()) {
+                logger.warn("Cannot undo ReactionUpdatedEvent with a ReactionAction of DECREASED / REMOVED");
+            }
+        }, error -> logger.warn("Failed to retrieve the message of a reaction", error));
     }
 
     @Override

@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Properties;
 
 public class Secrets {
@@ -38,9 +38,13 @@ public class Secrets {
     public static String readBotToken() {
         try {
             Properties props = load();
-            String token = props.getProperty(BOT_TOKEN_KEY, "").strip();
-            props.setProperty(BOT_TOKEN_KEY, token);
-            store(props);
+            String raw = props.getProperty(BOT_TOKEN_KEY, "");
+            String token = raw.strip();
+            // Only rewrite the file when there is something to normalize
+            if (!raw.equals(token) || !props.containsKey(BOT_TOKEN_KEY)) {
+                props.setProperty(BOT_TOKEN_KEY, token);
+                store(props);
+            }
             return token;
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
@@ -68,9 +72,21 @@ public class Secrets {
     }
 
     private static void store(@NotNull Properties props) throws IOException {
-        Files.createDirectories(DataPaths.DATA);
-        try (OutputStream out = Files.newOutputStream(TOKEN_PATH)) {
+        Files.createDirectories(TOKEN_PATH.toAbsolutePath().getParent());
+        Path temp = TOKEN_PATH.resolveSibling(TOKEN_PATH.getFileName() + ".tmp");
+        Files.deleteIfExists(temp);
+
+        // Owner only from the start where supported, the token must never be readable by others
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix"))
+            Files.createFile(temp, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
+
+        try (OutputStream out = Files.newOutputStream(temp)) {
             props.store(out, "ComitasBotJ Discord Tokens");
+        }
+        try {
+            Files.move(temp, TOKEN_PATH, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(temp, TOKEN_PATH, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 }

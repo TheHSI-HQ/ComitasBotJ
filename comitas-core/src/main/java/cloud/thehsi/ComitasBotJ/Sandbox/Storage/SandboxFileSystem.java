@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.List;
 import java.util.Locale;
@@ -29,6 +30,9 @@ public final class SandboxFileSystem extends FileSystem {
     private final @NotNull Path dataRoot;
     private final boolean writable;
     private final @NotNull Map<String, PluginSandbox.MountPoint> mounts;
+    private final long quotaBytes;
+    private volatile long cachedUsage = -1;
+    private volatile long usageMeasuredAt;
 
     /**
      * @param dataRoot The absolute host directory the plugin sees as {@code /}
@@ -36,9 +40,58 @@ public final class SandboxFileSystem extends FileSystem {
      * @param mounts   The mount points, may be modified later on
      */
     public SandboxFileSystem(@NotNull Path dataRoot, boolean writable, @NotNull Map<String, PluginSandbox.MountPoint> mounts) {
+        this(dataRoot, writable, mounts, 0);
+    }
+
+    /**
+     * @param quotaBytes The maximum size of the data folder, 0 or less disables the limit
+     */
+    public SandboxFileSystem(@NotNull Path dataRoot, boolean writable, @NotNull Map<String, PluginSandbox.MountPoint> mounts, long quotaBytes) {
         this.dataRoot = dataRoot;
         this.writable = writable;
         this.mounts = mounts;
+        this.quotaBytes = quotaBytes;
+    }
+
+    /**
+     * Refuses to create or write files in the data folder, once it reached its quota.
+     * The limit is checked when a file is opened, so a single stream can still go past it.
+     */
+    void checkQuota(@NotNull Resolved resolved) throws IOException {
+        if (quotaBytes <= 0 || resolved.host() == null || !resolved.host().startsWith(dataRoot)) return;
+        if (dataUsage() >= quotaBytes)
+            throw new FileSystemException(resolved.path().toString(), null,
+                    "the plugin data folder reached its quota of " + quotaBytes / 1024 / 1024 + " MB");
+    }
+
+    private long dataUsage() throws IOException {
+        long now = System.currentTimeMillis();
+        // Cached briefly, walking big folders on every write would be slow
+        if (cachedUsage >= 0 && now - usageMeasuredAt < 5_000) return cachedUsage;
+
+        long[] total = {0};
+        try {
+            Files.walkFileTree(dataRoot, new SimpleFileVisitor<>() {
+                @NotNull
+                @Override
+                public FileVisitResult visitFile(@NotNull Path file, @NotNull BasicFileAttributes attrs) {
+                    total[0] += attrs.size();
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @NotNull
+                @Override
+                public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException exc) {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new FileSystemException("/", null, "the size of the data folder couldn't be determined");
+        }
+
+        cachedUsage = total[0];
+        usageMeasuredAt = now;
+        return total[0];
     }
 
     @NotNull
@@ -75,7 +128,12 @@ public final class SandboxFileSystem extends FileSystem {
         if (write && !writable)
             throw new AccessDeniedException(display, null, "the plugin wasn't granted the file_storage permission");
 
-        Files.createDirectories(dataRoot);
+        try {
+            Files.createDirectories(dataRoot);
+        } catch (IOException e) {
+            // The host exception would contain the host path
+            throw new FileSystemException(display, null, "the data folder couldn't be created");
+        }
         return new Resolved(absolute, mapUnder(dataRoot, names, display), names.isEmpty());
     }
 
@@ -207,9 +265,7 @@ public final class SandboxFileSystem extends FileSystem {
                     if (end < 0) {
                         regex.append("\\[");
                     } else {
-                        String content = glob.substring(i + 1, end).replace("\\", "\\\\");
-                        if (content.startsWith("!")) content = "^" + content.substring(1);
-                        regex.append('[').append(content).append(']');
+                        regex.append('[').append(characterClass(glob.substring(i + 1, end))).append(']');
                         i = end;
                     }
                 }
@@ -220,6 +276,22 @@ public final class SandboxFileSystem extends FileSystem {
             }
         }
         return regex.toString();
+    }
+
+    /**
+     * Escapes the content of a glob {@code [...]}, only {@code !} (negation) and {@code -} (ranges) keep their meaning.
+     */
+    @NotNull
+    private static String characterClass(@NotNull String content) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (i == 0 && c == '!' && content.length() > 1) result.append('^');
+            else if (c == '-' && i > 0 && i < content.length() - 1) result.append('-');
+            else if (Character.isLetterOrDigit(c)) result.append(c);
+            else result.append('\\').append(c);
+        }
+        return result.toString();
     }
 
     @NotNull
