@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -152,7 +151,6 @@ public final class PluginSandbox {
     int countMountRequest() {
         return mountRequests.incrementAndGet();
     }
-
 
     /**
      * A host directory, made available to a plugin by the server owner.

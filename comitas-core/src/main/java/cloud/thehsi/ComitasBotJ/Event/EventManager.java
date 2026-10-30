@@ -22,9 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -163,23 +161,40 @@ public class EventManager {
         });
     }
 
+    /**
+     * All event interfaces an event implements, including the ones they extend (e.g. {@code UndoableEvent}, {@code Event}).
+     */
+    @NotNull
+    private static Set<Class<? extends Event>> eventTypes(@NotNull Class<?> eventClass) {
+        Set<Class<? extends Event>> types = new LinkedHashSet<>();
+        Deque<Class<?>> queue = new ArrayDeque<>();
+        for (Class<?> c = eventClass; c != null; c = c.getSuperclass()) queue.addAll(List.of(c.getInterfaces()));
+        while (!queue.isEmpty()) {
+            Class<?> type = queue.poll();
+            if (!Event.class.isAssignableFrom(type) || !types.add(type.asSubclass(Event.class))) continue;
+            queue.addAll(List.of(type.getInterfaces()));
+        }
+        return types;
+    }
+
     public void callEvent(@NotNull Event event) {
-        Class<? extends Event> eventClass = null;
-        for (Class<?> m : event.getClass().getInterfaces()) {
-            if (!Event.class.isAssignableFrom(m)) continue;
-            eventClass = m.asSubclass(Event.class);
+        Set<Class<? extends Event>> eventTypes = eventTypes(event.getClass());
+        if (eventTypes.isEmpty()) throw new RuntimeException("The called Event doesn't implement Event");
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling event {}", event.getClass().getName());
+
+        List<RegisteredListener> handlers = new ArrayList<>();
+        for (Class<? extends Event> type : eventTypes) {
+            List<RegisteredListener> registered = listeners.get(type);
+            if (registered != null) handlers.addAll(registered);
         }
 
-        if (eventClass == null) throw new RuntimeException("The called Event doesn't implement Event");
-        if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling event {}", eventClass.getName());
-
-        List<RegisteredListener> handlers =
-                listeners.get(eventClass);
-
-        if (handlers == null)
+        if (handlers.isEmpty())
             return;
 
-        if (DebugLogging.isEventEnabled()) debugLogger.debug("Found {} handlers for {}", handlers.size(), eventClass.getName());
+        // Stable, so listeners of the same priority keep their registration order
+        handlers.sort(Comparator.comparingInt(RegisteredListener::slot));
+
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Found {} handlers for {}", handlers.size(), event.getClass().getName());
 
         for (RegisteredListener handler : handlers) {
             if (handler.genericFilter() != null
@@ -188,22 +203,21 @@ public class EventManager {
                 continue;
             }
 
+            // Restored afterwards, as events can be called from within other event handlers
+            Plugin previous = InternalPluginManager.setContextPlugin(handler.plugin());
             try {
-                if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.methodHandle(), eventClass.getName());
-                InternalPluginManager.setContextPlugin(handler.plugin());
-
+                if (DebugLogging.isEventEnabled()) debugLogger.debug("Calling handler {} for {}", handler.methodHandle(), event.getClass().getName());
                 handler.methodHandle().invoke(handler.listener(), event);
             } catch (Throwable e) {
+                if (e instanceof VirtualMachineError error && !(error instanceof StackOverflowError)) throw error;
                 if (!DebugLogging.isBasicEnabled())
                     StackTraces.trimStackTrace(e);
 
-                logger.error(
-                        "An error occurred in plugin {}",
-                        Objects.requireNonNull(Comitas.getPluginManager().lookupPlugin(handler.plugin)).name(),
-                        e
-                );
+                // The plugin may have been unloaded in the meantime
+                Plugin.PluginMetadata metadata = Comitas.getPluginManager().lookupPlugin(handler.plugin());
+                logger.error("An error occurred in plugin {}", metadata == null ? "(unloaded)" : metadata.name(), e);
             } finally {
-                InternalPluginManager.clearContextPlugin();
+                InternalPluginManager.restoreContextPlugin(previous);
             }
         }
     }

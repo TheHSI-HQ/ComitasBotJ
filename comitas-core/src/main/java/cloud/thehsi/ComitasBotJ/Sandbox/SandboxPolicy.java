@@ -303,7 +303,6 @@ final class SandboxPolicy {
     }
 
     static boolean isAllowedBootstrap(@NotNull String owner, @NotNull String name) {
-
         return ALLOWED_BOOTSTRAPS.contains(owner + "." + name);
     }
 

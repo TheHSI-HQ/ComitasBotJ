@@ -125,7 +125,6 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
             if (bypass) instance.writeDirect(formatThrowable(throwable));
             else instance.appendLog(formatThrowable(throwable));
         }
-
     }
 
     @NotNull

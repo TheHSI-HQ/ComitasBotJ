@@ -29,7 +29,13 @@ public enum PluginPermission {
      * Allows writing files inside the plugin's own data folder ({@code data/volumes/<Plugin UUID>/}),
      * see {@link Plugin#getDataFolder()}. Without it, the data folder is read-only.
      */
-    FILE_STORAGE("file_storage", "File Storage");
+    FILE_STORAGE("file_storage", "File Storage"),
+
+    /**
+     * Allows controlling the whole server: shutting it down ({@link cloud.thehsi.ComitasBotJ.API.Bot.Comitas#shutdown()})
+     * and reloading all plugins ({@link PluginManager#reloadSoft()}, {@link PluginManager#reloadHard()}).
+     */
+    SERVER_CONTROL("server_control", "Server Control (shutdown, reload)");
 
     private final @NotNull String key;
     private final @NotNull String displayName;

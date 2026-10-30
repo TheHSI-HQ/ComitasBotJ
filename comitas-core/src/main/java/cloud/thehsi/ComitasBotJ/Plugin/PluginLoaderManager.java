@@ -21,19 +21,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
+    // Read from event and scheduler threads, while reloads modify them
     private @NotNull
-    final List<LoadedPlugin> plugins = new ArrayList<>();
+    final List<LoadedPlugin> plugins = new CopyOnWriteArrayList<>();
     private @NotNull
-    final Map<ClassLoader, Plugin> loaderToPluginCache = new HashMap<>();
+    final Map<ClassLoader, Plugin> loaderToPluginCache = new ConcurrentHashMap<>();
     private @NotNull
-    final Map<UUID, Plugin> uuidToPluginCache = new HashMap<>();
+    final Map<UUID, Plugin> uuidToPluginCache = new ConcurrentHashMap<>();
     private @NotNull
-    final Set<Plugin> enabledPlugins = new HashSet<>();
+    final Set<Plugin> enabledPlugins = ConcurrentHashMap.newKeySet();
     private @NotNull
     final Logger debugLogger = DebugLogging.getLogger();
     private @NotNull
@@ -53,6 +56,7 @@ public class PluginLoaderManager {
 
     public static long versionId(@NotNull String version) {
         version = version.trim().toLowerCase();
+        if (version.isEmpty()) return 0;
 
         int suffix = 0; // release
         char last = version.charAt(version.length() - 1);
@@ -91,7 +95,7 @@ public class PluginLoaderManager {
     }
 
     @NotNull
-    private static Properties readPluginProperties(@NotNull File jar) throws IOException {
+    static Properties readPluginProperties(@NotNull File jar) throws IOException {
         try (JarFile jarFile = new JarFile(jar)) {
             ZipEntry entry = jarFile.getEntry("plugin.properties");
             if (entry == null) throw new RuntimeException("Plugin is missing plugin.properties");
@@ -139,7 +143,7 @@ public class PluginLoaderManager {
                 ).getName();
 
                 basePlugin = new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
-                        "Comitas", Main.getServerVersion(), jarName, Comitas.getServerVersion(), UUID.fromString("0000000-0000-0000-0000-000000000000"), "comitas")
+                        "Comitas", Main.getServerVersion(), jarName, Comitas.getServerVersion(), new UUID(0, 0), "comitas")
                 );
 
                 plugins.add(basePlugin);
@@ -193,8 +197,11 @@ public class PluginLoaderManager {
         boolean nonWhitelistedFound = false;
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsing plugin whitelist");
-        if (!Objects.equals(Main.conf().allowedPlugins.get(), "*"))
-            allowedPlugins = List.of(Main.conf().allowedPlugins.get().split(","));
+        if (!Objects.equals(Main.conf().allowedPlugins.get().strip(), "*"))
+            allowedPlugins = Arrays.stream(Main.conf().allowedPlugins.get().split(","))
+                    .map(String::strip)
+                    .filter(entry -> !entry.isEmpty())
+                    .toList();
 
         for (File jar : jars) {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugin Jar File: {}", jar.getName());
@@ -218,24 +225,27 @@ public class PluginLoaderManager {
                     String hash = "";
                     String original_hash = "";
                     for (String allowedPlugin : allowedPlugins) {
-                        if (allowedPlugin.equals(metadata.name()) || allowedPlugin.equals(metadata.uuid().toString())) {
-                            found = true;
-                            break;
+                        // <name or uuid>[!sha256=<hash>], names and uuids are compared case insensitive
+                        String id = allowedPlugin;
+                        String expectedHash = null;
+                        int marker = allowedPlugin.toLowerCase(Locale.ROOT).indexOf("!sha256=");
+                        if (marker >= 0) {
+                            id = allowedPlugin.substring(0, marker).strip();
+                            expectedHash = allowedPlugin.substring(marker + "!sha256=".length()).strip().toLowerCase(Locale.ROOT);
                         }
 
-                        if (allowedPlugin.toLowerCase().split("!sha256=").length < 2)
+                        if (!id.equalsIgnoreCase(metadata.name()) && !id.equalsIgnoreCase(metadata.uuid().toString()))
                             continue;
 
-                        String raw = allowedPlugin.toLowerCase().split("!sha256=")[0];
-                        original_hash = allowedPlugin.toLowerCase().split("!sha256=")[1];
-                        if (raw.equals(metadata.name()) || raw.equals(metadata.uuid().toString())) {
-                            found = true;
+                        found = true;
+                        if (expectedHash != null) {
+                            original_hash = expectedHash;
                             try (InputStream jar_is = Files.newInputStream(jar.toPath())) {
                                 hash = DigestUtils.sha256Hex(jar_is);
-                                hashValid = Objects.equals(original_hash, hash.toLowerCase());
+                                hashValid = Objects.equals(original_hash, hash.toLowerCase(Locale.ROOT));
                             }
-                            break;
                         }
+                        break;
                     }
 
                     if (!nonWhitelistedFound && !found)
@@ -304,6 +314,10 @@ public class PluginLoaderManager {
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating sandboxed class loader for: {}", jar.getName());
                 loader = new SandboxPluginClassLoader(jar, sandbox);
 
+                // Before the plugin is created, its constructor may already use the data store
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
+                pluginManager.loadDataStore(metadata.uuid());
+
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reflecting main class for: {}", jar.getName());
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
@@ -323,13 +337,10 @@ public class PluginLoaderManager {
 
                 logger.info("Loaded Plugin {} {} ({})", metadata.name(), metadata.version(), metadata.uuid());
 
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
-                pluginManager.loadDataStore(metadata.uuid());
-
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Calling onLoad on: {}", jar.getName());
                 try {
                     plugin.onLoad();
-                } catch (Exception e) {
+                } catch (Exception | LinkageError e) {
                     // Don't keep a half loaded plugin around, it would get enabled later on
                     plugins.removeIf(loaded -> loaded.plugin() == plugin);
                     loaderToPluginCache.remove(loadedLoader);
@@ -355,7 +366,8 @@ public class PluginLoaderManager {
                         ConsoleColor.WHITE,
                         e.getLocalizedMessage()
                 );
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
+                // LinkageErrors include ExceptionInInitializerError and NoClassDefFoundError of a broken plugin
                 closeQuietly(loader);
                 logger.error("Error when loading: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
@@ -415,7 +427,7 @@ public class PluginLoaderManager {
                 if (DebugLogging.isBasicEnabled())
                     debugLogger.debug("Calling onEnable on: {}", loaded.metadata().name());
                 loaded.plugin().onEnable();
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 logger.error("Error when enabling: \"{}\":", loaded.metadata().name(), e);
             }
         }
@@ -429,16 +441,21 @@ public class PluginLoaderManager {
             try {
                 if (enabledPlugins.remove(loaded.plugin()))
                     loaded.plugin().onDisable();
+            } catch (Exception | LinkageError e) {
+                logger.error("Error when disabling: \"{}\":", loaded.metadata().name(), e);
+            }
 
+            try {
                 pluginManager.saveDataStore(loaded.metadata().uuid());
 
-                loaderToPluginCache.remove(loaded.loader);
                 uuidToPluginCache.remove(loaded.metadata().uuid());
 
-                if (loaded.loader != null)
+                if (loaded.loader != null) {
+                    loaderToPluginCache.remove(loaded.loader);
                     loaded.loader().close();
+                }
             } catch (Exception e) {
-                logger.error(e.getLocalizedMessage());
+                logger.error("Error when unloading: \"{}\":", loaded.metadata().name(), e);
             }
         }
 

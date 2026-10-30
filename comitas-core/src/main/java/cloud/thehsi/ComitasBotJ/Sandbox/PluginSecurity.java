@@ -774,7 +774,6 @@ public final class PluginSecurity {
         StringBuilder content = new StringBuilder("\n# ")
                 .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                 .append(": ").append(ConsoleText.plain(pluginName)).append(" requested new permissions\n");
-
         decisions.forEach((permission, granted) ->
                 content.append("permission.").append(permission.getKey()).append('=').append(granted).append('\n'));
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);

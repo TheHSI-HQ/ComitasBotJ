@@ -31,13 +31,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InternalComitas implements InternalComitasImpl {
     @NotNull
-    static final List<Runnable> onShutdownCalls = new ArrayList<>();
+    static final List<Runnable> onShutdownCalls = new CopyOnWriteArrayList<>();
     private @NotNull
     static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Bot");
     private @NotNull
@@ -129,6 +129,7 @@ public class InternalComitas implements InternalComitasImpl {
     @Override
     public void shutdown() {
         DebugLogging.action();
+        pluginManager.requireServerControl("shut down the server");
         onShutdown();
         System.exit(0);
     }
@@ -149,7 +150,14 @@ public class InternalComitas implements InternalComitasImpl {
         ((LoggerContext) LoggerFactory.getILoggerFactory()).stop();
 
         if (DebugLogging.isBasicEnabled()) System.out.println("Running Shutdown hooks");
-        onShutdownCalls.forEach(Runnable::run);
+        for (Runnable call : onShutdownCalls) {
+            try {
+                call.run();
+            } catch (RuntimeException e) {
+                // The logger is stopped already
+                System.err.println("A shutdown call failed: " + e);
+            }
+        }
     }
 
     private void enterTerminalBypass(@Nullable Terminal terminal) {
@@ -172,7 +180,7 @@ public class InternalComitas implements InternalComitasImpl {
         pluginLoaderManager.unloadPlugins();
 
         DebugLogging.basic("Canceling all Schedulers");
-        scheduler.cancelAll();
+        scheduler.shutdown();
 
         DebugLogging.basic("Shutting down Event Listeners");
         eventManager.shutdown();

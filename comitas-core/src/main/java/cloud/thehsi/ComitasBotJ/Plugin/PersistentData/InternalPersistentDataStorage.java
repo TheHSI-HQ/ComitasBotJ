@@ -8,15 +8,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InternalPersistentDataStorage implements PersistentDataStorage {
-    private @NotNull Map<String, Entry> data = new HashMap<>();
+    // Accessed by plugin threads and the auto save threads at once
+    private final @NotNull Map<String, Entry> data = new ConcurrentHashMap<>();
 
     public InternalPersistentDataStorage() {
     }
 
     public InternalPersistentDataStorage(@NotNull Map<String, Entry> data) {
-        this.data = data;
+        data.forEach((key, entry) -> {
+            if (key != null && entry != null) this.data.put(key, entry);
+        });
     }
 
     @Override
@@ -99,7 +103,8 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
             return null;
         }
 
-        return type.deserialize(value.value);
+        // A copy, so the plugin can't change the stored data without calling set
+        return type.deserialize(plainCopy(value.value, value.type == null ? "unknown" : value.type, 0));
     }
 
     @Override

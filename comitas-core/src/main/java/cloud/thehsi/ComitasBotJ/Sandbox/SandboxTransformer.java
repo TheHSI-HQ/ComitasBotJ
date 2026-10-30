@@ -185,7 +185,6 @@ final class SandboxTransformer {
                     }
                     reason = checkMember(field.owner, field.name, field.desc, true);
                 }
-
                 case TypeInsnNode type -> {
                     if (type.getOpcode() == Opcodes.NEW && type.desc.equals(URL)) {
                         AbstractInsnNode next = type.getNext();

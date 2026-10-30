@@ -1,9 +1,13 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message.Actions;
 
+import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.ButtonPressedContext;
+import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +45,18 @@ public class ButtonCallbackManager {
 
         ButtonCallbackManager.metadataMap.put(button.internalReferenceId, new ButtomMetadata(
                 button.callback,
-                button.getId()
+                button.getId(),
+                Comitas.getPluginManager().getPlugin()
         ));
+    }
+
+    /**
+     * Drops the callbacks of unloaded plugins, they must not run code of an unloaded plugin.
+     */
+    public static void unregisterAllExcept(@Nullable Plugin keep) {
+        synchronized (metadataMap) {
+            metadataMap.values().removeIf(metadata -> metadata.owner() != keep);
+        }
     }
 
     public static void runCallback(@NotNull ButtonInteractionEvent event) {
@@ -51,9 +65,17 @@ public class ButtonCallbackManager {
         if (metadata == null)
             return;
 
-        metadata.callback().accept(new InternalButtonPressedContext(event, metadata.id()));
+        Plugin previous = InternalPluginManager.setContextPlugin(metadata.owner());
+        try {
+            metadata.callback().accept(new InternalButtonPressedContext(event, metadata.id()));
+        } catch (Exception | LinkageError e) {
+            Plugin.PluginMetadata owner = Comitas.getPluginManager().lookupPlugin(metadata.owner());
+            logger.error("Error in a button callback of plugin {}", owner == null ? "(unloaded)" : owner.name(), e);
+        } finally {
+            InternalPluginManager.restoreContextPlugin(previous);
+        }
     }
 
-    record ButtomMetadata(Consumer<ButtonPressedContext> callback, String id) {
+    record ButtomMetadata(Consumer<ButtonPressedContext> callback, String id, Plugin owner) {
     }
 }

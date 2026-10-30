@@ -30,7 +30,7 @@ public class ConsolePrompt {
     final LineReader lineReader;
     private @NotNull
     final Deque<Question> questions = new ArrayDeque<>();
-    private volatile @Nullable Thread consoleThread;
+    private static volatile @Nullable Thread consoleThread;
 
     public ConsolePrompt(@NotNull InternalConsoleCommandRegistry registry) {
         this.registry = registry;
@@ -66,6 +66,13 @@ public class ConsolePrompt {
      * @param prompt  The prompt, the answer is entered after
      * @return The answer, or null if nothing can be read anymore
      */
+    /**
+     * @return If the current thread reads the console input, e.g. while running a console command
+     */
+    public static boolean isConsoleThread() {
+        return Thread.currentThread() == consoleThread;
+    }
+
     @NotNull
     public CompletableFuture<@Nullable String> ask(@NotNull String message, @NotNull String prompt) {
         Thread thread = consoleThread;
@@ -137,10 +144,23 @@ public class ConsolePrompt {
                         if (!registry.runCommand(command, args))
                             logger.error("Unknown command: {}", command);
                     }
-                } catch (UserInterruptException | EndOfFileException ignored) {
+                } catch (UserInterruptException ignored) {
                     if (Main.props().strictSafeMode())
                         System.exit(0);
+                } catch (EndOfFileException e) {
+                    // The input was closed, reading again would fail right away and spin
+                    logger.warn("The console input was closed, console commands aren't available anymore");
+                    if (Main.props().strictSafeMode())
+                        System.exit(0);
+                    break;
                 }
+            }
+
+            // Nobody can answer anymore
+            consoleThread = null;
+            synchronized (questions) {
+                for (Question question : questions) question.answer().complete(null);
+                questions.clear();
             }
         }, "console-input");
 
