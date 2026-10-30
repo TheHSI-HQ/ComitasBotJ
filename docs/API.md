@@ -452,6 +452,22 @@ channel.sendMessage(new MessageData(Component.text("Here's the log:"))
         .addAttachment(fromMemory));
 ```
 
+### Voice Messages
+
+Any `AttachmentUpload` can be turned into a voice message with `asVoiceMessage(...)`. Discord expects the audio to be Ogg Opus (`audio/ogg`). The waveform is a low-resolution amplitude sampling (1-256 bytes, each 0-255) that Discord draws as the bars of the voice message; use the `Duration`-only overload if you don't have one and a flat waveform is used instead:
+
+```java
+AttachmentUpload voice = AttachmentUpload.from(Path.of("greeting.ogg"))
+        .asVoiceMessage("audio/ogg", waveform, Duration.ofMillis(4200));
+
+// or, without a waveform:
+AttachmentUpload.from(Path.of("greeting.ogg")).asVoiceMessage(Duration.ofMillis(4200));
+
+channel.sendMessage(voice.asMessageData());
+```
+
+A voice message has to be sent on its own: the `MessageData` may not contain any content, embeds, action row components or other attachments, and voice messages cannot be added to an existing message by editing it. Violating either throws an `IllegalArgumentException`.
+
 Attachments already on a message (yours or someone else's) are exposed as `MessageAttachment`s via `message.getAttachments()`. Both `Attachment` and `MessageAttachment` let you read the file back:
 
 ```java
