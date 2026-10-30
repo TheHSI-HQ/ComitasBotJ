@@ -501,6 +501,78 @@ public final class PluginSecurity {
         }
     }
 
+    // --- Inspection ---
+
+    /**
+     * The settings stored in a security file.
+     *
+     * @param permissions  The decided permissions, true if granted
+     * @param mounts       The configured mount points, sorted by name
+     * @param deniedMounts Mount points, the plugin may not request anymore
+     */
+    public record Settings(@NotNull Map<PluginPermission, Boolean> permissions, @NotNull List<ConfiguredMount> mounts,
+                           @NotNull SortedSet<String> deniedMounts) {
+    }
+
+    /**
+     * @param directory The directory, as configured
+     * @param problem   Why the mount point isn't available to the plugin, null if it is
+     */
+    public record ConfiguredMount(@NotNull String name, @NotNull String directory, boolean readOnly, @Nullable String problem) {
+    }
+
+    /**
+     * Reads the security file of a plugin, without changing anything.
+     *
+     * @return The settings, or null if the plugin has no security file
+     */
+    @Nullable
+    public static Settings readSettings(@NotNull UUID uuid) throws IOException {
+        Path file = securityFile(uuid);
+        if (!Files.exists(file)) return null;
+
+        Properties config = new Properties();
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            config.load(reader);
+        }
+
+        Map<PluginPermission, Boolean> permissions = new EnumMap<>(PluginPermission.class);
+        for (PluginPermission permission : PluginPermission.values()) {
+            String value = config.getProperty("permission." + permission.getKey());
+            if (value != null) permissions.put(permission, parseBoolean(value));
+        }
+
+        List<ConfiguredMount> mounts = new ArrayList<>();
+        SortedSet<String> deniedMounts = new TreeSet<>();
+        for (String key : new TreeSet<>(config.stringPropertyNames())) {
+            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key))) {
+                deniedMounts.add(key.substring("denied-mount.".length()));
+                continue;
+            }
+            if (!key.startsWith("mount.") || key.endsWith(".read-only")) continue;
+
+            String name = key.substring("mount.".length());
+            String directory = config.getProperty(key).strip();
+            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
+            mounts.add(new ConfiguredMount(name, directory, readOnly, mountProblem(name, directory)));
+        }
+        return new Settings(permissions, mounts, deniedMounts);
+    }
+
+    @Nullable
+    private static String mountProblem(@NotNull String name, @NotNull String directory) {
+        if (!MOUNT_NAME.matcher(name).matches()) return "invalid name, only A-Z, a-z, 0-9, _ and - are allowed";
+        Path hostRoot;
+        try {
+            hostRoot = Path.of(directory).toRealPath();
+        } catch (Exception e) {
+            return "the directory doesn't exist";
+        }
+        if (!Files.isDirectory(hostRoot)) return "not a directory";
+        String conflict = protectedConflict(hostRoot);
+        return conflict == null ? null : "overlaps with " + conflict;
+    }
+
     // --- Mount points ---
 
     @NotNull

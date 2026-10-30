@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * data/
  * ├── token.secret                       Discord bot token
  * ├── .cache/                            Instance lock
- * ├── plugins/&lt;uuid&gt;.dat                Persistent data storage of a plugin
+ * ├── persistent/&lt;uuid&gt;.dat             Persistent data storage of a plugin
  * ├── security/&lt;uuid&gt;.security.properties Granted permissions &amp; mount points of a plugin
  * └── volumes/&lt;uuid&gt;/                    Files of a plugin, its root directory
  * </pre>
@@ -36,7 +36,7 @@ public final class DataPaths {
     public static final @NotNull Path DATA = Path.of("data");
     public static final @NotNull Path TOKEN = DATA.resolve("token.secret");
     public static final @NotNull Path CACHE = DATA.resolve(".cache");
-    public static final @NotNull Path PLUGIN_DATA = DATA.resolve("plugins");
+    public static final @NotNull Path PLUGIN_DATA = DATA.resolve("persistent");
     public static final @NotNull Path SECURITY = DATA.resolve("security");
     public static final @NotNull Path VOLUMES = DATA.resolve("volumes");
 
@@ -73,6 +73,7 @@ public final class DataPaths {
     private static final Path OLD_TOKEN = Path.of("tokens.secret");
     private static final Path OLD_CACHE = Path.of(".cache");
     private static final Path OLD_PLUGIN_DATA = Path.of("plugin_data");
+    private static final Path OLD_DATA_PLUGINS = DATA.resolve("plugins");
     private static final String SECURITY_SUFFIX = ".security.properties";
 
     /**
@@ -80,7 +81,7 @@ public final class DataPaths {
      * <ul>
      *     <li>{@code tokens.secret} &rarr; {@code data/token.secret}</li>
      *     <li>{@code .cache/} &rarr; {@code data/.cache/}</li>
-     *     <li>{@code plugin_data/<uuid>.dat} &rarr; {@code data/plugins/<uuid>.dat}</li>
+     *     <li>{@code plugin_data/<uuid>.dat} and {@code data/plugins/<uuid>.dat} &rarr; {@code data/persistent/<uuid>.dat}</li>
      *     <li>{@code plugin_data/<uuid>/} &rarr; {@code data/volumes/<uuid>/}</li>
      *     <li>{@code plugins/<Name>.security.properties} &rarr; {@code data/security/<uuid>.security.properties}</li>
      *     <li>{@code plugins/<Name>/} &rarr; {@code data/volumes/<uuid>/}</li>
@@ -101,6 +102,12 @@ public final class DataPaths {
                 }
             }
             deleteIfEmpty(OLD_PLUGIN_DATA);
+        }
+
+        if (Files.isDirectory(OLD_DATA_PLUGINS)) {
+            for (Path old : list(OLD_DATA_PLUGINS))
+                if (old.getFileName().toString().endsWith(".dat")) migrate(old, PLUGIN_DATA.resolve(old.getFileName().toString()));
+            deleteIfEmpty(OLD_DATA_PLUGINS);
         }
 
         if (Files.isDirectory(PLUGINS)) {

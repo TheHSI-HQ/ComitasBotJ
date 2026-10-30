@@ -11,6 +11,7 @@ public class Main extends Plugin {
         new UpdateConsoleCommand();
         new VersionConsoleCommand();
         new PluginsConsoleCommand();
+        new PermissionsConsoleCommand();
         new StopConsoleCommand();
         new ReloadConsoleCommand();
         new InviteConsoleCommand();

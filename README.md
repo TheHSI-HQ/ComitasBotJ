@@ -158,6 +158,24 @@ Do you grant it?
 
 After `Y`, you enter the directory, which is saved to the security file. `I` saves `denied-mount.<name>=true`.
 
+To see what a plugin is allowed to do, run `permissions <uuid>` (or `perms`, the name of a loaded plugin works too) on
+the console. Without an argument, it lists every plugin with security settings:
+
+```text
+> permissions 44444444-4444-4444-4444-444444444444
+Weather 1.0 (44444444-4444-4444-4444-444444444444) - loaded
+  Settings: data/security/44444444-4444-4444-4444-444444444444.security.properties
+  Files:    data/volumes/44444444-4444-4444-4444-444444444444 (seen as /)
+Permissions:
+  Network Access (network): granted
+  File Storage (file_storage): denied
+Mount points:
+  /mnt/music -> D:/Music (read-only)
+Never granted: /mnt/photos
+```
+
+Mount points the plugin can't use (missing directory, protected location, ...) are marked as unavailable with the reason.
+
 Directories overlapping `data/`, `server.properties`, `plugins/`, `logs/` or the Comitas jar can't be mounted.
 
 > [!WARNING]
@@ -194,7 +212,7 @@ The following files and directories are created and used by ComitasBotJ:
 └── data/                      # Everything ComitasBotJ manages, never accessible to plugins
     ├── token.secret           # The file containing the Discord bot token
     ├── .cache/                # Instance lock, prevents two instances controlling the same bot
-    ├── plugins/
+    ├── persistent/
     │   └── <uuid>.dat         # Persistent data storage of a plugin
     ├── security/
     │   └── <uuid>.security.properties # Granted permissions & mount points of a plugin
@@ -207,7 +225,7 @@ Files of older versions (`tokens.secret`, `.cache/`, `plugin_data/`, `plugins/<P
 are moved into `data/` automatically on startup.
 
 > [!WARNING]
-> Never share the `data/` directory, it contains your bot token. Do not modify or delete files in `data/plugins/`
+> Never share the `data/` directory, it contains your bot token. Do not modify or delete files in `data/persistent/`
 > unless you know exactly what you are doing, plugins rely on the data stored in this directory.
 
 
