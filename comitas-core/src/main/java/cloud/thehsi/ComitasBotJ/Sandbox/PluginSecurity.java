@@ -1,10 +1,10 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
-import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,88 +102,15 @@ public final class PluginSecurity {
         return requests;
     }
 
-    /**
-     * Determines the permissions of a plugin, asking the server owner for undecided ones.
-     *
-     * @throws PluginPermissionException If the plugin must not be loaded, e.g. a required permission wasn't granted
-     */
-    @NotNull
-    public PluginSandbox resolve(@NotNull Plugin.PluginMetadata metadata, @NotNull Properties pluginProperties) throws IOException {
-        String name = metadata.name();
-        Path file = securityFile(metadata.uuid());
-        LinkedHashMap<PluginPermission, Request> requests = parseRequests(pluginProperties, name);
-
-        Properties config = new Properties();
-        boolean exists = Files.exists(file);
-        if (exists) {
-            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                config.load(reader);
-            }
-
-            String configuredUuid = config.getProperty("uuid", "").strip();
-            if (!configuredUuid.isEmpty() && !configuredUuid.equalsIgnoreCase(metadata.uuid().toString()))
-                throw new PluginPermissionException(file + " contains the uuid " + configuredUuid + ", but belongs to "
-                        + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
-        }
-
-        Map<PluginPermission, Boolean> decisions = new EnumMap<>(PluginPermission.class);
-        for (PluginPermission permission : PluginPermission.values()) {
-            String value = config.getProperty("permission." + permission.getKey());
-            if (value != null) decisions.put(permission, parseBoolean(value));
-        }
-
-        List<Request> undecided = requests.values().stream()
-                .filter(request -> !decisions.containsKey(request.permission()))
-                .toList();
-
-        Map<PluginPermission, Boolean> newDecisions = new EnumMap<>(PluginPermission.class);
-        List<PluginPermission> pending = List.of();
-        if (!undecided.isEmpty()) {
-            Set<PluginPermission> granted = decide(metadata, undecided);
-            if (granted == null) {
-                // Nobody could be asked, deny for now and ask again next time
-                pending = undecided.stream().map(Request::permission).toList();
-            } else {
-                for (Request request : undecided)
-                    newDecisions.put(request.permission(), granted.contains(request.permission()));
-            }
-        }
-        decisions.putAll(newDecisions);
-
-        synchronized (fileLock) {
-            if (!exists) {
-                writeNewFile(file, metadata, decisions, pending);
-            } else if (!newDecisions.isEmpty()) {
-                appendDecisions(file, name, newDecisions);
-            }
-        }
-
-        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
-        decisions.forEach((permission, value) -> {
-            if (value) granted.add(permission);
-        });
-
-        List<String> missing = requests.values().stream()
-                .filter(request -> request.required() && !granted.contains(request.permission()))
-                .map(request -> request.permission().getKey())
-                .toList();
-        if (!missing.isEmpty())
-            throw new PluginPermissionException("Plugin " + name + " requires the permission(s) [" + String.join(", ", missing)
-                    + "], which weren't granted. Set " + String.join(", ", missing.stream().map(key -> "permission." + key + "=true").toList())
-                    + " in " + file + " and reload to load it.");
-
-        Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
-        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()));
-        for (String key : config.stringPropertyNames())
-            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
-                sandbox.addNeverMount(key.substring("denied-mount.".length()));
-
-        logger.info("Plugin {} sandbox: granted [{}], mounts [{}]", name,
-                String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
-                String.join(", ", mounts.values().stream()
-                        .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
-
-        return sandbox;
+    private static @NotNull String generateGrantMessage(@NotNull List<Request> undecided, boolean anyRequired) {
+        StringJoiner numbers = new StringJoiner(",");
+        for (int i = 1; i <= undecided.size(); i++) numbers.add(String.valueOf(i));
+        return question("What do you grant?") + "\n"
+                + "  " + option("A", "All") + separator() + (anyRequired ? option("O", "Only Required") + separator() : "")
+                + option("N", "None") + separator() + option(numbers.toString(), "Selected") + "\n"
+                + "  " + globalOption("E", "All for Every Plugin") + separator()
+                + globalOption("R", "Only Required for Every Plugin") + separator()
+                + globalOption("X", "None for Every Plugin");
     }
 
     private static boolean parseBoolean(@NotNull String value) {
@@ -318,6 +245,90 @@ public final class PluginSecurity {
     }
 
     /**
+     * Determines the permissions of a plugin, asking the server owner for undecided ones.
+     *
+     * @throws PluginPermissionException If the plugin must not be loaded, e.g. a required permission wasn't granted
+     */
+    @NotNull
+    public PluginSandbox resolve(@NotNull Plugin.PluginMetadata metadata, @NotNull Properties pluginProperties) throws IOException {
+        String name = metadata.name();
+        Path file = securityFile(metadata.uuid());
+        LinkedHashMap<PluginPermission, Request> requests = parseRequests(pluginProperties, name);
+
+        Properties config = new Properties();
+        boolean exists = Files.exists(file);
+        if (exists) {
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                config.load(reader);
+            }
+
+            String configuredUuid = config.getProperty("uuid", "").strip();
+            if (!configuredUuid.isEmpty() && !configuredUuid.equalsIgnoreCase(metadata.uuid().toString()))
+                throw new PluginPermissionException(file + " contains the uuid " + configuredUuid + ", but belongs to "
+                        + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
+        }
+
+        Map<PluginPermission, Boolean> decisions = new EnumMap<>(PluginPermission.class);
+        for (PluginPermission permission : PluginPermission.values()) {
+            String value = config.getProperty("permission." + permission.getKey());
+            if (value != null) decisions.put(permission, parseBoolean(value));
+        }
+
+        List<Request> undecided = requests.values().stream()
+                .filter(request -> !decisions.containsKey(request.permission()))
+                .toList();
+
+        Map<PluginPermission, Boolean> newDecisions = new EnumMap<>(PluginPermission.class);
+        List<PluginPermission> pending = List.of();
+        if (!undecided.isEmpty()) {
+            Set<PluginPermission> granted = decide(metadata, undecided);
+            if (granted == null) {
+                // Nobody could be asked, deny for now and ask again next time
+                pending = undecided.stream().map(Request::permission).toList();
+            } else {
+                for (Request request : undecided)
+                    newDecisions.put(request.permission(), granted.contains(request.permission()));
+            }
+        }
+        decisions.putAll(newDecisions);
+
+        synchronized (fileLock) {
+            if (!exists) {
+                writeNewFile(file, metadata, decisions, pending);
+            } else if (!newDecisions.isEmpty()) {
+                appendDecisions(file, name, newDecisions);
+            }
+        }
+
+        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
+        decisions.forEach((permission, value) -> {
+            if (value) granted.add(permission);
+        });
+
+        List<String> missing = requests.values().stream()
+                .filter(request -> request.required() && !granted.contains(request.permission()))
+                .map(request -> request.permission().getKey())
+                .toList();
+        if (!missing.isEmpty())
+            throw new PluginPermissionException("Plugin " + name + " requires the permission(s) [" + String.join(", ", missing)
+                    + "], which weren't granted. Set " + String.join(", ", missing.stream().map(key -> "permission." + key + "=true").toList())
+                    + " in " + file + " and reload to load it.");
+
+        Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
+        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()));
+        for (String key : config.stringPropertyNames())
+            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
+                sandbox.addNeverMount(key.substring("denied-mount.".length()));
+
+        if (!Main.props().quiet()) logger.info("Plugin {} sandbox: granted [{}], mounts [{}]", name,
+                String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
+                String.join(", ", mounts.values().stream()
+                        .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
+
+        return sandbox;
+    }
+
+    /**
      * @return The granted permissions, or null if nobody could be asked
      */
     @Nullable
@@ -336,14 +347,7 @@ public final class PluginSecurity {
                     .append(": ").append(reason(permission.reason())).append('\n');
         }
 
-        StringJoiner numbers = new StringJoiner(",");
-        for (int i = 1; i <= undecided.size(); i++) numbers.add(String.valueOf(i));
-        String options = question("What do you grant?") + "\n"
-                + "  " + option("A", "All") + separator() + (anyRequired ? option("O", "Only Required") + separator() : "")
-                + option("N", "None") + separator() + option(numbers.toString(), "Selected") + "\n"
-                + "  " + globalOption("E", "All for Every Plugin") + separator()
-                + globalOption("R", "Only Required for Every Plugin") + separator()
-                + globalOption("X", "None for Every Plugin");
+        String options = generateGrantMessage(undecided, anyRequired);
 
         String message = request + options;
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {

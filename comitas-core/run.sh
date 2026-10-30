@@ -90,7 +90,7 @@ JAR=$(find ./comitas-core/target \
     ! -name '*-javadoc.jar' \
     -print -quit)
 
-echo $JAR
+echo "$JAR"
 
 if [[ -z "$JAR" ]]; then
     echo "Core JAR not found"
