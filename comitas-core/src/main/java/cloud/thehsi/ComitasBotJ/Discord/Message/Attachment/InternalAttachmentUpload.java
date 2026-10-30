@@ -5,12 +5,15 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import net.dv8tion.jda.api.utils.FileUpload;
+import okhttp3.MediaType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("unused")
@@ -19,6 +22,9 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     @NotNull String fileName;
     @Nullable String description = null;
     boolean spoiler = false;
+    @Nullable MediaType voiceMediaType = null;
+    byte[] waveform = null;
+    @Nullable Duration voiceDuration = null;
 
     public InternalAttachmentUpload(@NotNull Path path) throws IOException {
         this.fileName = path.getFileName().toString();
@@ -52,7 +58,42 @@ public class InternalAttachmentUpload implements AttachmentUpload {
 
         if (description != null) fileUpload.setDescription(description);
 
+        if (voiceMediaType != null && voiceDuration != null)
+            fileUpload.asVoiceMessage(voiceMediaType, waveform, voiceDuration);
+
         return fileUpload;
+    }
+
+    @Override
+    public @NotNull AttachmentUpload asVoiceMessage(@NotNull Duration duration) {
+        DebugLogging.action(duration);
+        byte[] flatWaveform = new byte[256];
+        Arrays.fill(flatWaveform, (byte) 128);
+        return asVoiceMessage("audio/ogg", flatWaveform, duration);
+    }
+
+    @Override
+    public @NotNull AttachmentUpload asVoiceMessage(@NotNull String mimeType, byte[] waveform, @NotNull Duration duration) {
+        DebugLogging.action(mimeType, waveform, duration);
+        MediaType mediaType = MediaType.parse(mimeType);
+
+        if (mediaType == null || !mediaType.type().equals("audio"))
+            throw new IllegalArgumentException("Voice message mime type must be an audio type, got: " + mimeType);
+        if (waveform == null || waveform.length == 0 || waveform.length > 256)
+            throw new IllegalArgumentException("Voice message waveform must be between 1 and 256 bytes long");
+        if (duration.isNegative() || duration.isZero())
+            throw new IllegalArgumentException("Voice message duration must be positive");
+
+        this.voiceMediaType = mediaType;
+        this.waveform = waveform.clone();
+        this.voiceDuration = duration;
+        return this;
+    }
+
+    @Override
+    public boolean isVoiceMessage() {
+        DebugLogging.action();
+        return voiceMediaType != null;
     }
 
     @Override

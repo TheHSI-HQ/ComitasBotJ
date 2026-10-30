@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
 
 /**
  * Used to create / upload an attachment.
@@ -88,6 +89,48 @@ public interface AttachmentUpload {
     @NotNull
     @Contract("_ -> this")
     AttachmentUpload setDescription(@NotNull String description);
+
+    /**
+     * Turns this attachment into a voice message, using {@code audio/ogg} as the mime type
+     * and a flat waveform.
+     *
+     * @param duration The actual duration of the audio
+     * @return The object this method was called on
+     * @throws IllegalArgumentException If the duration is not positive
+     * @see #asVoiceMessage(String, byte[], Duration)
+     */
+    @NotNull
+    @Contract("_ -> this")
+    AttachmentUpload asVoiceMessage(@NotNull Duration duration);
+
+    /**
+     * Turns this attachment into a voice message.
+     * <p>
+     * Voice messages have to be sent on their own: the {@link MessageData} may not contain
+     * any content, embeds, action row components or other attachments.
+     * Voice messages also cannot be added to an existing message by editing it.
+     * <p>
+     * Discord expects the audio to be encoded as Ogg Opus ({@code audio/ogg}).
+     *
+     * @param mimeType The mime type of the audio, should be {@code audio/ogg}
+     * @param waveform The waveform of the audio, a low frequency sampling of up to 256 bytes,
+     *                 each byte being the amplitude (0-255) of one sample
+     * @param duration The actual duration of the audio
+     * @return The object this method was called on
+     * @throws IllegalArgumentException If the mime type is not an audio type, the waveform is not
+     *                                  between 1 and 256 bytes long or the duration is not positive
+     */
+    @NotNull
+    @Contract("_, _, _ -> this")
+    AttachmentUpload asVoiceMessage(@NotNull String mimeType, byte[] waveform, @NotNull Duration duration);
+
+    /**
+     * Is this attachment a voice message
+     *
+     * @return Is attachment a voice message
+     * @see #asVoiceMessage(String, byte[], Duration)
+     */
+    boolean isVoiceMessage();
 
     /**
      * Converts the attachment into {@link MessageData}

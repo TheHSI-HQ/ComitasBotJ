@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
+import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.ButtonCallbackManager;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.IActionRowComponent;
@@ -87,8 +88,27 @@ public class MessageDataParser {
         }
     }
 
+    private static boolean containsVoiceMessage(@NotNull MessageData messageData) {
+        return messageData.getAttachmentUploads().stream().anyMatch(AttachmentUpload::isVoiceMessage);
+    }
+
+    private static void validateVoiceMessage(@NotNull MessageData messageData) {
+        if (!containsVoiceMessage(messageData))
+            return;
+
+        if (messageData.getAttachmentUploads().size() != 1 || !messageData.getAttachments().isEmpty())
+            throw new IllegalArgumentException("A voice message has to be the only attachment of a message");
+
+        if (!ComponentParser.parseComponent(messageData.getContent()).isEmpty()
+                || !messageData.getEmbeds().isEmpty()
+                || !messageData.getActionRowComponents().isEmpty())
+            throw new IllegalArgumentException("A voice message cannot have content, embeds or action row components");
+    }
+
     @NotNull
     public static InternalMyMessage send(@NotNull MessageData messageData, @NotNull Function<MessageCreateData, InternalMyMessage> consumer) {
+        validateVoiceMessage(messageData);
+
         AtomicReference<InternalMyMessage> result = new AtomicReference<>();
         parse(messageData, data -> {
             try (MessageCreateData createData = new MessageCreateBuilder()
@@ -110,6 +130,9 @@ public class MessageDataParser {
     }
 
     public static void edit(@NotNull Message message, @NotNull MessageData messageData) {
+        if (containsVoiceMessage(messageData))
+            throw new IllegalArgumentException("Voice messages cannot be added to a message by editing it");
+
         parse(messageData, data -> message.editMessage(MessageEditBuilder.fromMessage(message)
                 .setContent(data.message())
                 .setEmbeds(data.messageEmbeds())
