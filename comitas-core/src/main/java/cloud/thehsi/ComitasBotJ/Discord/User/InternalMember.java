@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.Discord.User;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.VoiceChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
@@ -12,7 +14,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ClientType;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.OnlineStatus;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Discord.BotPermissions;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalVoiceChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalBan;
+import net.dv8tion.jda.api.entities.GuildVoiceState;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import org.jetbrains.annotations.NotNull;
@@ -210,5 +216,78 @@ public class InternalMember extends InternalUser implements Member {
     @Override
     public void setDisplayName(@Nullable String displayName) {
         member.getGuild().modifyNickname(member, displayName).complete();
+    }
+
+    @Nullable
+    private GuildVoiceState voiceState() {
+        // Members of events can be outdated, the cached member has the current voice state
+        net.dv8tion.jda.api.entities.Member current = member.getGuild().getMemberById(member.getIdLong());
+        return (current != null ? current : member).getVoiceState();
+    }
+
+    @NotNull
+    private AudioChannel requireVoiceChannel() {
+        GuildVoiceState state = voiceState();
+        if (state == null || state.getChannel() == null)
+            throw new MemberNotInVoiceException(member.getUser().getName() + " isn't connected to a voice channel");
+        return state.getChannel();
+    }
+
+    @Override
+    public @Nullable VoiceChannel getVoiceChannel() {
+        DebugLogging.action();
+        GuildVoiceState state = voiceState();
+        return state == null || state.getChannel() == null ? null : new InternalVoiceChannel(state.getChannel());
+    }
+
+    @Override
+    public void moveTo(@NotNull VoiceChannel channel) {
+        DebugLogging.action(channel);
+        if (!(channel instanceof InternalVoiceChannel target))
+            throw new IllegalArgumentException("Channel was not created by Comitas");
+        if (target.audioChannel.getGuild().getIdLong() != member.getGuild().getIdLong())
+            throw new IllegalArgumentException("Members can only be moved within their guild");
+
+        AudioChannel current = requireVoiceChannel();
+        BotPermissions.require(member.getGuild(), current, Permission.MOVE_MEMBERS);
+        BotPermissions.require(member.getGuild(), target.audioChannel, Permission.MOVE_MEMBERS);
+        BotPermissions.require(member.getGuild(), target.audioChannel, Permission.CONNECT);
+
+        member.getGuild().moveVoiceMember(member, target.audioChannel).complete();
+    }
+
+    @Override
+    public void disconnectFromVoice() {
+        DebugLogging.action();
+        BotPermissions.require(member.getGuild(), requireVoiceChannel(), Permission.MOVE_MEMBERS);
+        member.getGuild().moveVoiceMember(member, null).complete();
+    }
+
+    @Override
+    public boolean isGuildMuted() {
+        DebugLogging.action();
+        GuildVoiceState state = voiceState();
+        return state != null && state.isGuildMuted();
+    }
+
+    @Override
+    public void setGuildMuted(boolean muted) {
+        DebugLogging.action(muted);
+        BotPermissions.require(member.getGuild(), requireVoiceChannel(), Permission.MUTE_MEMBERS);
+        member.getGuild().mute(member, muted).complete();
+    }
+
+    @Override
+    public boolean isGuildDeafened() {
+        DebugLogging.action();
+        GuildVoiceState state = voiceState();
+        return state != null && state.isGuildDeafened();
+    }
+
+    @Override
+    public void setGuildDeafened(boolean deafened) {
+        DebugLogging.action(deafened);
+        BotPermissions.require(member.getGuild(), requireVoiceChannel(), Permission.DEAFEN_MEMBERS);
+        member.getGuild().deafen(member, deafened).complete();
     }
 }

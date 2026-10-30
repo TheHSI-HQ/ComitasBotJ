@@ -24,6 +24,7 @@ This guide walks you through creating your first ComitasBotJ plugin using Intell
 * [Reactions & Emoji](#reactions--emoji)
 * [Buttons & Action Rows](#buttons--action-rows)
 * [Commands](#commands)
+* [Voice Channels & Announcements](#voice-channels--announcements)
 * [Console Commands](#console-commands)
 * [Scheduler](#scheduler)
 * [Persistent Data Storage](#persistent-data-storage)
@@ -652,6 +653,33 @@ Comitas.getCommandRegistry().register(sayCommand);
 ### Permissions
 
 Both command flavors take `Permission[]` to gate access — e.g. `Permission.ADMINISTRATOR`, `Permission.MANAGE_MESSAGES`, `Permission.BAN_MEMBERS`, `Permission.KICK_MEMBERS`. Leave the array empty to allow anyone to use the command.
+
+## Voice Channels & Announcements
+
+Voice and stage channels resolve to `VoiceChannel`, which is also a `MessageChannel` for its text chat.
+`getMembers()` lists everyone currently connected, `isStage()` tells both kinds apart.
+
+```java
+VoiceChannel channel = member.getVoiceChannel(); // null if the member isn't connected
+if (channel != null) {
+    for (Member connected : channel.getMembers())
+        connected.setGuildMuted(true);
+}
+
+member.moveTo(otherChannel);   // within the same guild
+member.disconnectFromVoice();
+member.setGuildDeafened(false);
+```
+
+These actions throw `MemberNotInVoiceException` if the member isn't connected, and `MissingBotPermissionException`
+if the bot lacks `MOVE_MEMBERS` (and `CONNECT` to the target), `MUTE_MEMBERS` or `DEAFEN_MEMBERS`.
+`isGuildMuted()` / `isGuildDeafened()` only report server mutes, not the ones members set themselves.
+
+Announcement channels can be followed, their crossposted messages then also appear in the target channel:
+
+```java
+newsChannel.follow(textChannel); // needs MANAGE_WEBHOOKS in the target channel
+```
 
 ## Console Commands
 
