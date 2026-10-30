@@ -134,10 +134,24 @@ final class SandboxPolicy {
         // --- misc pure libraries ---
         allow("java/math/", "java/text/", "java/time/", "javax/crypto/");
         deny("java/text/spi/", "java/time/zone/ZoneRulesProvider");
-        allow("java/security/");
-        deny("java/security/Security", "java/security/Policy", "java/security/PolicySpi",
-                "java/security/AccessController", "java/security/AccessControlContext",
-                "java/security/ProtectionDomain", "java/security/CodeSource", "java/security/SecureClassLoader");
+        // java.security is allow listed: parts of it open URIs (DomainLoadStoreParameter / DKS key stores),
+        // LDAP connections (CertStore) or fetch OCSP / CRL data (CertPathValidator), all without the NETWORK permission
+        allow("java/security/MessageDigest", "java/security/DigestInputStream", "java/security/DigestOutputStream",
+                "java/security/SecureRandom", "java/security/SecureRandomParameters", "java/security/DrbgParameters",
+                "java/security/Signature", "java/security/KeyFactory", "java/security/KeyPairGenerator",
+                "java/security/KeyPair", "java/security/Key", "java/security/PublicKey", "java/security/PrivateKey",
+                "java/security/AsymmetricKey", "java/security/AlgorithmParameters",
+                "java/security/AlgorithmParameterGenerator", "java/security/GeneralSecurityException",
+                "java/security/NoSuchAlgorithmException", "java/security/NoSuchProviderException",
+                "java/security/InvalidKeyException", "java/security/KeyException", "java/security/SignatureException",
+                "java/security/DigestException", "java/security/InvalidAlgorithmParameterException",
+                "java/security/InvalidParameterException", "java/security/ProviderException",
+                "java/security/spec/", "java/security/interfaces/",
+                "java/security/cert/Certificate", "java/security/cert/X509Certificate",
+                "java/security/cert/X509Extension", "java/security/cert/CertificateFactory",
+                "java/security/cert/CertificateException", "java/security/cert/CertificateEncodingException",
+                "java/security/cert/CertificateParsingException", "java/security/cert/CertificateExpiredException",
+                "java/security/cert/CertificateNotYetValidException");
 
         // --- imaging (embeds, generated pictures) ---
         allow("java/awt/Color", "java/awt/Font", "java/awt/FontMetrics", "java/awt/Graphics",
@@ -274,7 +288,22 @@ final class SandboxPolicy {
         return null;
     }
 
+    /**
+     * Denied classes, whose public members may still be used through an allowed subclass.
+     * E.g. {@code FileChannel#close()} is declared in {@code AbstractInterruptibleChannel}.
+     */
+    private static final Set<String> INHERITABLE = Set.of(
+            "java/nio/channels/spi/AbstractInterruptibleChannel",
+            "java/nio/channels/spi/AbstractSelectableChannel",
+            "java/nio/channels/spi/AbstractSelector"
+    );
+
+    static boolean isInheritable(@NotNull String internalName) {
+        return INHERITABLE.contains(internalName);
+    }
+
     static boolean isAllowedBootstrap(@NotNull String owner, @NotNull String name) {
+
         return ALLOWED_BOOTSTRAPS.contains(owner + "." + name);
     }
 

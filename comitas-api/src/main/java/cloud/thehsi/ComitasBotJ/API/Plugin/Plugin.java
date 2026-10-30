@@ -170,18 +170,37 @@ public abstract class Plugin {
             if (!props.containsKey("uuid"))
                 throw new RuntimeException("Plugin is missing uuid in plugin.properties");
 
+            String name = requirePlain("name", props.getProperty("name"));
+            String version = requirePlain("version", props.getProperty("version"));
+            String apiTarget = requirePlain("api-target", props.getProperty("api-target"));
+            String commandPrefix = requirePlain("command-prefix", props.getProperty("command-prefix", name));
+            if (name.isBlank()) throw new RuntimeException("Plugin has an empty name in plugin.properties");
+
+            UUID uuid;
             try {
-                return new PluginMetadata(
-                        props.getProperty("name"),
-                        props.getProperty("version"),
-                        jarName,
-                        props.getProperty("api-target"),
-                        UUID.fromString(props.getProperty("uuid".toLowerCase())),
-                        props.getProperty("command-prefix", props.getProperty("name"))
-                );
+                uuid = UUID.fromString(props.getProperty("uuid").strip());
             } catch (IllegalArgumentException | NullPointerException e) {
                 throw new RuntimeException("Plugin has an invalid uuid in plugin.properties");
             }
+
+            return new PluginMetadata(name, version, jarName, apiTarget, uuid, commandPrefix);
+        }
+
+        /**
+         * Plugin metadata ends up in log output, console prompts and the security settings file,
+         * so it must not contain line breaks, terminal escape sequences or other control characters.
+         */
+        @NotNull
+        private static String requirePlain(@NotNull String key, @NotNull String value) {
+            if (value.length() > 128)
+                throw new RuntimeException("Plugin has a too long " + key + " in plugin.properties (max. 128 characters)");
+            for (int i = 0; i < value.length(); i++) {
+                char c = value.charAt(i);
+                if (Character.isISOControl(c) || Character.getType(c) == Character.FORMAT
+                        || c == ' ' || c == ' ')
+                    throw new RuntimeException("Plugin has an illegal character in " + key + " in plugin.properties");
+            }
+            return value.strip();
         }
     }
 }

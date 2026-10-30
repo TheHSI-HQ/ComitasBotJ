@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Utility.ConsoleText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -41,6 +42,11 @@ public final class PluginSecurity {
     private static final Pattern MOUNT_NAME = Pattern.compile("[A-Za-z0-9_-]+");
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_DIRECTORY_ATTEMPTS = 3;
+    private static final int MAX_REASON_LENGTH = 300;
+    /**
+     * How often a plugin may ask for mount points per load, so it can't flood the console.
+     */
+    private static final int MAX_MOUNT_REQUESTS = 5;
 
     private final @NotNull Object fileLock = new Object();
     private @NotNull PermissionPrompter prompter = PermissionPrompter.NON_INTERACTIVE;
@@ -224,9 +230,12 @@ public final class PluginSecurity {
 
     @NotNull
     private static String reason(@Nullable String reason) {
-        return reason == null || reason.isBlank()
+        // The reason comes from the plugin, it must not be able to fake the prompt
+        String plain = ConsoleText.plain(reason).strip();
+        if (plain.length() > MAX_REASON_LENGTH) plain = plain.substring(0, MAX_REASON_LENGTH) + "...";
+        return plain.isEmpty()
                 ? ConsoleColor.BRIGHT_BLACK + "(no reason given)" + ConsoleColor.RESET
-                : reason.strip();
+                : plain;
     }
 
     @NotNull
@@ -337,8 +346,8 @@ public final class PluginSecurity {
         boolean anyRequired = undecided.stream().anyMatch(Request::required);
 
         StringBuilder request = new StringBuilder(header("Permission Request"))
-                .append("Plugin ").append(highlight(name + " " + metadata.version()))
-                .append(dim(" (" + metadata.jarName() + ")")).append(" requested:\n");
+                .append("Plugin ").append(highlight(ConsoleText.plain(name + " " + metadata.version())))
+                .append(dim(" (" + ConsoleText.plain(metadata.jarName()) + ")")).append(" requested:\n");
         for (int i = 0; i < undecided.size(); i++) {
             Request permission = undecided.get(i);
             request.append("  ").append(ConsoleColor.BOLD).append(ConsoleColor.BRIGHT_CYAN).append(i + 1).append('.')
@@ -453,7 +462,22 @@ public final class PluginSecurity {
             return CompletableFuture.completedFuture(null);
 
         CompletableFuture<@Nullable Path> result = new CompletableFuture<>();
-        CompletableFuture<@Nullable Path> running = sandbox.pendingMountRequests().putIfAbsent(name, result);
+        CompletableFuture<@Nullable Path> running;
+        synchronized (sandbox.pendingMountRequests()) {
+            running = sandbox.pendingMountRequests().get(name);
+            if (running == null) {
+                // One question at a time per plugin, and only a few per load, so a plugin can't flood the console
+                if (!sandbox.pendingMountRequests().isEmpty())
+                    return CompletableFuture.failedFuture(new IllegalStateException(
+                            "Another mount request of this plugin is still waiting for an answer"));
+                if (sandbox.countMountRequest() > MAX_MOUNT_REQUESTS) {
+                    logger.warn("Plugin {} requested more than {} mount points, further requests are ignored until it is reloaded",
+                            ConsoleText.plain(sandbox.pluginName()), MAX_MOUNT_REQUESTS);
+                    return CompletableFuture.completedFuture(null);
+                }
+                sandbox.pendingMountRequests().put(name, result);
+            }
+        }
         if (running != null) return running.copy();
 
         askMount(sandbox, name, reason, readOnly).whenComplete((path, error) -> {
@@ -473,7 +497,7 @@ public final class PluginSecurity {
     private CompletableFuture<@Nullable Path> askMount(@NotNull PluginSandbox sandbox, @NotNull String name,
                                                        @NotNull String reason, boolean readOnly) {
         String message = header("Mount Request")
-                + "Plugin " + highlight(sandbox.pluginName()) + " requested a directory as " + mountPath(name)
+                + "Plugin " + highlight(ConsoleText.plain(sandbox.pluginName())) + " requested a directory as " + mountPath(name)
                 + (readOnly ? dim(" (read-only)") : "") + ":\n"
                 + "  " + reason(reason) + "\n"
                 + question("Do you grant it?") + "\n"
@@ -481,7 +505,7 @@ public final class PluginSecurity {
 
         return askMountDecision(sandbox, name, message, message, 0).thenCompose(decision -> switch (decision) {
             case YES -> askMountDirectory(sandbox, name, readOnly,
-                    question("Enter the directory for ") + mountPath(name) + question(" of " + sandbox.pluginName())
+                    question("Enter the directory for ") + mountPath(name) + question(" of " + ConsoleText.plain(sandbox.pluginName()))
                             + dim(" (empty to cancel)") + ":", 0);
             case NEVER -> {
                 sandbox.addNeverMount(name);
@@ -528,7 +552,9 @@ public final class PluginSecurity {
             try {
                 Path hostRoot = Path.of(answer.strip()).toRealPath();
                 String conflict = protectedConflict(hostRoot);
-                if (!Files.isDirectory(hostRoot)) {
+                if (!ConsoleText.plain(hostRoot.toString()).equals(hostRoot.toString())) {
+                    error = "Directories containing control characters can't be mounted.";
+                } else if (!Files.isDirectory(hostRoot)) {
                     error = hostRoot + " is not a directory.";
                 } else if (conflict != null) {
                     error = hostRoot + " overlaps with " + conflict + ", which must never be accessible to plugins.";
@@ -555,7 +581,7 @@ public final class PluginSecurity {
 
     private void append(@NotNull PluginSandbox sandbox, @NotNull String lines, @NotNull String what) {
         String content = "\n# " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                + ": " + sandbox.pluginName() + " " + what + "\n" + lines;
+                + ": " + ConsoleText.plain(sandbox.pluginName()) + " " + what + "\n" + lines;
         synchronized (fileLock) {
             try {
                 Files.createDirectories(DataPaths.SECURITY);
@@ -710,8 +736,10 @@ public final class PluginSecurity {
                                      @NotNull List<PluginPermission> pending) throws IOException {
         StringBuilder content = new StringBuilder()
                 .append("# ComitasBotJ plugin security settings\n")
-                .append("# Plugin: ").append(metadata.name()).append(' ').append(metadata.version())
-                .append(" (").append(metadata.jarName()).append(")\n")
+                // Plugin controlled values, a line break would turn the comment into a setting
+                .append("# Plugin: ").append(ConsoleText.plain(metadata.name())).append(' ')
+                .append(ConsoleText.plain(metadata.version()))
+                .append(" (").append(ConsoleText.plain(metadata.jarName())).append(")\n")
                 .append("#\n")
                 .append("# The plugin sees ").append(dataFolder(metadata.uuid()).toString().replace('\\', '/'))
                 .append("/ as its root directory, it is only writable with file_storage.\n")
@@ -745,7 +773,8 @@ public final class PluginSecurity {
                                         @NotNull Map<PluginPermission, Boolean> decisions) throws IOException {
         StringBuilder content = new StringBuilder("\n# ")
                 .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-                .append(": ").append(pluginName).append(" requested new permissions\n");
+                .append(": ").append(ConsoleText.plain(pluginName)).append(" requested new permissions\n");
+
         decisions.forEach((permission, granted) ->
                 content.append("permission.").append(permission.getKey()).append('=').append(granted).append('\n'));
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);

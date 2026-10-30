@@ -171,7 +171,21 @@ final class SandboxTransformer {
                         reason = checkMember(call.owner, call.name, call.desc, false);
                     }
                 }
-                case FieldInsnNode field -> reason = checkMember(field.owner, field.name, field.desc, true);
+                case FieldInsnNode field -> {
+                    // System.out / err go to the plugin's logger, so plugins can't write raw escape sequences to the terminal
+                    if (field.getOpcode() == Opcodes.GETSTATIC && field.owner.equals("java/lang/System")
+                            && field.desc.equals("Ljava/io/PrintStream;")
+                            && (field.name.equals("out") || field.name.equals("err"))) {
+                        instructions.insertBefore(field, new LdcInsnNode(Type.getObjectType(owner.name)));
+                        instructions.set(field, new MethodInsnNode(Opcodes.INVOKESTATIC, RUNTIME,
+                                field.name.equals("out") ? "stdout" : "stderr",
+                                "(Ljava/lang/Class;)Ljava/io/PrintStream;", false));
+                        modified = true;
+                        continue;
+                    }
+                    reason = checkMember(field.owner, field.name, field.desc, true);
+                }
+
                 case TypeInsnNode type -> {
                     if (type.getOpcode() == Opcodes.NEW && type.desc.equals(URL)) {
                         AbstractInsnNode next = type.getNext();
@@ -360,7 +374,8 @@ final class SandboxTransformer {
             return direct ? owner.replace('/', '.') + "." + name + " could not be resolved" : NOT_FOUND;
 
         String declaringName = ClassHierarchy.internalName(declaring);
-        if (!declaringName.equals(owner) && (reason = checkType(declaringName)) != null) return reason;
+        if (!declaringName.equals(owner) && !SandboxPolicy.isInheritable(declaringName)
+                && (reason = checkType(declaringName)) != null) return reason;
 
         if ((reason = SandboxPolicy.memberDenied(owner, name, descriptor)) != null) return reason;
         if ((reason = SandboxPolicy.memberDenied(declaringName, name, descriptor)) != null) return reason;

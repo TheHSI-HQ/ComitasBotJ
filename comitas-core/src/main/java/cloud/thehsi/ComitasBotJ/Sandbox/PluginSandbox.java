@@ -6,11 +6,17 @@ import cloud.thehsi.ComitasBotJ.Sandbox.Storage.SandboxFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The granted capabilities of one plugin.
@@ -22,7 +28,10 @@ public final class PluginSandbox {
     private final @NotNull Map<String, MountPoint> mounts = new ConcurrentHashMap<>();
     private final @NotNull Set<String> neverMounts = ConcurrentHashMap.newKeySet();
     private final @NotNull Map<String, CompletableFuture<@Nullable Path>> pendingMountRequests = new ConcurrentHashMap<>();
+    private final @NotNull AtomicInteger mountRequests = new AtomicInteger();
     private final @NotNull SandboxFileSystem fileSystem;
+    private volatile @Nullable PrintStream stdout;
+    private volatile @Nullable PrintStream stderr;
 
     /**
      * @param dataRoot The host directory, the plugin sees as {@code /}
@@ -64,6 +73,42 @@ public final class PluginSandbox {
         return fileSystem;
     }
 
+    /**
+     * Replacement of {@code System.out} in plugin code.
+     */
+    @NotNull
+    PrintStream stdout() {
+        PrintStream stream = stdout;
+        if (stream == null) {
+            synchronized (this) {
+                if (stdout == null) stdout = createStream(false);
+                stream = stdout;
+            }
+        }
+        return stream;
+    }
+
+    /**
+     * Replacement of {@code System.err} in plugin code.
+     */
+    @NotNull
+    PrintStream stderr() {
+        PrintStream stream = stderr;
+        if (stream == null) {
+            synchronized (this) {
+                if (stderr == null) stderr = createStream(true);
+                stream = stderr;
+            }
+        }
+        return stream;
+    }
+
+    @NotNull
+    private PrintStream createStream(boolean error) {
+        Logger logger = LoggerFactory.getLogger("Plugin." + pluginName.replaceAll("[^A-Za-z0-9_-]", "_"));
+        return new PrintStream(new PluginLogOutputStream(logger, error), true, StandardCharsets.UTF_8);
+    }
+
     @NotNull
     public Path getDataFolder() {
         return fileSystem.getPath("/");
@@ -100,6 +145,14 @@ public final class PluginSandbox {
     Map<String, CompletableFuture<@Nullable Path>> pendingMountRequests() {
         return pendingMountRequests;
     }
+
+    /**
+     * @return How many mount points were requested since the plugin was loaded, including this request
+     */
+    int countMountRequest() {
+        return mountRequests.incrementAndGet();
+    }
+
 
     /**
      * A host directory, made available to a plugin by the server owner.

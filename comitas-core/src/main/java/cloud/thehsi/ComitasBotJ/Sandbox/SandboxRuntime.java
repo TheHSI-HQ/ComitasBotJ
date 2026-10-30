@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
+
 import java.lang.reflect.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -62,6 +64,18 @@ public final class SandboxRuntime {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    // --- Console output: through the plugin's logger ---
+
+    @NotNull
+    public static PrintStream stdout(@NotNull Class<?> caller) {
+        return sandboxOf(caller).stdout();
+    }
+
+    @NotNull
+    public static PrintStream stderr(@NotNull Class<?> caller) {
+        return sandboxOf(caller).stderr();
     }
 
     // --- Files: only in the plugin's own file system ---
