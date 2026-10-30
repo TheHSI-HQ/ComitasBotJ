@@ -74,16 +74,14 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
         String other = b == null ? null : b.toString();
         if (!(e instanceof FileSystemException fse)) return new IOException("I/O error accessing " + file);
         String reason = fse.getReason();
-        return switch (e) {
-            case NoSuchFileException ignored -> new NoSuchFileException(file, other, null);
-            case FileAlreadyExistsException ignored -> new FileAlreadyExistsException(other != null ? other : file);
-            case DirectoryNotEmptyException ignored -> new DirectoryNotEmptyException(file);
-            case NotDirectoryException ignored -> new NotDirectoryException(file);
-            case AccessDeniedException ignored -> new AccessDeniedException(file, other, reason);
-            case AtomicMoveNotSupportedException ignored -> new AtomicMoveNotSupportedException(file, other, reason);
-            case FileSystemLoopException ignored -> new FileSystemLoopException(file);
-            default -> new FileSystemException(file, other, reason);
-        };
+        if (e instanceof NoSuchFileException) return new NoSuchFileException(file, other, null);
+        if (e instanceof FileAlreadyExistsException) return new FileAlreadyExistsException(other != null ? other : file);
+        if (e instanceof DirectoryNotEmptyException) return new DirectoryNotEmptyException(file);
+        if (e instanceof NotDirectoryException) return new NotDirectoryException(file);
+        if (e instanceof AccessDeniedException) return new AccessDeniedException(file, other, reason);
+        if (e instanceof AtomicMoveNotSupportedException) return new AtomicMoveNotSupportedException(file, other, reason);
+        if (e instanceof FileSystemLoopException) return new FileSystemLoopException(file);
+        return new FileSystemException(file, other, reason);
     }
 
     @NotNull

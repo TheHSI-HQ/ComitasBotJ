@@ -57,6 +57,13 @@ public class ConsolePrompt {
     }
 
     /**
+     * @return If the current thread reads the console input, e.g. while running a console command
+     */
+    public static boolean isConsoleThread() {
+        return Thread.currentThread() == consoleThread;
+    }
+
+    /**
      * Asks the person at the console a question.
      * <p>
      * Before the console thread runs, or when called from it (e.g. by a console command), the answer is read directly.
@@ -66,13 +73,6 @@ public class ConsolePrompt {
      * @param prompt  The prompt, the answer is entered after
      * @return The answer, or null if nothing can be read anymore
      */
-    /**
-     * @return If the current thread reads the console input, e.g. while running a console command
-     */
-    public static boolean isConsoleThread() {
-        return Thread.currentThread() == consoleThread;
-    }
-
     @NotNull
     public CompletableFuture<@Nullable String> ask(@NotNull String message, @NotNull String prompt) {
         Thread thread = consoleThread;

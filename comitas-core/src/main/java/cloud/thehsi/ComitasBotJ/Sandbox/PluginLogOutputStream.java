@@ -33,6 +33,31 @@ final class PluginLogOutputStream extends OutputStream {
     }
 
     @Override
+    public synchronized void write(byte @NotNull [] b, int off, int len) {
+        // PrintStream writes whole buffers, so lines are split here instead of byte by byte
+        java.util.Objects.checkFromIndexSize(off, len, b.length);
+        int end = off + len;
+        int start = off;
+        for (int i = off; i < end; i++) {
+            if (b[i] != '\n') continue;
+            appendLimited(b, start, i - start);
+            flushLine();
+            start = i + 1;
+        }
+        appendLimited(b, start, end - start);
+    }
+
+    private void appendLimited(byte @NotNull [] b, int off, int len) {
+        while (len > 0) {
+            int chunk = Math.min(len, MAX_LINE_LENGTH - line.size());
+            line.write(b, off, chunk);
+            off += chunk;
+            len -= chunk;
+            if (line.size() >= MAX_LINE_LENGTH) flushLine();
+        }
+    }
+
+    @Override
     public synchronized void flush() {
         // PrintStream flushes after every println, a partial line is kept until it is complete
     }

@@ -16,6 +16,7 @@ public interface VoiceChannel extends MessageChannel, GuildChannel {
      *
      * @return The connected members
      */
+    @Override
     @NotNull
     @Unmodifiable
     List<Member> getMembers();
