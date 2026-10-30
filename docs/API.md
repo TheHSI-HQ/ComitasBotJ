@@ -747,6 +747,7 @@ permission.file_storage.reason=Caches downloaded radar images
 |----------------|--------------------|-------------------------------------------------------------------------------------|
 | `network`      | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
 | `file_storage` | `FILE_STORAGE`     | Writing to your own folder, see below                                               |
+| `server_control` | `SERVER_CONTROL` | `Comitas.shutdown()`, `reloadSoft()` and `reloadHard()` of the plugin manager       |
 
 Mark a permission as `required`, if your plugin can't work without it, it is then only loaded if the permission was
 granted. Check optional ones with `hasPermission(PluginPermission.FILE_STORAGE)` and degrade gracefully, the owner may
@@ -766,6 +767,8 @@ Files.write(cache, bytes);
 
 `java.io.File`, `FileInputStream` & co., `Path.of(URI)` and `Path#toFile()` are not available, use `java.nio.file.Files`.
 Paths can't leave the file system, `..` stops at its root.
+If the server owner set `plugin-data-quota-mb`, creating or writing files fails with a `FileSystemException` once your
+folder reached that size, deleting files always works.
 
 Server owners can make additional directories available as mount points (`/mnt/<name>`). List them with `getMounts()`,
 get one with `getMount("name")` (`null` if it doesn't exist) or ask for one while running:

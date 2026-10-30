@@ -24,7 +24,7 @@ jobs:
 
       - name: Build core + plugin
         run: |
-          mvn -pl comitas-core -am clean package -DskipTests
+          mvn -pl comitas-core -am clean package
           mvn -pl example-plugin -am clean package -DskipTests
 
       - name: Verify core JAR
