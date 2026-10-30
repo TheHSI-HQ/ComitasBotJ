@@ -38,6 +38,47 @@ public interface AttachmentUpload {
     }
 
     /**
+     * Generate a voice message {@link AttachmentUpload} from an Ogg Opus file on the host.
+     * <p>
+     * The duration is read from the file, and the waveform is approximated from the bitrate of the audio.
+     * Use {@link #asVoiceMessage(String, byte[], Duration)} to provide your own waveform instead.
+     *
+     * @param path The path to the Ogg Opus file
+     * @return The generated voice message attachment
+     * @throws IOException              Throws if there is an error, whilst accessing the file
+     * @throws IllegalArgumentException If the file is not a valid Ogg Opus file
+     */
+    static @NotNull AttachmentUpload makeVoiceMessage(@NotNull Path path) throws IOException {
+        return Comitas.getUtilityBackend().uploadVoiceMessage(path);
+    }
+
+    /**
+     * Generate a voice message {@link AttachmentUpload} from the content of an Ogg Opus file,
+     * named {@code voice-message.ogg}.
+     *
+     * @param data The content of the Ogg Opus file
+     * @return The generated voice message attachment
+     * @throws IllegalArgumentException If the data is not a valid Ogg Opus file
+     * @see #makeVoiceMessage(Path)
+     */
+    static @NotNull AttachmentUpload makeVoiceMessage(byte[] data) {
+        return makeVoiceMessage("voice-message.ogg", data);
+    }
+
+    /**
+     * Generate a voice message {@link AttachmentUpload} from a filename and the content of an Ogg Opus file.
+     *
+     * @param filename The filename of the file
+     * @param data     The content of the Ogg Opus file
+     * @return The generated voice message attachment
+     * @throws IllegalArgumentException If the data is not a valid Ogg Opus file
+     * @see #makeVoiceMessage(Path)
+     */
+    static @NotNull AttachmentUpload makeVoiceMessage(@NotNull String filename, byte[] data) {
+        return Comitas.getUtilityBackend().uploadVoiceMessage(filename, data);
+    }
+
+    /**
      * Set if this attachment is a spoiler
      *
      * @param spoiler Should this attachment be a spoiler
@@ -131,6 +172,22 @@ public interface AttachmentUpload {
      * @see #asVoiceMessage(String, byte[], Duration)
      */
     boolean isVoiceMessage();
+
+    /**
+     * Gets the duration of the audio, only present on voice messages
+     *
+     * @return The duration of the audio, or null if this is not a voice message
+     */
+    @Nullable
+    Duration getDuration();
+
+    /**
+     * Gets the waveform of the audio, only present on voice messages
+     *
+     * @return A copy of the waveform, or null if this is not a voice message
+     */
+    @Nullable
+    byte[] getWaveform();
 
     /**
      * Converts the attachment into {@link MessageData}

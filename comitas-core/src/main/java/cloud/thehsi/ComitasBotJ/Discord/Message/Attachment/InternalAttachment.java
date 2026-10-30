@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 
@@ -83,6 +84,37 @@ public class InternalAttachment implements Attachment {
     public @NotNull String getURL() {
         DebugLogging.action();
         return attachment.getUrl();
+    }
+
+    @Override
+    public @Nullable String getContentType() {
+        DebugLogging.action();
+        return attachment.getContentType();
+    }
+
+    @Override
+    public boolean isVoiceMessage() {
+        DebugLogging.action();
+        byte[] waveform = attachment.getWaveform();
+        return waveform != null && waveform.length > 0 && attachment.getDuration() > 0;
+    }
+
+    @Override
+    public @Nullable Duration getDuration() {
+        DebugLogging.action();
+        if (!isVoiceMessage())
+            return null;
+
+        return Duration.ofNanos(Math.round(attachment.getDuration() * 1_000_000_000L));
+    }
+
+    @Override
+    public @Nullable byte[] getWaveform() {
+        DebugLogging.action();
+        if (!isVoiceMessage())
+            return null;
+
+        return attachment.getWaveform().clone();
     }
 
     @Override

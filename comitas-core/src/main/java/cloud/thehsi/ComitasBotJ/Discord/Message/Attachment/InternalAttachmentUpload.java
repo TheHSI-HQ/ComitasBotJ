@@ -48,6 +48,14 @@ public class InternalAttachmentUpload implements AttachmentUpload {
         }
 
         data = _data;
+
+        Duration duration = attachment.getDuration();
+        byte[] attachmentWaveform = attachment.getWaveform();
+        if (duration != null && attachmentWaveform != null) {
+            String contentType = attachment.getContentType();
+            asVoiceMessage(contentType != null && contentType.startsWith("audio/") ? contentType : "audio/ogg",
+                    attachmentWaveform, duration);
+        }
     }
 
     @NotNull
@@ -94,6 +102,18 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     public boolean isVoiceMessage() {
         DebugLogging.action();
         return voiceMediaType != null;
+    }
+
+    @Override
+    public @Nullable Duration getDuration() {
+        DebugLogging.action();
+        return voiceDuration;
+    }
+
+    @Override
+    public @Nullable byte[] getWaveform() {
+        DebugLogging.action();
+        return waveform == null ? null : waveform.clone();
     }
 
     @Override

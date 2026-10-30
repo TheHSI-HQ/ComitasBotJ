@@ -454,7 +454,16 @@ channel.sendMessage(new MessageData(Component.text("Here's the log:"))
 
 ### Voice Messages
 
-Any `AttachmentUpload` can be turned into a voice message with `asVoiceMessage(...)`. Discord expects the audio to be Ogg Opus (`audio/ogg`). The waveform is a low-resolution amplitude sampling (1-256 bytes, each 0-255) that Discord draws as the bars of the voice message; use the `Duration`-only overload if you don't have one and a flat waveform is used instead:
+The easiest way to send a voice message is `AttachmentUpload.makeVoiceMessage(...)`, which takes an Ogg Opus file (as a `Path` or its bytes), reads its duration and generates a waveform for it:
+
+```java
+channel.sendMessage(AttachmentUpload.makeVoiceMessage(Path.of("greeting.ogg")).asMessageData());
+channel.sendMessage(AttachmentUpload.makeVoiceMessage(oggBytes).asMessageData()); // named voice-message.ogg
+```
+
+The generated waveform is approximated from the bitrate of the audio rather than decoded, which is close enough for Discord to draw speech and silence. A file that isn't Ogg Opus throws an `IllegalArgumentException`; convert other formats first, e.g. `ffmpeg -i input.mp3 -c:a libopus output.ogg`.
+
+For full control, any `AttachmentUpload` can be turned into a voice message with `asVoiceMessage(...)`. Discord expects the audio to be Ogg Opus (`audio/ogg`). The waveform is a low-resolution amplitude sampling (1-256 bytes, each 0-255) that Discord draws as the bars of the voice message; use the `Duration`-only overload if you don't have one and a flat waveform is used instead:
 
 ```java
 AttachmentUpload voice = AttachmentUpload.from(Path.of("greeting.ogg"))
@@ -467,6 +476,18 @@ channel.sendMessage(voice.asMessageData());
 ```
 
 A voice message has to be sent on its own: the `MessageData` may not contain any content, embeds, action row components or other attachments, and voice messages cannot be added to an existing message by editing it. Violating either throws an `IllegalArgumentException`.
+
+Received voice messages can be detected with `Message#isVoiceMessage()`. The audio is the message's only attachment, which exposes the voice message data:
+
+```java
+if (message.isVoiceMessage()) {
+    MessageAttachment voice = message.getAttachments().getFirst();
+    Duration duration = voice.getDuration(); // null on non voice message attachments
+    byte[] waveform = voice.getWaveform();   // null on non voice message attachments
+    String contentType = voice.getContentType(); // e.g. "audio/ogg"
+    voice.getContent().thenAccept(bytes -> { /* the Ogg Opus audio */ });
+}
+```
 
 Attachments already on a message (yours or someone else's) are exposed as `MessageAttachment`s via `message.getAttachments()`. Both `Attachment` and `MessageAttachment` let you read the file back:
 

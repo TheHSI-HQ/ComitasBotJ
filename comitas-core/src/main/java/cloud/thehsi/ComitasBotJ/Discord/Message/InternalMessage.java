@@ -172,6 +172,12 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    public boolean isVoiceMessage() {
+        DebugLogging.action();
+        return message.isVoiceMessage();
+    }
+
+    @Override
     public @NotNull List<MessageAttachment> getAttachments() {
         DebugLogging.action();
         return message.getAttachments().stream()

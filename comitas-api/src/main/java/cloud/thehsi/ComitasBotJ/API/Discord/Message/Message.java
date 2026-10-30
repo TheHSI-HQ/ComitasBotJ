@@ -93,6 +93,16 @@ public interface Message {
     boolean isForwarded();
 
     /**
+     * Is this message a voice message
+     * <p>
+     * The audio itself is the only attachment of the message,
+     * see {@link MessageAttachment#getDuration()} and {@link MessageAttachment#getWaveform()}.
+     *
+     * @return Is this a voice message
+     */
+    boolean isVoiceMessage();
+
+    /**
      * The message this message is a reply to
      *
      * @return The message replied to, may be null

@@ -19,6 +19,7 @@ import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Emoji.InternalEmoji;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.InternalButton;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.InternalAttachmentUpload;
+import cloud.thehsi.ComitasBotJ.Discord.Message.Attachment.OggOpusAnalyzer;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.channel.attribute.IPostContainer;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
@@ -104,6 +106,20 @@ public class InternalUtilityBackend implements UtilityBackend {
     public @NotNull AttachmentUpload uploadAttachment(@NotNull String filename, byte[] data) {
         DebugLogging.action(filename, data);
         return new InternalAttachmentUpload(filename, data);
+    }
+
+    @Override
+    public @NotNull AttachmentUpload uploadVoiceMessage(@NotNull Path path) throws IOException {
+        DebugLogging.action(path);
+        return uploadVoiceMessage(path.getFileName().toString(), Files.readAllBytes(path));
+    }
+
+    @Override
+    public @NotNull AttachmentUpload uploadVoiceMessage(@NotNull String filename, byte[] data) {
+        DebugLogging.action(filename, data);
+        OggOpusAnalyzer.Result result = OggOpusAnalyzer.analyze(data);
+        return new InternalAttachmentUpload(filename, data)
+                .asVoiceMessage("audio/ogg", result.waveform(), result.duration());
     }
 
     @Override
