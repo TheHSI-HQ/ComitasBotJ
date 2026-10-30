@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ.Discord.Message.Attachment;
 
-import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.AttachmentUpload;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -38,16 +37,19 @@ public class InternalAttachmentUpload implements AttachmentUpload {
 
     public InternalAttachmentUpload(@NotNull InternalAttachment attachment) {
         this.fileName = attachment.getFileName();
-        byte[] _data = null;
         spoiler = attachment.getFileName().startsWith("SPOILER_");
 
+        // Failing here, instead of sending a broken upload later on
         try {
-            _data = attachment.getContent().get();
-        } catch (ExecutionException | InterruptedException e) {
-            Comitas.getPluginManager().getPlugin().getLogger().error("Exception occurred whilst fetching Attachment", e);
+            data = attachment.getContent().get();
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Failed to fetch the attachment " + attachment.getFileName(), e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted whilst fetching the attachment " + attachment.getFileName(), e);
         }
-
-        data = _data;
+        if (data == null)
+            throw new IllegalStateException("The attachment " + attachment.getFileName() + " has no content");
 
         Duration duration = attachment.getDuration();
         byte[] attachmentWaveform = attachment.getWaveform();

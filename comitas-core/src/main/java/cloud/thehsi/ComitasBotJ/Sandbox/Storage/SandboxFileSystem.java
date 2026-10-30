@@ -31,8 +31,6 @@ public final class SandboxFileSystem extends FileSystem {
     private final boolean writable;
     private final @NotNull Map<String, PluginSandbox.MountPoint> mounts;
     private final long quotaBytes;
-    private volatile long cachedUsage = -1;
-    private volatile long usageMeasuredAt;
 
     /**
      * @param dataRoot The absolute host directory the plugin sees as {@code /}
@@ -65,10 +63,7 @@ public final class SandboxFileSystem extends FileSystem {
     }
 
     private long dataUsage() throws IOException {
-        long now = System.currentTimeMillis();
-        // Cached briefly, walking big folders on every write would be slow
-        if (cachedUsage >= 0 && now - usageMeasuredAt < 5_000) return cachedUsage;
-
+        // Measured on every write, a cached value would let plugins write past the quota in the meantime
         long[] total = {0};
         try {
             Files.walkFileTree(dataRoot, new SimpleFileVisitor<>() {
@@ -89,8 +84,6 @@ public final class SandboxFileSystem extends FileSystem {
             throw new FileSystemException("/", null, "the size of the data folder couldn't be determined");
         }
 
-        cachedUsage = total[0];
-        usageMeasuredAt = now;
         return total[0];
     }
 

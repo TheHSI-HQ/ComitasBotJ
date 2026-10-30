@@ -42,6 +42,11 @@ RUN apk -U upgrade \
 COPY --from=jre-builder /opt/java-minimal /opt/java
 COPY --from=jre-builder /srv/server.jar /srv/server.jar
 
-RUN mkdir -p /srv/data && touch /srv/server.properties
+# Plugins run inside the server process, so it shouldn't run as root
+RUN addgroup -S comitas && adduser -S -G comitas -h /srv comitas \
+    && mkdir -p /srv/data && touch /srv/server.properties \
+    && chown -R comitas:comitas /srv
+
+USER comitas
 
 CMD ["/opt/java/bin/java", "--enable-native-access=ALL-UNNAMED", "-jar", "server.jar"]

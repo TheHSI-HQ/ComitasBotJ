@@ -197,7 +197,7 @@ public abstract class Plugin {
             for (int i = 0; i < value.length(); i++) {
                 char c = value.charAt(i);
                 if (Character.isISOControl(c) || Character.getType(c) == Character.FORMAT
-                        || c == ' ' || c == ' ')
+                        || c == '\u2028' || c == '\u2029')
                     throw new RuntimeException("Plugin has an illegal character in " + key + " in plugin.properties");
             }
             return value.strip();

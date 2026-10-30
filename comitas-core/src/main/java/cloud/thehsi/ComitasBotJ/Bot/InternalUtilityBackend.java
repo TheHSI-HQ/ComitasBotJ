@@ -143,6 +143,7 @@ public class InternalUtilityBackend implements UtilityBackend {
         } catch (ErrorResponseException e) {
             if (e.getErrorCode() == 40061) // Tag names must be unique
                 throw new ForumTagNameNotUniqueException("A tag named '" + tagName + "' already exists.");
+            throw e;
         }
 
         List<net.dv8tion.jda.api.entities.channel.forums.ForumTag> found = iPostContainer.getAvailableTagsByName(tagName, false);

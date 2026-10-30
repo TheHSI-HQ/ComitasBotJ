@@ -93,6 +93,12 @@ public final class PersistentDataCoercion {
         } else if (t == Byte.class) {
             if (value instanceof Number n) return n.byteValue();
             if (value instanceof String s) return Byte.parseByte(s);
+        } else if (t == Float.class) {
+            if (value instanceof Number n) return n.floatValue();
+            if (value instanceof String s) return Float.parseFloat(s);
+        } else if (t == Character.class) {
+            if (value instanceof String s && s.length() == 1) return s.charAt(0);
+            if (value instanceof Number n) return (char) n.intValue();
         } else if (t == Boolean.class) {
             //noinspection IfCanBeSwitch // Switch statement is less clean than if statements
             if (value instanceof Boolean b) return b;

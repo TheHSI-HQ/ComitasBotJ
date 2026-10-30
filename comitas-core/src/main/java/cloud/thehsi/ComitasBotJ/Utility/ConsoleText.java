@@ -62,6 +62,6 @@ public final class ConsoleText {
 
     private static boolean isUnsafe(char c) {
         return Character.isISOControl(c) || Character.getType(c) == Character.FORMAT
-                || c == ' ' || c == ' ';
+                || c == '\u2028' || c == '\u2029';
     }
 }
