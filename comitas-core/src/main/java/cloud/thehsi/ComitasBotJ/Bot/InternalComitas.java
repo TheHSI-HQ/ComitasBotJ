@@ -20,6 +20,7 @@ import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
+import cloud.thehsi.ComitasBotJ.Sandbox.ConsolePermissionPrompter;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +65,8 @@ public class InternalComitas implements InternalComitasImpl {
     public InternalComitas(@NotNull InternalConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
         this.consoleCommandRegistry = consoleCommandRegistry;
         this.consolePrompt = consolePrompt;
+        if (!Main.props().noCmd())
+            pluginLoaderManager.security().setPrompter(new ConsolePermissionPrompter(consolePrompt));
         this.pluginManager = new InternalPluginManager(
                 pluginLoaderManager,
                 eventManager,

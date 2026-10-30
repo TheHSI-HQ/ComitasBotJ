@@ -5,6 +5,9 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginSecurity;
+import cloud.thehsi.ComitasBotJ.Sandbox.SandboxPluginClassLoader;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,11 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 @SuppressWarnings("unused")
 public class PluginLoaderManager {
@@ -33,6 +37,8 @@ public class PluginLoaderManager {
     private @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader");
     public @Nullable InternalPluginManager pluginManager = null;
+    private @NotNull
+    final PluginSecurity security = new PluginSecurity();
     @Nullable LoadedPlugin basePlugin = null;
 
     public PluginLoaderManager() {
@@ -75,6 +81,24 @@ public class PluginLoaderManager {
                 + minor * 1_000_000L
                 + patch * 1_000L
                 + suffix;
+    }
+
+    @NotNull
+    public PluginSecurity security() {
+        return security;
+    }
+
+    @NotNull
+    private static Properties readPluginProperties(@NotNull File jar) throws IOException {
+        try (JarFile jarFile = new JarFile(jar)) {
+            ZipEntry entry = jarFile.getEntry("plugin.properties");
+            if (entry == null) throw new RuntimeException("Plugin is missing plugin.properties");
+            Properties props = new Properties();
+            try (InputStream is = jarFile.getInputStream(entry)) {
+                props.load(is);
+            }
+            return props;
+        }
     }
 
     public void initPluginManager(@NotNull InternalPluginManager pluginManager) {
@@ -172,23 +196,10 @@ public class PluginLoaderManager {
 
         for (File jar : jars) {
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading Plugin Jar File: {}", jar.getName());
+            SandboxPluginClassLoader loader = null;
             try {
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating URLClassLoader for: {}", jar.getName());
-                URLClassLoader loader =
-                        new URLClassLoader(
-                                new URL[]{jar.toURI().toURL()},
-                                getClass().getClassLoader()
-                        );
-
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reading plugin.properties of: {}", jar.getName());
-                InputStream is =
-                        loader.getResourceAsStream(
-                                "plugin.properties"
-                        );
-
-                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsing plugin.properties for: {}", jar.getName());
-                Properties props = new Properties();
-                props.load(is);
+                Properties props = readPluginProperties(jar);
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Parsed plugin.properties: {}", props);
 
                 String mainClass =
@@ -282,6 +293,15 @@ public class PluginLoaderManager {
                                 props.getProperty("api-target"), Comitas.getServerVersion()
                         );
 
+                if (uuidToPluginCache.containsKey(metadata.uuid()))
+                    throw new RuntimeException("Another loaded plugin already uses the uuid " + metadata.uuid());
+
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resolving sandbox permissions for: {}", jar.getName());
+                PluginSandbox sandbox = security.resolve(metadata, props);
+
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating sandboxed class loader for: {}", jar.getName());
+                loader = new SandboxPluginClassLoader(jar, sandbox);
+
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reflecting main class for: {}", jar.getName());
                 Class<? extends Plugin> clazz =
                         loader.loadClass(mainClass)
@@ -293,8 +313,10 @@ public class PluginLoaderManager {
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Adding {} as a loaded plugin", jar.getName());
                 plugins.add(new LoadedPlugin(plugin, loader, metadata));
+                SandboxPluginClassLoader loadedLoader = loader;
+                loader = null; // owned by the loaded plugin now
 
-                loaderToPluginCache.put(loader, plugin);
+                loaderToPluginCache.put(loadedLoader, plugin);
                 uuidToPluginCache.put(metadata.uuid(), plugin);
 
                 logger.info("Loaded Plugin {} {}", metadata.name(), metadata.version());
@@ -308,11 +330,13 @@ public class PluginLoaderManager {
                 } catch (Exception e) {
                     // Don't keep a half loaded plugin around, it would get enabled later on
                     plugins.removeIf(loaded -> loaded.plugin() == plugin);
-                    loaderToPluginCache.remove(loader);
+                    loaderToPluginCache.remove(loadedLoader);
+                    loadedLoader.close();
                     uuidToPluginCache.remove(metadata.uuid());
                     throw e;
                 }
             } catch (PluginCompatibilityException e) {
+                closeQuietly(loader);
                 logger.error("Incompatible plugin found: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
@@ -321,6 +345,7 @@ public class PluginLoaderManager {
                         e.getLocalizedMessage()
                 );
             } catch (Exception e) {
+                closeQuietly(loader);
                 logger.error("Error when loading: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
@@ -329,6 +354,15 @@ public class PluginLoaderManager {
                         e.getLocalizedMessage(), e
                 );
             }
+        }
+    }
+
+    private void closeQuietly(@Nullable SandboxPluginClassLoader loader) {
+        if (loader == null) return;
+        try {
+            loader.close();
+        } catch (IOException e) {
+            logger.warn("Couldn't close plugin class loader", e);
         }
     }
 
@@ -412,6 +446,17 @@ public class PluginLoaderManager {
         return uuidToPluginCache.get(uuid);  // O(1) lookup
     }
 
-    private record LoadedPlugin(Plugin plugin, @Nullable URLClassLoader loader, Plugin.PluginMetadata metadata) {
+    /**
+     * @return The sandbox of the plugin, or null for the (trusted) base plugin
+     */
+    @Nullable
+    public PluginSandbox getSandbox(@NotNull Plugin plugin) {
+        for (LoadedPlugin loaded : plugins)
+            if (loaded.plugin() == plugin)
+                return loaded.loader() == null ? null : loaded.loader().sandbox();
+        return null;
+    }
+
+    private record LoadedPlugin(Plugin plugin, @Nullable SandboxPluginClassLoader loader, Plugin.PluginMetadata metadata) {
     }
 }

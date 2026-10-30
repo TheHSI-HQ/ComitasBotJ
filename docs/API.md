@@ -27,6 +27,7 @@ This guide walks you through creating your first ComitasBotJ plugin using Intell
 * [Console Commands](#console-commands)
 * [Scheduler](#scheduler)
 * [Persistent Data Storage](#persistent-data-storage)
+* [Sandbox & Permissions](#sandbox--permissions)
 * [Plugin Manager & Cross-Plugin Communication](#plugin-manager--cross-plugin-communication)
 
 ## Prerequisites
@@ -721,6 +722,50 @@ if (storage.has("welcome-message", PersistentDataTypes.STRING)) {
 ```
 
 `PersistentDataTypes` provides: `STRING`, `INTEGER`, `LONG`, `DOUBLE`, `BYTE`, `SHORT`, `BOOLEAN`, and array variants of each (`STRING_ARRAY`, `INTEGER_ARRAY`, ...). `PersistentDataTypes.get(String name)` resolves a type by its registered name if you need to persist the type alongside the key dynamically.
+
+Custom `PersistentDataType`s must serialize to plain data: strings, numbers, booleans, arrays, lists and maps.
+Anything else is rejected with an `IllegalArgumentException`.
+
+## Sandbox & Permissions
+
+Plugins run in a sandbox. Each class is verified before it is loaded, so only the Comitas API, your own classes and a
+safe subset of the JDK can be used. Forbidden calls (like `System.exit`, `Runtime.exec`, `java.io.File`, reflection on
+classes that aren't yours, `MethodHandles`, ...) throw a `SecurityException` when they are reached, so unused code paths
+of bundled libraries don't stop your plugin from loading. Bundling JDA is not allowed.
+
+Some capabilities have to be requested in `plugin.properties` and granted by the server owner, who is asked on install:
+
+```properties
+permissions=network,file_storage
+permission.network.reason=Fetches forecasts from api.weather.example
+permission.file_storage.reason=Caches downloaded radar images
+```
+
+| Permission     | `PluginPermission` | Allows                                                                              |
+|----------------|--------------------|-------------------------------------------------------------------------------------|
+| `network`      | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
+| `file_storage` | `FILE_STORAGE`     | Files in your own data folder, see below                                            |
+
+Check what you were granted with `hasPermission(PluginPermission.NETWORK)` and degrade gracefully, the owner may deny it.
+
+### Files
+
+Plugins can't access the host's file system. `getDataFolder()` returns the root of your own, isolated file system
+(stored in `plugin_data/<uuid>/`), use it with `java.nio.file.Files`:
+
+```java
+Path cache = getDataFolder().resolve("cache/radar.png");
+Files.createDirectories(cache.getParent());
+Files.write(cache, bytes);
+```
+
+`Path.of`, `Paths`, `FileSystems` and `java.io.File` / `FileInputStream` & co. are not available, always start from
+`getDataFolder()`. Paths can't leave the folder, `..` stops at its root.
+
+Server owners can make additional directories available as mount points (`/mnt/<name>`), get them with
+`getMount("name")`, which returns `null` if the owner didn't configure it. Mount points may be read-only.
+
+Resources from your own jar can be read with `getClass().getResourceAsStream("/config.yml")`.
 
 ## Plugin Manager & Cross-Plugin Communication
 

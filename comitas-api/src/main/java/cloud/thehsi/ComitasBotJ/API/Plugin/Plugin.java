@@ -4,9 +4,11 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -25,6 +27,48 @@ public abstract class Plugin {
     @NotNull
     public static PersistentDataStorage getPersistentDataStorage() {
         return Comitas.getPluginManager().getPersistentDataStorage();
+    }
+
+    /**
+     * Gets the plugin's private data folder ({@code plugin_data/<uuid>/} on the host).
+     * <p>
+     * Plugins run in a sandbox and can't access the host's file system directly,
+     * the returned path is the root ({@code /}) of the plugin's own, isolated file system.
+     * Use it with {@link java.nio.file.Files}, for example
+     * {@code Files.writeString(getDataFolder().resolve("cache.txt"), "...")}.
+     * <p>
+     * Requires the {@link PluginPermission#FILE_STORAGE} permission.
+     *
+     * @return The root of the plugin's data folder
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#FILE_STORAGE}
+     */
+    @NotNull
+    public Path getDataFolder() {
+        return Comitas.getPluginManager().getDataFolder();
+    }
+
+    /**
+     * Gets a mount point, which the server owner made available to this plugin,
+     * in the plugin's {@code .security.properties}.
+     * <p>
+     * Mount points are visible under {@code /mnt/<name>} in the plugin's file system.
+     *
+     * @param name The name of the mount point
+     * @return The root of the mount point or null, if there is no such mount point
+     */
+    @Nullable
+    public Path getMount(@NotNull String name) {
+        return Comitas.getPluginManager().getMount(name);
+    }
+
+    /**
+     * Checks if this plugin was granted a {@link PluginPermission}.
+     *
+     * @param permission The permission to check
+     * @return True, if the permission was granted
+     */
+    public boolean hasPermission(@NotNull PluginPermission permission) {
+        return Comitas.getPluginManager().hasPermission(permission);
     }
 
     /**

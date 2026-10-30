@@ -5,6 +5,8 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Package;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
@@ -175,6 +177,34 @@ public class InternalPluginManager implements PluginManager {
         populateDataStore(metadata.uuid());
 
         return pluginDataStores.get(metadata.uuid());
+    }
+
+    @Override
+    public @NotNull Path getDataFolder() {
+        DebugLogging.action();
+        return requireSandbox().getDataFolder();
+    }
+
+    @Override
+    public @Nullable Path getMount(@NotNull String name) {
+        DebugLogging.action(name);
+        return requireSandbox().getMount(name);
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull PluginPermission permission) {
+        DebugLogging.action(permission);
+        PluginSandbox sandbox = pluginLoaderManager.getSandbox(getPlugin());
+        // The base plugin is part of Comitas and isn't sandboxed
+        return sandbox == null || sandbox.has(permission);
+    }
+
+    @NotNull
+    private PluginSandbox requireSandbox() {
+        PluginSandbox sandbox = pluginLoaderManager.getSandbox(getPlugin());
+        if (sandbox == null)
+            throw new IllegalStateException("Only sandboxed plugins have a data folder and mount points");
+        return sandbox;
     }
 
     public void populateDataStore(@NotNull UUID pluginUUID) {

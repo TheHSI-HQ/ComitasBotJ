@@ -101,11 +101,51 @@ java -jar comitas-core-<version>.jar
 
 ## Security
 
+Plugins run in a sandbox. Every plugin class is verified before it is loaded, and plugins can only use the
+Comitas API and a safe subset of the JDK:
+
+- Plugins can never reach the Discord token: core classes, JDA, the token file, environment variables, system
+  properties, reflection on foreign classes, method handles, native code, processes, deserialization and JMX are
+  unavailable. Plugin jars bundling JDA are refused.
+- Everything else needs a permission, which the server owner grants per plugin:
+
+| Permission     | Allows                                                                       |
+|----------------|------------------------------------------------------------------------------|
+| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)           |
+| `file_storage` | Reading and writing files in the plugin's own folder, `plugin_data/<uuid>/`  |
+
+When a plugin requesting permissions is installed, ComitasBotJ asks on the console:
+
+```text
+Plugin Weather 1.0 (weather.jar) requested:
+ - 1. Network Access: Fetches forecasts from api.weather.example
+ - 2. File Storage: Caches downloaded radar images
+
+What do you grant? (All/1,2/None/All for Every Plugin):
+```
+
+`A` grants everything, `1,2` single permissions, `N` nothing and `E` everything to every plugin from now on
+(sets `plugin-auto-grant-permissions=true`). Without an interactive console (e.g. `--no-cmd` or Docker without a TTY),
+requested permissions are denied until they are decided.
+
+The answers are stored in `plugins/<Plugin Name>.security.properties`, which can also be edited by hand
+(changes apply on the next reload). It can additionally make host directories available to the plugin:
+
+```properties
+uuid=d152236f-96df-4be1-8f2b-6738c4194ed7
+permission.network=true
+permission.file_storage=false
+# Visible to the plugin as /mnt/music (use / or \\ as path separator)
+mount.music=D:/Music
+mount.music.read-only=true
+```
+
+Directories overlapping the token, `server.properties`, `plugins/`, `plugin_data/`, `logs/` or the Comitas jar can't
+be mounted.
+
 > [!WARNING]
-> **DO NOT INSTALL PLUGINS FROM UNTRUSTED SOURCES**
->
-> ComitasBotJ doesn't *yet* sandbox / isolate plugins in any way, so any plugin has the ability to run any command or
-> modify any files, as long as the user running ComitasBotJ has the required access
+> The sandbox protects your token and files, but a plugin can still use the bot through the Comitas API
+> (e.g. send messages or kick members, if the bot is allowed to). Only install plugins you trust with that.
 
 ## Configuration
 
@@ -119,6 +159,7 @@ The `server.properties` file is automatically created on the first startup. It i
 | `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                                                                                                  |
 | `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. Optionally, suffix the plugin name / uuid with `!sha256=FILE_HASH` |
 | `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                                                                                     |
+| `plugin-auto-grant-permissions` | boolean | `false` | Grants every plugin all permissions it requests, without asking. Not recommended                                                                                 |
 
 ### File Structure
 
@@ -133,9 +174,11 @@ The following files and directories are created and used by ComitasBotJ:
 │   ├── latest.log             # The current log file
 │   └── ...
 ├── plugin_data/               # Persistent data used by plugins
-│   └── ...
+│   ├── <uuid>.dat             # Persistent data storage of a plugin
+│   └── <uuid>/                # Data folder of a plugin (file_storage permission)
 └── plugins/                   # Directory from which plugins are loaded
-    └── ...
+    ├── <plugin>.jar
+    └── <Plugin Name>.security.properties # Granted permissions & mount points of a plugin
 ```
 
 > [!WARNING]

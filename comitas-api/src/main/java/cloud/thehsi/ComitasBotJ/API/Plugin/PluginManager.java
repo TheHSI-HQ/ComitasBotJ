@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -47,6 +48,32 @@ public interface PluginManager {
      */
     @NotNull
     PersistentDataStorage getPersistentDataStorage();
+
+    /**
+     * Gets the current plugin's private data folder, see {@link Plugin#getDataFolder()}.
+     *
+     * @return The root of the current plugin's data folder
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#FILE_STORAGE}
+     */
+    @NotNull
+    Path getDataFolder();
+
+    /**
+     * Gets a mount point of the current plugin, see {@link Plugin#getMount(String)}.
+     *
+     * @param name The name of the mount point
+     * @return The root of the mount point or null, if there is no such mount point
+     */
+    @Nullable
+    Path getMount(@NotNull String name);
+
+    /**
+     * Checks if the current plugin was granted a {@link PluginPermission}.
+     *
+     * @param permission The permission to check
+     * @return True, if the permission was granted
+     */
+    boolean hasPermission(@NotNull PluginPermission permission);
 
     /**
      * Lookup any Plugin's Info, like its Name and Version
