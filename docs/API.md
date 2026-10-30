@@ -738,32 +738,48 @@ Some capabilities have to be requested in `plugin.properties` and granted by the
 ```properties
 permissions=network,file_storage
 permission.network.reason=Fetches forecasts from api.weather.example
+# Without it, the plugin isn't loaded
+permission.network.required=true
 permission.file_storage.reason=Caches downloaded radar images
 ```
 
 | Permission     | `PluginPermission` | Allows                                                                              |
 |----------------|--------------------|-------------------------------------------------------------------------------------|
 | `network`      | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
-| `file_storage` | `FILE_STORAGE`     | Files in your own data folder, see below                                            |
+| `file_storage` | `FILE_STORAGE`     | Writing to your own folder, see below                                               |
 
-Check what you were granted with `hasPermission(PluginPermission.NETWORK)` and degrade gracefully, the owner may deny it.
+Mark a permission as `required`, if your plugin can't work without it, it is then only loaded if the permission was
+granted. Check optional ones with `hasPermission(PluginPermission.FILE_STORAGE)` and degrade gracefully, the owner may
+deny them.
 
 ### Files
 
-Plugins can't access the host's file system. `getDataFolder()` returns the root of your own, isolated file system
-(stored in `plugin_data/<uuid>/`), use it with `java.nio.file.Files`:
+Plugins can't access the host's file system, each plugin has its own, isolated one. Its root `/` is the folder
+`plugins/<Plugin Name>/`, which is always readable, but only writable with `file_storage`.
+`Path.of`, `Paths.get` and `FileSystems.getDefault()` resolve in it, as does `getDataFolder()`:
 
 ```java
-Path cache = getDataFolder().resolve("cache/radar.png");
+Path cache = Path.of("/cache/radar.png"); // same as getDataFolder().resolve("cache/radar.png")
 Files.createDirectories(cache.getParent());
 Files.write(cache, bytes);
 ```
 
-`Path.of`, `Paths`, `FileSystems` and `java.io.File` / `FileInputStream` & co. are not available, always start from
-`getDataFolder()`. Paths can't leave the folder, `..` stops at its root.
+`java.io.File`, `FileInputStream` & co., `Path.of(URI)` and `Path#toFile()` are not available, use `java.nio.file.Files`.
+Paths can't leave the file system, `..` stops at its root.
 
-Server owners can make additional directories available as mount points (`/mnt/<name>`), get them with
-`getMount("name")`, which returns `null` if the owner didn't configure it. Mount points may be read-only.
+Server owners can make additional directories available as mount points (`/mnt/<name>`). List them with `getMounts()`,
+get one with `getMount("name")` (`null` if it doesn't exist) or ask for one while running:
+
+```java
+requestMount("music", "Plays your music collection", true).thenAccept(music -> {
+    if (music == null) return; // denied, or no console to ask
+    try (var files = Files.list(music)) { /* ... */ }
+});
+```
+
+The owner is asked `[Y] Yes / [N] No / [I] Never` and enters the directory. A granted mount point is saved and is
+available right away and after restarts. After `Never`, requests for that name complete with `null` without asking.
+Mount points may be read-only, writing to them throws an `AccessDeniedException`.
 
 Resources from your own jar can be read with `getClass().getResourceAsStream("/config.yml")`.
 

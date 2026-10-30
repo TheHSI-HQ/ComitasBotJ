@@ -12,6 +12,8 @@ import java.lang.reflect.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
@@ -60,6 +62,25 @@ public final class SandboxRuntime {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    // --- Files: only in the plugin's own file system ---
+
+    @NotNull
+    public static Path pathOf(@NotNull String first, @NotNull String[] more, @NotNull Class<?> caller) {
+        return sandboxOf(caller).fileSystem().getPath(first, more);
+    }
+
+    @NotNull
+    public static FileSystem defaultFileSystem(@NotNull Class<?> caller) {
+        return sandboxOf(caller).fileSystem();
+    }
+
+    @NotNull
+    private static PluginSandbox sandboxOf(@NotNull Class<?> caller) {
+        if (!(caller.getClassLoader() instanceof SandboxPluginClassLoader loader))
+            throw violation("File system access outside of a plugin");
+        return loader.sandbox();
     }
 
     // --- URLs: only http(s) ---

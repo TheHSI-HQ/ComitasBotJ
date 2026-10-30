@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents the plugin manager, which handles most actions and api calls
@@ -50,10 +51,9 @@ public interface PluginManager {
     PersistentDataStorage getPersistentDataStorage();
 
     /**
-     * Gets the current plugin's private data folder, see {@link Plugin#getDataFolder()}.
+     * Gets the current plugin's data folder, see {@link Plugin#getDataFolder()}.
      *
      * @return The root of the current plugin's data folder
-     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#FILE_STORAGE}
      */
     @NotNull
     Path getDataFolder();
@@ -66,6 +66,26 @@ public interface PluginManager {
      */
     @Nullable
     Path getMount(@NotNull String name);
+
+    /**
+     * Lists the mount points of the current plugin, see {@link Plugin#getMounts()}.
+     *
+     * @return The mount points, sorted by name
+     */
+    @NotNull
+    @Unmodifiable
+    List<PluginMount> getMounts();
+
+    /**
+     * Asks the server owner for a new mount point, see {@link Plugin#requestMount(String, String, boolean)}.
+     *
+     * @param name     The name of the mount point, only {@code A-Z a-z 0-9 _ -}
+     * @param reason   Why the plugin needs the directory, shown to the server owner
+     * @param readOnly If the plugin only needs to read from the directory
+     * @return A future completing with the root of the mount point, or null if it was denied
+     */
+    @NotNull
+    CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly);
 
     /**
      * Checks if the current plugin was granted a {@link PluginPermission}.

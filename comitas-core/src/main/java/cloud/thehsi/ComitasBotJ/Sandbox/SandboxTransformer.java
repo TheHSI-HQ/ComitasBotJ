@@ -20,7 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * A few operations are redirected to {@link SandboxRuntime}, which checks them at runtime:
  * reflection (only on the plugin's own classes), {@code Class#getResourceAsStream}
- * (only the plugin's own jar) and URL creation (only http/https).
+ * (only the plugin's own jar), URL creation (only http/https) and {@code Path.of} / {@code Paths.get} /
+ * {@code FileSystems.getDefault()} (the plugin's own file system).
  * <p>
  * The checks run on the original bytecode, the injected calls are not visible to plugins.
  */
@@ -57,6 +58,16 @@ final class SandboxTransformer {
             "(Ljava/net/URL;Ljava/lang/String;)V",
             "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V",
             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"
+    );
+
+    /**
+     * Static file system lookups (owner.name + descriptor), redirected to the {@link SandboxRuntime} method,
+     * so that they resolve in the plugin's own file system.
+     */
+    private static final Map<String, String> FILE_SYSTEM_REDIRECTS = Map.of(
+            "java/nio/file/Path.of(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;", "pathOf",
+            "java/nio/file/Paths.get(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;", "pathOf",
+            "java/nio/file/FileSystems.getDefault()Ljava/nio/file/FileSystem;", "defaultFileSystem"
     );
 
     private final @NotNull PluginSandbox sandbox;
@@ -123,6 +134,13 @@ final class SandboxTransformer {
                     if (call.owner.equals(CLASS) && call.getOpcode() == Opcodes.INVOKEVIRTUAL
                             && CLASS_REDIRECTS.contains(call.name + call.desc)) {
                         redirectClassMethod(owner, instructions, call);
+                        modified = true;
+                        continue;
+                    }
+
+                    String fileSystemRedirect = FILE_SYSTEM_REDIRECTS.get(call.owner + "." + call.name + call.desc);
+                    if (fileSystemRedirect != null && call.getOpcode() == Opcodes.INVOKESTATIC) {
+                        redirectToPluginFileSystem(owner, instructions, call, fileSystemRedirect);
                         modified = true;
                         continue;
                     }
@@ -198,6 +216,20 @@ final class SandboxTransformer {
 
         instructions.insertBefore(call, new LdcInsnNode(Type.getObjectType(owner.name)));
         instructions.set(call, new MethodInsnNode(Opcodes.INVOKESTATIC, RUNTIME, call.name, desc, false));
+    }
+
+    /**
+     * Static file system lookups resolve inside the plugin's own file system, the caller is appended as a class constant.
+     */
+    private void redirectToPluginFileSystem(@NotNull ClassNode owner, @NotNull InsnList instructions,
+                                            @NotNull MethodInsnNode call, @NotNull String target) {
+        Type original = Type.getMethodType(call.desc);
+        List<Type> args = new ArrayList<>(List.of(original.getArgumentTypes()));
+        args.add(Type.getObjectType(CLASS));
+        String desc = Type.getMethodDescriptor(original.getReturnType(), args.toArray(Type[]::new));
+
+        instructions.insertBefore(call, new LdcInsnNode(Type.getObjectType(owner.name)));
+        instructions.set(call, new MethodInsnNode(Opcodes.INVOKESTATIC, RUNTIME, target, desc, false));
     }
 
     private void neutralize(@NotNull InsnList instructions, @NotNull AbstractInsnNode insn,

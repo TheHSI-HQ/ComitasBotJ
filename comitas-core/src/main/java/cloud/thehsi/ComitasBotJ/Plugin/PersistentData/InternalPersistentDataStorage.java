@@ -61,6 +61,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
                 System.arraycopy(value, 0, copy, 0, length);
                 return copy;
             }
+            assert value instanceof Object[];
             Object[] source = (Object[]) value;
             Object[] copy = (Object[]) Array.newInstance(
                     component.getClassLoader() == null ? component : Object.class, source.length);
@@ -94,7 +95,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
         DebugLogging.action(key, type);
         Entry value = data.get(key);
 
-        if (value == null) {
+        if (value == null || value.value == null) {
             return null;
         }
 
@@ -141,7 +142,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
 
     public record Entry(
             String type,
-            Object value
+            @Nullable Object value
     ) {
     }
 }

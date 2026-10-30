@@ -1,17 +1,16 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginMount;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.Sandbox.Storage.SandboxFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The granted capabilities of one plugin.
@@ -20,17 +19,22 @@ public final class PluginSandbox {
     private final @NotNull String pluginName;
     private final @NotNull UUID uuid;
     private final @NotNull Set<PluginPermission> granted;
-    private final @NotNull Map<String, MountPoint> mounts;
-    private final @NotNull Path dataRoot;
-    private volatile @Nullable SandboxFileSystem fileSystem;
+    private final @NotNull Map<String, MountPoint> mounts = new ConcurrentHashMap<>();
+    private final @NotNull Set<String> neverMounts = ConcurrentHashMap.newKeySet();
+    private final @NotNull Map<String, CompletableFuture<@Nullable Path>> pendingMountRequests = new ConcurrentHashMap<>();
+    private final @NotNull SandboxFileSystem fileSystem;
 
+    /**
+     * @param dataRoot The host directory, the plugin sees as {@code /}
+     */
     public PluginSandbox(@NotNull String pluginName, @NotNull UUID uuid, @NotNull Set<PluginPermission> granted,
                          @NotNull Map<String, MountPoint> mounts, @NotNull Path dataRoot) {
         this.pluginName = pluginName;
         this.uuid = uuid;
         this.granted = Set.copyOf(granted);
-        this.mounts = Map.copyOf(mounts);
-        this.dataRoot = dataRoot.toAbsolutePath().normalize();
+        this.mounts.putAll(mounts);
+        this.fileSystem = new SandboxFileSystem(dataRoot.toAbsolutePath().normalize(),
+                has(PluginPermission.FILE_STORAGE), this.mounts);
     }
 
     @NotNull
@@ -52,42 +56,49 @@ public final class PluginSandbox {
         return granted;
     }
 
+    /**
+     * The plugin's isolated file system, also returned by {@code Path.of} / {@code FileSystems.getDefault()} in plugin code.
+     */
     @NotNull
-    public Map<String, MountPoint> mounts() {
-        return mounts;
+    public SandboxFileSystem fileSystem() {
+        return fileSystem;
     }
 
     @NotNull
     public Path getDataFolder() {
-        if (!has(PluginPermission.FILE_STORAGE))
-            throw new SecurityException("Plugin " + pluginName + " wasn't granted the "
-                    + PluginPermission.FILE_STORAGE.getKey() + " permission");
-        try {
-            Files.createDirectories(dataRoot);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Couldn't create the data folder of " + pluginName, e);
-        }
-        return fileSystem().getPath("/");
+        return fileSystem.getPath("/");
     }
 
     @Nullable
     public Path getMount(@NotNull String name) {
         if (!mounts.containsKey(name)) return null;
-        return fileSystem().getPath("/mnt", name);
+        return fileSystem.getPath("/mnt", name);
     }
 
     @NotNull
-    private SandboxFileSystem fileSystem() {
-        SandboxFileSystem fs = fileSystem;
-        if (fs == null) {
-            synchronized (this) {
-                fs = fileSystem;
-                if (fs == null)
-                    fileSystem = fs = new SandboxFileSystem(
-                            has(PluginPermission.FILE_STORAGE) ? dataRoot : null, mounts);
-            }
-        }
-        return fs;
+    @Unmodifiable
+    public List<PluginMount> getMounts() {
+        return mounts.values().stream()
+                .sorted(Comparator.comparing(MountPoint::name))
+                .map(mount -> new PluginMount(mount.name(), fileSystem.getPath("/mnt", mount.name()), mount.readOnly()))
+                .toList();
+    }
+
+    void addMount(@NotNull MountPoint mount) {
+        mounts.put(mount.name(), mount);
+    }
+
+    boolean isNeverMount(@NotNull String name) {
+        return neverMounts.contains(name);
+    }
+
+    void addNeverMount(@NotNull String name) {
+        neverMounts.add(name);
+    }
+
+    @NotNull
+    Map<String, CompletableFuture<@Nullable Path>> pendingMountRequests() {
+        return pendingMountRequests;
     }
 
     /**

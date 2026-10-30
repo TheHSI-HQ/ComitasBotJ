@@ -180,7 +180,7 @@ final class SandboxPath implements Path {
 
     @NotNull
     @Override
-    public Path toRealPath(@NotNull LinkOption... options) throws IOException {
+    public Path toRealPath(@NotNull LinkOption @NotNull ... options) throws IOException {
         SandboxPath real = toAbsolutePath().normalize();
         fs.provider().checkAccess(real);
         return real;
@@ -188,7 +188,7 @@ final class SandboxPath implements Path {
 
     @NotNull
     @Override
-    public WatchKey register(@NotNull WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) {
+    public WatchKey register(@NotNull WatchService watcher, WatchEvent.Kind<?> @NotNull [] events, WatchEvent.Modifier @NotNull ... modifiers) {
         throw new UnsupportedOperationException("Watch services aren't supported in the plugin file system");
     }
 

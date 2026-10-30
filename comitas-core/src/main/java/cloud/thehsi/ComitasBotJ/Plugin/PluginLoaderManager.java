@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSecurity;
 import cloud.thehsi.ComitasBotJ.Sandbox.SandboxPluginClassLoader;
@@ -296,6 +297,14 @@ public class PluginLoaderManager {
                 if (uuidToPluginCache.containsKey(metadata.uuid()))
                     throw new RuntimeException("Another loaded plugin already uses the uuid " + metadata.uuid());
 
+                // Plugins with the same (file system) name would share the plugin folder and security settings
+                String safeName = PluginSecurity.safeName(metadata.name());
+                for (LoadedPlugin other : plugins)
+                    if (PluginSecurity.safeName(other.metadata().name()).equalsIgnoreCase(safeName))
+                        throw new PluginPermissionException("Plugin " + metadata.name() + " would use the same plugin folder "
+                                + PluginSecurity.dataFolder(metadata.name()) + " as the loaded plugin " + other.metadata().name()
+                                + ", rename one of them");
+
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resolving sandbox permissions for: {}", jar.getName());
                 PluginSandbox sandbox = security.resolve(metadata, props);
 
@@ -338,6 +347,15 @@ public class PluginLoaderManager {
             } catch (PluginCompatibilityException e) {
                 closeQuietly(loader);
                 logger.error("Incompatible plugin found: \"{}\":", jar.getName());
+                logger.error("{}[{}]{} {}",
+                        ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.BRIGHT_RED + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
+                        ConsoleColor.WHITE,
+                        e.getLocalizedMessage()
+                );
+            } catch (PluginPermissionException e) {
+                closeQuietly(loader);
+                logger.error("Plugin not loaded: \"{}\":", jar.getName());
                 logger.error("{}[{}]{} {}",
                         ConsoleColor.BRIGHT_BLACK,
                         ConsoleColor.BRIGHT_RED + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,

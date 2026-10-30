@@ -5,6 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Package;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginMount;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -20,6 +21,7 @@ import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -189,6 +192,18 @@ public class InternalPluginManager implements PluginManager {
     public @Nullable Path getMount(@NotNull String name) {
         DebugLogging.action(name);
         return requireSandbox().getMount(name);
+    }
+
+    @Override
+    public @NotNull @Unmodifiable List<PluginMount> getMounts() {
+        DebugLogging.action();
+        return requireSandbox().getMounts();
+    }
+
+    @Override
+    public @NotNull CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly) {
+        DebugLogging.action(name, reason, readOnly);
+        return pluginLoaderManager.security().requestMount(requireSandbox(), name, reason, readOnly);
     }
 
     @Override

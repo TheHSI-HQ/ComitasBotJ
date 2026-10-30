@@ -4,14 +4,19 @@ import ch.qos.logback.classic.LoggerContext;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jline.reader.*;
+import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ConsolePrompt {
     private @NotNull
@@ -23,6 +28,9 @@ public class ConsolePrompt {
 
     private @NotNull
     final LineReader lineReader;
+    private @NotNull
+    final Deque<Question> questions = new ArrayDeque<>();
+    private volatile @Nullable Thread consoleThread;
 
     public ConsolePrompt(@NotNull InternalConsoleCommandRegistry registry) {
         this.registry = registry;
@@ -48,12 +56,75 @@ public class ConsolePrompt {
         registerLogAppender();
     }
 
+    /**
+     * Asks the person at the console a question.
+     * <p>
+     * Before the console thread runs, or when called from it (e.g. by a console command), the answer is read directly.
+     * Otherwise the question is shown above the prompt and the next entered line answers it, instead of being run as a command.
+     *
+     * @param message Shown before asking, may span multiple lines
+     * @param prompt  The prompt, the answer is entered after
+     * @return The answer, or null if nothing can be read anymore
+     */
+    @NotNull
+    public CompletableFuture<@Nullable String> ask(@NotNull String message, @NotNull String prompt) {
+        Thread thread = consoleThread;
+        if (thread == null || Thread.currentThread() == thread) {
+            synchronized (this) {
+                try {
+                    lineReader.getTerminal().writer().println(message);
+                    lineReader.getTerminal().writer().flush();
+                    return CompletableFuture.completedFuture(lineReader.readLine(prompt));
+                } catch (UserInterruptException e) {
+                    return CompletableFuture.completedFuture("");
+                } catch (EndOfFileException | IllegalStateException e) {
+                    return CompletableFuture.completedFuture(null);
+                }
+            }
+        }
+
+        Question question = new Question(message, prompt, new CompletableFuture<>());
+        synchronized (questions) {
+            questions.add(question);
+            if (questions.peek() == question) show(question);
+        }
+        return question.answer();
+    }
+
+    private void show(@NotNull Question question) {
+        lineReader.printAbove(question.message());
+        try {
+            if (lineReader instanceof LineReaderImpl impl) impl.setPrompt(question.prompt());
+            lineReader.callWidget(LineReader.REDRAW_LINE);
+            lineReader.callWidget(LineReader.REDISPLAY);
+        } catch (IllegalStateException ignored) {
+            // Not reading right now, the prompt is used on the next read
+        }
+    }
+
     public void run() {
         if (DebugLogging.isBasicEnabled()) DebugLogging.getLogger().debug("Starting console prompt thread");
-        Thread consoleThread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    String input = lineReader.readLine("> ");
+                    Question pending;
+                    synchronized (questions) {
+                        pending = questions.peek();
+                    }
+                    String input = lineReader.readLine(pending == null ? "> " : pending.prompt());
+
+                    synchronized (questions) {
+                        pending = questions.poll();
+                        if (pending != null) {
+                            Question next = questions.peek();
+                            if (next != null) show(next);
+                        }
+                    }
+                    if (pending != null) {
+                        pending.answer().complete(input);
+                        continue;
+                    }
+
                     stdInLogger.info(input);
                     if (input != null && !input.isBlank()) {
                         List<String> parts = new ArrayList<>(List.of(input.split(" ")));
@@ -73,8 +144,9 @@ public class ConsolePrompt {
             }
         }, "console-input");
 
-        consoleThread.setDaemon(true);
-        consoleThread.start();
+        thread.setDaemon(true);
+        consoleThread = thread;
+        thread.start();
     }
 
     public void writeDirect(@NotNull String line) {
@@ -115,5 +187,9 @@ public class ConsolePrompt {
         tuiAppender.start();
 
         root.addAppender(tuiAppender);
+    }
+
+    private record Question(@NotNull String message, @NotNull String prompt,
+                            @NotNull CompletableFuture<@Nullable String> answer) {
     }
 }

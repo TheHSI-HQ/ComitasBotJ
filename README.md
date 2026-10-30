@@ -109,24 +109,29 @@ Comitas API and a safe subset of the JDK:
   unavailable. Plugin jars bundling JDA are refused.
 - Everything else needs a permission, which the server owner grants per plugin:
 
-| Permission     | Allows                                                                       |
-|----------------|------------------------------------------------------------------------------|
-| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)           |
-| `file_storage` | Reading and writing files in the plugin's own folder, `plugin_data/<uuid>/`  |
+| Permission     | Allows                                                                          |
+|----------------|---------------------------------------------------------------------------------|
+| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)              |
+| `file_storage` | Writing files in the plugin's own folder, `plugins/<Plugin Name>/` (always readable) |
+
+Each plugin sees its own, fake file system: `/` is `plugins/<Plugin Name>/` and `/mnt/<name>` are its mount points.
+Without `file_storage`, the plugin can only read its folder.
 
 When a plugin requesting permissions is installed, ComitasBotJ asks on the console:
 
 ```text
 Plugin Weather 1.0 (weather.jar) requested:
- - 1. Network Access: Fetches forecasts from api.weather.example
+ - 1. Network Access (required): Fetches forecasts from api.weather.example
  - 2. File Storage: Caches downloaded radar images
-
-What do you grant? (All/1,2/None/All for Every Plugin):
+What do you grant?
+ [A] All / [O] Only Required / [N] None / [1,2] Selected
+ [E] All for Every Plugin / [R] Only Required for Every Plugin / [X] None for Every Plugin
 ```
 
-`A` grants everything, `1,2` single permissions, `N` nothing and `E` everything to every plugin from now on
-(sets `plugin-auto-grant-permissions=true`). Without an interactive console (e.g. `--no-cmd` or Docker without a TTY),
-requested permissions are denied until they are decided.
+`A` grants everything, `O` only the permissions the plugin marked as required, `N` nothing and `1,2` single permissions.
+`E`, `R` and `X` do the same for every plugin from now on, without asking again (sets `plugin-permission-default` to
+`all`, `required` or `none`). A plugin isn't loaded, if one of its required permissions isn't granted. Without an
+interactive console (e.g. `--no-cmd` or Docker without a TTY), requested permissions are denied until they are decided.
 
 The answers are stored in `plugins/<Plugin Name>.security.properties`, which can also be edited by hand
 (changes apply on the next reload). It can additionally make host directories available to the plugin:
@@ -138,7 +143,20 @@ permission.file_storage=false
 # Visible to the plugin as /mnt/music (use / or \\ as path separator)
 mount.music=D:/Music
 mount.music.read-only=true
+# The plugin may not request /mnt/photos anymore
+denied-mount.photos=true
 ```
+
+Plugins can also request a mount point while running, you're then asked on the console:
+
+```text
+Plugin Weather requested a directory as /mnt/music (read-only):
+ - Plays your music collection
+Do you grant it?
+ [Y] Yes / [N] No / [I] Never
+```
+
+After `Y`, you enter the directory, which is saved to the security file. `I` saves `denied-mount.<name>=true`.
 
 Directories overlapping the token, `server.properties`, `plugins/`, `plugin_data/`, `logs/` or the Comitas jar can't
 be mounted.
@@ -159,7 +177,7 @@ The `server.properties` file is automatically created on the first startup. It i
 | `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                                                                                                  |
 | `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. Optionally, suffix the plugin name / uuid with `!sha256=FILE_HASH` |
 | `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                                                                                     |
-| `plugin-auto-grant-permissions` | boolean | `false` | Grants every plugin all permissions it requests, without asking. Not recommended                                                                                 |
+| `plugin-permission-default` | string | `ask` | What new plugins are granted without asking: `ask` (ask on the console), `all` (not recommended), `required` or `none`                                       |
 
 ### File Structure
 
@@ -174,10 +192,10 @@ The following files and directories are created and used by ComitasBotJ:
 │   ├── latest.log             # The current log file
 │   └── ...
 ├── plugin_data/               # Persistent data used by plugins
-│   ├── <uuid>.dat             # Persistent data storage of a plugin
-│   └── <uuid>/                # Data folder of a plugin (file_storage permission)
+│   └── <uuid>.dat             # Persistent data storage of a plugin
 └── plugins/                   # Directory from which plugins are loaded
     ├── <plugin>.jar
+    ├── <Plugin Name>/         # Files of a plugin, its root directory (writable with file_storage)
     └── <Plugin Name>.security.properties # Granted permissions & mount points of a plugin
 ```
 

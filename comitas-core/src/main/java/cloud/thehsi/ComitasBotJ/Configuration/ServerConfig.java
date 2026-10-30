@@ -155,7 +155,7 @@ public class ServerConfig {
         public @NotNull
         final StringProperty botActivityName;
         public @NotNull
-        final BooleanProperty autoGrantPluginPermissions;
+        final StringProperty pluginPermissionDefault;
         private @NotNull
         final ServerConfig cfg;
 
@@ -166,7 +166,7 @@ public class ServerConfig {
             this.loadPlugins = makeProperty("load-plugins", true);
             this.allowedPlugins = makeProperty("allowed-plugins", "*");
             this.botActivityName = makeProperty("bot-activity-name", "ComitasBotJ");
-            this.autoGrantPluginPermissions = makeProperty("plugin-auto-grant-permissions", false);
+            this.pluginPermissionDefault = makeProperty("plugin-permission-default", "ask");
         }
 
         public int count() {

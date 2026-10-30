@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * The isolated file system of one plugin.
  * <p>
- * {@code /} is the plugin's data folder ({@code plugin_data/<uuid>/}, only with the file_storage permission),
+ * {@code /} is the plugin's data folder ({@code plugins/<Plugin Name>/}, always readable, writable only with the file_storage permission),
  * {@code /mnt/<name>} are the mount points configured by the server owner.
  * Paths of this file system can't be turned into host paths, so plugins can never leave these directories.
  */
@@ -26,11 +26,18 @@ public final class SandboxFileSystem extends FileSystem {
     private static final boolean WINDOWS = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
 
     private final @NotNull SandboxFileSystemProvider provider = new SandboxFileSystemProvider(this);
-    private final @Nullable Path dataRoot;
+    private final @NotNull Path dataRoot;
+    private final boolean writable;
     private final @NotNull Map<String, PluginSandbox.MountPoint> mounts;
 
-    public SandboxFileSystem(@Nullable Path dataRoot, @NotNull Map<String, PluginSandbox.MountPoint> mounts) {
+    /**
+     * @param dataRoot The absolute host directory the plugin sees as {@code /}
+     * @param writable If the plugin may modify its data folder (file_storage permission)
+     * @param mounts   The mount points, may be modified later on
+     */
+    public SandboxFileSystem(@NotNull Path dataRoot, boolean writable, @NotNull Map<String, PluginSandbox.MountPoint> mounts) {
         this.dataRoot = dataRoot;
+        this.writable = writable;
         this.mounts = mounts;
     }
 
@@ -65,7 +72,7 @@ public final class SandboxFileSystem extends FileSystem {
             return new Resolved(absolute, mapUnder(mount.hostRoot(), names.subList(2, names.size()), display), names.size() == 2);
         }
 
-        if (dataRoot == null)
+        if (write && !writable)
             throw new AccessDeniedException(display, null, "the plugin wasn't granted the file_storage permission");
 
         Files.createDirectories(dataRoot);

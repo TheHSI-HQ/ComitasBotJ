@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * Provider of a {@link SandboxFileSystem}, every operation is mapped onto the host after it was checked.
  * Host paths never leave this class, exceptions are rewritten to only mention sandbox paths.
  */
-final class SandboxFileSystemProvider extends FileSystemProvider {
+public final class SandboxFileSystemProvider extends FileSystemProvider {
     static final String SCHEME = "comitas-plugin";
     private static final Set<OpenOption> WRITE_OPTIONS = Set.of(
             StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE,
@@ -227,7 +227,7 @@ final class SandboxFileSystemProvider extends FileSystemProvider {
                     }
 
                     @Override
-                    public Path next() {
+                    public @Nullable Path next() {
                         if (!hasNext()) throw new NoSuchElementException();
                         Path result = next;
                         next = null;

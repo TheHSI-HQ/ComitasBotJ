@@ -5,12 +5,15 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a loadable plugin
@@ -30,17 +33,17 @@ public abstract class Plugin {
     }
 
     /**
-     * Gets the plugin's private data folder ({@code plugin_data/<uuid>/} on the host).
+     * Gets the plugin's data folder ({@code plugins/<Plugin Name>/} on the host).
      * <p>
      * Plugins run in a sandbox and can't access the host's file system directly,
      * the returned path is the root ({@code /}) of the plugin's own, isolated file system.
-     * Use it with {@link java.nio.file.Files}, for example
-     * {@code Files.writeString(getDataFolder().resolve("cache.txt"), "...")}.
+     * {@link Path#of(String, String...)} and {@link java.nio.file.Paths#get(String, String...)}
+     * resolve inside this file system as well, so {@code Path.of("cache.txt")} is the same as
+     * {@code getDataFolder().resolve("cache.txt")}.
      * <p>
-     * Requires the {@link PluginPermission#FILE_STORAGE} permission.
+     * The folder is always readable, but only writable with the {@link PluginPermission#FILE_STORAGE} permission.
      *
      * @return The root of the plugin's data folder
-     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#FILE_STORAGE}
      */
     @NotNull
     public Path getDataFolder() {
@@ -48,17 +51,48 @@ public abstract class Plugin {
     }
 
     /**
-     * Gets a mount point, which the server owner made available to this plugin,
-     * in the plugin's {@code .security.properties}.
+     * Gets a mount point, which the server owner made available to this plugin.
      * <p>
      * Mount points are visible under {@code /mnt/<name>} in the plugin's file system.
      *
      * @param name The name of the mount point
      * @return The root of the mount point or null, if there is no such mount point
+     * @see #requestMount(String, String, boolean)
      */
     @Nullable
     public Path getMount(@NotNull String name) {
         return Comitas.getPluginManager().getMount(name);
+    }
+
+    /**
+     * Lists all mount points of this plugin.
+     *
+     * @return The mount points, sorted by name
+     */
+    @NotNull
+    @Unmodifiable
+    public List<PluginMount> getMounts() {
+        return Comitas.getPluginManager().getMounts();
+    }
+
+    /**
+     * Asks the server owner to make a host directory available as a mount point.
+     * <p>
+     * The server owner is asked on the console, if they agree, they choose the directory.
+     * The decision is remembered, if the server owner chooses "Never", the plugin isn't asked again.
+     * If the mount point already exists, it is returned right away.
+     * <p>
+     * Don't block on the returned future from a console command or event handler,
+     * the answer can take a long time, or never come.
+     *
+     * @param name     The name of the mount point, only {@code A-Z a-z 0-9 _ -}
+     * @param reason   Why the plugin needs the directory, shown to the server owner
+     * @param readOnly If the plugin only needs to read from the directory
+     * @return A future completing with the root of the mount point, or null if it was denied
+     */
+    @NotNull
+    public CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly) {
+        return Comitas.getPluginManager().requestMount(name, reason, readOnly);
     }
 
     /**
