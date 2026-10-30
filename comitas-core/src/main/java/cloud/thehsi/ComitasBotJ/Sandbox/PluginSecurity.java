@@ -256,9 +256,65 @@ public final class PluginSecurity {
         return granted;
     }
 
+    // --- Prompt formatting ---
+
+    private static final String PROMPT = ConsoleColor.BRIGHT_YELLOW + "> " + ConsoleColor.RESET;
+
     @NotNull
     private static String option(@NotNull String key, @NotNull String text) {
-        return "[" + ConsoleColor.BOLD + key + ConsoleColor.RESET + "] " + text;
+        return "[" + ConsoleColor.BOLD + ConsoleColor.BRIGHT_CYAN + key + ConsoleColor.RESET + "] " + text;
+    }
+
+    /**
+     * An option affecting every plugin, shown less prominent.
+     */
+    @NotNull
+    private static String globalOption(@NotNull String key, @NotNull String text) {
+        return ConsoleColor.BRIGHT_BLACK + "[" + ConsoleColor.RESET + ConsoleColor.BOLD + ConsoleColor.YELLOW + key
+                + ConsoleColor.RESET + ConsoleColor.BRIGHT_BLACK + "] " + text + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String separator() {
+        return ConsoleColor.BRIGHT_BLACK + " / " + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String header(@NotNull String title) {
+        return "\n" + ConsoleColor.BRIGHT_YELLOW + "──── " + ConsoleColor.BOLD + title + ConsoleColor.RESET
+                + ConsoleColor.BRIGHT_YELLOW + " " + "─".repeat(Math.max(4, 50 - title.length())) + ConsoleColor.RESET + "\n";
+    }
+
+    @NotNull
+    private static String highlight(@NotNull String text) {
+        return ConsoleColor.BOLD + ConsoleColor.BRIGHT_WHITE.toString() + text + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String mountPath(@NotNull String name) {
+        return ConsoleColor.BOLD + ConsoleColor.BRIGHT_CYAN.toString() + "/mnt/" + name + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String reason(@Nullable String reason) {
+        return reason == null || reason.isBlank()
+                ? ConsoleColor.BRIGHT_BLACK + "(no reason given)" + ConsoleColor.RESET
+                : reason.strip();
+    }
+
+    @NotNull
+    private static String dim(@NotNull String text) {
+        return ConsoleColor.BRIGHT_BLACK + text + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String error(@NotNull String text) {
+        return ConsoleColor.BRIGHT_RED + text + ConsoleColor.RESET;
+    }
+
+    @NotNull
+    private static String question(@NotNull String text) {
+        return ConsoleColor.BOLD + text + ConsoleColor.RESET;
     }
 
     /**
@@ -269,27 +325,29 @@ public final class PluginSecurity {
         String name = metadata.name();
         boolean anyRequired = undecided.stream().anyMatch(Request::required);
 
-        StringBuilder request = new StringBuilder()
-                .append('\n').append(ConsoleColor.BOLD).append("Plugin ").append(name).append(' ').append(metadata.version())
-                .append(ConsoleColor.RESET).append(" (").append(metadata.jarName()).append(") requested:\n");
+        StringBuilder request = new StringBuilder(header("Permission Request"))
+                .append("Plugin ").append(highlight(name + " " + metadata.version()))
+                .append(dim(" (" + metadata.jarName() + ")")).append(" requested:\n");
         for (int i = 0; i < undecided.size(); i++) {
             Request permission = undecided.get(i);
-            request.append(" - ").append(i + 1).append(". ").append(permission.permission().getDisplayName())
-                    .append(permission.required() ? " (required)" : "")
-                    .append(": ").append(permission.reason() == null ? "(no reason given)" : permission.reason()).append('\n');
+            request.append("  ").append(ConsoleColor.BOLD).append(ConsoleColor.BRIGHT_CYAN).append(i + 1).append('.')
+                    .append(ConsoleColor.RESET).append(' ').append(highlight(permission.permission().getDisplayName()))
+                    .append(permission.required() ? " " + error("(required)") : "")
+                    .append(": ").append(reason(permission.reason())).append('\n');
         }
 
         StringJoiner numbers = new StringJoiner(",");
         for (int i = 1; i <= undecided.size(); i++) numbers.add(String.valueOf(i));
-        String options = "What do you grant?\n"
-                + " " + option("A", "All") + " / " + (anyRequired ? option("O", "Only Required") + " / " : "")
-                + option("N", "None") + " / " + option(numbers.toString(), "Selected") + "\n"
-                + " " + option("E", "All for Every Plugin") + " / " + option("R", "Only Required for Every Plugin")
-                + " / " + option("X", "None for Every Plugin");
+        String options = question("What do you grant?") + "\n"
+                + "  " + option("A", "All") + separator() + (anyRequired ? option("O", "Only Required") + separator() : "")
+                + option("N", "None") + separator() + option(numbers.toString(), "Selected") + "\n"
+                + "  " + globalOption("E", "All for Every Plugin") + separator()
+                + globalOption("R", "Only Required for Every Plugin") + separator()
+                + globalOption("X", "None for Every Plugin");
 
         String message = request + options;
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-            String answer = prompter.ask(message, "> ").join();
+            String answer = prompter.ask(message, PROMPT).join();
             if (answer == null) {
                 logger.warn("Plugin {} requested the permissions [{}], but there is no interactive console to ask. "
                                 + "They are denied, edit {} to grant them and reload.",
@@ -304,7 +362,7 @@ public final class PluginSecurity {
                 return parsed.granted();
             }
 
-            message = "Invalid answer '" + answer.strip() + "'.\n" + options;
+            message = error("Invalid answer '" + answer.strip() + "'.") + "\n" + options;
         }
 
         logger.warn("No valid answer for {}, all requested permissions are denied", name);
@@ -410,15 +468,17 @@ public final class PluginSecurity {
     @NotNull
     private CompletableFuture<@Nullable Path> askMount(@NotNull PluginSandbox sandbox, @NotNull String name,
                                                        @NotNull String reason, boolean readOnly) {
-        String message = "\n" + ConsoleColor.BOLD + "Plugin " + sandbox.pluginName() + ConsoleColor.RESET
-                + " requested a directory as /mnt/" + name + (readOnly ? " (read-only)" : "") + ":\n"
-                + " - " + (reason.isBlank() ? "(no reason given)" : reason.strip()) + "\n"
-                + "Do you grant it?\n"
-                + " " + option("Y", "Yes") + " / " + option("N", "No") + " / " + option("I", "Never");
+        String message = header("Mount Request")
+                + "Plugin " + highlight(sandbox.pluginName()) + " requested a directory as " + mountPath(name)
+                + (readOnly ? dim(" (read-only)") : "") + ":\n"
+                + "  " + reason(reason) + "\n"
+                + question("Do you grant it?") + "\n"
+                + "  " + option("Y", "Yes") + separator() + option("N", "No") + separator() + option("I", "Never");
 
         return askMountDecision(sandbox, name, message, message, 0).thenCompose(decision -> switch (decision) {
             case YES -> askMountDirectory(sandbox, name, readOnly,
-                    "Enter the directory for /mnt/" + name + " of " + sandbox.pluginName() + " (empty to cancel):", 0);
+                    question("Enter the directory for ") + mountPath(name) + question(" of " + sandbox.pluginName())
+                            + dim(" (empty to cancel)") + ":", 0);
             case NEVER -> {
                 sandbox.addNeverMount(name);
                 append(sandbox, "denied-mount." + name + "=true\n", "was denied the mount point /mnt/" + name);
@@ -433,7 +493,7 @@ public final class PluginSecurity {
     @NotNull
     private CompletableFuture<MountDecision> askMountDecision(@NotNull PluginSandbox sandbox, @NotNull String name,
                                                               @NotNull String question, @NotNull String message, int attempt) {
-        return prompter.ask(message, "> ").thenCompose(answer -> {
+        return prompter.ask(message, PROMPT).thenCompose(answer -> {
             if (answer == null) {
                 logger.warn("Plugin {} requested a directory as /mnt/{}, but there is no interactive console to ask. "
                         + "Add mount.{}=<directory> to {} and reload to grant it.", sandbox.pluginName(), name, name,
@@ -449,14 +509,15 @@ public final class PluginSecurity {
             };
             if (decision != null) return CompletableFuture.completedFuture(decision);
             if (attempt + 1 >= MAX_ATTEMPTS) return CompletableFuture.completedFuture(MountDecision.NO);
-            return askMountDecision(sandbox, name, question, "Invalid answer '" + answer.strip() + "'." + question, attempt + 1);
+            return askMountDecision(sandbox, name, question, "\n" + error("Invalid answer '" + answer.strip() + "'.") + question,
+                    attempt + 1);
         });
     }
 
     @NotNull
     private CompletableFuture<@Nullable Path> askMountDirectory(@NotNull PluginSandbox sandbox, @NotNull String name,
                                                                 boolean readOnly, @NotNull String message, int attempt) {
-        return prompter.ask(message, "> ").thenCompose(answer -> {
+        return prompter.ask(message, PROMPT).thenCompose(answer -> {
             if (answer == null || answer.isBlank()) return CompletableFuture.completedFuture(null);
 
             String error;
@@ -483,7 +544,8 @@ public final class PluginSecurity {
                 logger.warn("{} The mount point /mnt/{} of {} is not created.", error, name, sandbox.pluginName());
                 return CompletableFuture.completedFuture(null);
             }
-            return askMountDirectory(sandbox, name, readOnly, error + " Enter another directory (empty to cancel):", attempt + 1);
+            return askMountDirectory(sandbox, name, readOnly, error(error) + " " + question("Enter another directory")
+                    + dim(" (empty to cancel)") + ":", attempt + 1);
         });
     }
 

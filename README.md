@@ -120,12 +120,14 @@ Without `file_storage`, the plugin can only read its folder.
 When a plugin requesting permissions is installed, ComitasBotJ asks on the console:
 
 ```text
+──── Permission Request ────────────────────────────────
 Plugin Weather 1.0 (weather.jar) requested:
- - 1. Network Access (required): Fetches forecasts from api.weather.example
- - 2. File Storage: Caches downloaded radar images
+  1. Network Access (required): Fetches forecasts from api.weather.example
+  2. File Storage: Caches downloaded radar images
 What do you grant?
- [A] All / [O] Only Required / [N] None / [1,2] Selected
- [E] All for Every Plugin / [R] Only Required for Every Plugin / [X] None for Every Plugin
+  [A] All / [O] Only Required / [N] None / [1,2] Selected
+  [E] All for Every Plugin / [R] Only Required for Every Plugin / [X] None for Every Plugin
+> 
 ```
 
 `A` grants everything, `O` only the permissions the plugin marked as required, `N` nothing and `1,2` single permissions.
@@ -150,10 +152,12 @@ denied-mount.photos=true
 Plugins can also request a mount point while running, you're then asked on the console:
 
 ```text
+──── Mount Request ─────────────────────────────────────
 Plugin Weather requested a directory as /mnt/music (read-only):
- - Plays your music collection
+  Plays your music collection
 Do you grant it?
- [Y] Yes / [N] No / [I] Never
+  [Y] Yes / [N] No / [I] Never
+> 
 ```
 
 After `Y`, you enter the directory, which is saved to the security file. `I` saves `denied-mount.<name>=true`.
