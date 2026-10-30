@@ -90,6 +90,8 @@ JAR=$(find ./comitas-core/target \
     ! -name '*-javadoc.jar' \
     -print -quit)
 
+echo "$JAR"
+
 if [[ -z "$JAR" ]]; then
     echo "Core JAR not found"
     exit 1
@@ -98,8 +100,9 @@ fi
 mkdir -p ./comitas-core/run/plugins
 
 echo Copying updated files...
-cp "$JAR" ./comitas-core/run/comitas.jar
-cp ./example-plugin/target/example-plugin-1.0.jar ./comitas-core/run/plugins/
+cp -f "$JAR" ./comitas-core/run/comitas.jar
+rm -f ./comitas-core/run/plugins/example-plugin-1.0.jar
+cp -f ./example-plugin/target/example-plugin-1.0.jar ./comitas-core/run/plugins/
 
 cd ./comitas-core/run
 exec java -jar comitas.jar "$@"

@@ -13,7 +13,7 @@ public interface PersistentDataType<T> {
      * Searialize the input data
      *
      * @param value The data to serialize
-     * @return The serialized data
+     * @return The serialized data, which may only consist of strings, numbers, booleans, arrays, lists and maps
      */
     @NotNull Object serialize(@NotNull T value);
 

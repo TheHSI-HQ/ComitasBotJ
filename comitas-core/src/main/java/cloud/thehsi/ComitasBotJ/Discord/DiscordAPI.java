@@ -5,12 +5,15 @@ import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,10 +33,10 @@ public class DiscordAPI {
     @Nullable
     private final String BOT_TOKEN;
 
-    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
+    public DiscordAPI(@NotNull String BOT_TOKEN, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager, @NotNull InstanceLock instanceLock) {
         this.BOT_TOKEN = BOT_TOKEN;
 
-        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry);
+        this.listeners = new DiscordAPIListeners(this, eventManager, commandRegistry, pluginManager, instanceLock);
 
         connect();
     }
@@ -89,13 +92,20 @@ public class DiscordAPI {
         return new DiscordAPI();
     }
 
+    public static void disconnect() {
+        if (api == null) return;
+
+        api.shutdown();
+    }
+
     private void connect() {
         ch.qos.logback.classic.Logger jdaLogger =
                 (ch.qos.logback.classic.Logger)
                         LoggerFactory.getLogger("net.dv8tion.jda");
 
         jdaLogger.setLevel(
-                DebugLogging.isAPIEnabled() ? Level.DEBUG : Level.INFO
+                DebugLogging.isAPIEnabled() ? Level.DEBUG :
+                        Main.props().quiet() ? Level.WARN : Level.INFO
         );
 
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Connecting to Discord Bot");
@@ -103,12 +113,16 @@ public class DiscordAPI {
             api = JDABuilder.createDefault(BOT_TOKEN)
                     .enableIntents(
                             GatewayIntent.GUILD_MEMBERS,
-                            GatewayIntent.MESSAGE_CONTENT
+                            GatewayIntent.MESSAGE_CONTENT,
+                            GatewayIntent.GUILD_PRESENCES
                     )
+                    .enableCache(CacheFlag.ONLINE_STATUS, CacheFlag.ACTIVITY)
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .setEventPassthrough(true)
                     .addEventListeners(listeners)
+                    .setEnableShutdownHook(false)
+                    .setStatus(OnlineStatus.INVISIBLE)
                     .build();
         } catch (ErrorResponseException e) {
             logger.error("Unable to connect to discord. Aborting!", e);

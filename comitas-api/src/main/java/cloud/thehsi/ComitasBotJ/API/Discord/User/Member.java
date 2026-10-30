@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.User;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.VoiceChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
@@ -190,4 +191,62 @@ public interface Member extends User {
      * @param displayName The new display name, or null to reset to default (global)
      */
     void setDisplayName(@Nullable String displayName);
+
+    /**
+     * Get the voice or stage channel this member is connected to
+     *
+     * @return The connected channel, or null if the member isn't in a voice channel
+     */
+    @Nullable
+    VoiceChannel getVoiceChannel();
+
+    /**
+     * Move this member into another voice channel of the same guild
+     *
+     * @param channel The channel to move the member to
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MOVE_MEMBERS} or {@link Permission#CONNECT}
+     * @throws IllegalArgumentException                                                      If the channel belongs to another guild
+     */
+    void moveTo(@NotNull VoiceChannel channel);
+
+    /**
+     * Disconnect this member from its voice channel
+     *
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MOVE_MEMBERS}
+     */
+    void disconnectFromVoice();
+
+    /**
+     * Is this member muted by the server (not by themselves)
+     *
+     * @return If the member is server muted
+     */
+    boolean isGuildMuted();
+
+    /**
+     * Mute or unmute this member for the whole server
+     *
+     * @param muted If the member should be muted
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MUTE_MEMBERS}
+     */
+    void setGuildMuted(boolean muted);
+
+    /**
+     * Is this member deafened by the server (not by themselves)
+     *
+     * @return If the member is server deafened
+     */
+    boolean isGuildDeafened();
+
+    /**
+     * Deafen or undeafen this member for the whole server
+     *
+     * @param deafened If the member should be deafened
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
+     * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#DEAFEN_MEMBERS}
+     */
+    void setGuildDeafened(boolean deafened);
 }

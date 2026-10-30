@@ -23,6 +23,8 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReference;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,12 +69,18 @@ public class InternalMessage implements Message {
 
         // Validate the message still exists
         try {
-            message.getFlagsRaw();
-        } catch (Exception ignored) {
-            deleted = true;
-            return true;
+            message.getChannel()
+                    .retrieveMessageById(message.getId())
+                    .complete();
+            return false;
+        } catch (ErrorResponseException e) {
+            if (e.getErrorResponse() == ErrorResponse.UNKNOWN_MESSAGE) {
+                deleted = true;
+                return true;
+            }
+
+            throw e;
         }
-        return false;
     }
 
     @Override
@@ -164,6 +172,12 @@ public class InternalMessage implements Message {
     }
 
     @Override
+    public boolean isVoiceMessage() {
+        DebugLogging.action();
+        return message.isVoiceMessage();
+    }
+
+    @Override
     public @NotNull List<MessageAttachment> getAttachments() {
         DebugLogging.action();
         return message.getAttachments().stream()
@@ -206,10 +220,9 @@ public class InternalMessage implements Message {
     @Override
     public @Nullable MyMessage asMyMessage() {
         DebugLogging.action();
-        Member author = getAuthor();
-        if (author == null) return null;
 
-        if (!getAuthor().isMe()) return null;
+        if (!getAuthorUser().isMe())
+            return null;
 
         return new InternalMyMessage(message, optionalDeletionCallback);
     }

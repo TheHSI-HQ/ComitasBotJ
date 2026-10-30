@@ -4,11 +4,16 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PersistentData.PersistentDataStorage;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a loadable plugin
@@ -28,6 +33,79 @@ public abstract class Plugin {
     }
 
     /**
+     * Gets the plugin's data folder ({@code data/volumes/<Plugin UUID>/} on the host).
+     * <p>
+     * Plugins run in a sandbox and can't access the host's file system directly,
+     * the returned path is the root ({@code /}) of the plugin's own, isolated file system.
+     * {@link Path#of(String, String...)} and {@link java.nio.file.Paths#get(String, String...)}
+     * resolve inside this file system as well, so {@code Path.of("cache.txt")} is the same as
+     * {@code getDataFolder().resolve("cache.txt")}.
+     * <p>
+     * The folder is always readable, but only writable with the {@link PluginPermission#FILE_STORAGE} permission.
+     *
+     * @return The root of the plugin's data folder
+     */
+    @NotNull
+    public Path getDataFolder() {
+        return Comitas.getPluginManager().getDataFolder();
+    }
+
+    /**
+     * Gets a mount point, which the server owner made available to this plugin.
+     * <p>
+     * Mount points are visible under {@code /mnt/<name>} in the plugin's file system.
+     *
+     * @param name The name of the mount point
+     * @return The root of the mount point or null, if there is no such mount point
+     * @see #requestMount(String, String, boolean)
+     */
+    @Nullable
+    public Path getMount(@NotNull String name) {
+        return Comitas.getPluginManager().getMount(name);
+    }
+
+    /**
+     * Lists all mount points of this plugin.
+     *
+     * @return The mount points, sorted by name
+     */
+    @NotNull
+    @Unmodifiable
+    public List<PluginMount> getMounts() {
+        return Comitas.getPluginManager().getMounts();
+    }
+
+    /**
+     * Asks the server owner to make a host directory available as a mount point.
+     * <p>
+     * The server owner is asked on the console, if they agree, they choose the directory.
+     * The decision is remembered, if the server owner chooses "Never", the plugin isn't asked again.
+     * If the mount point already exists, it is returned right away.
+     * <p>
+     * Don't block on the returned future from a console command or event handler,
+     * the answer can take a long time, or never come.
+     *
+     * @param name     The name of the mount point, only {@code A-Z a-z 0-9 _ -}
+     * @param reason   Why the plugin needs the directory, shown to the server owner
+     * @param readOnly If the plugin only needs to read from the directory
+     * @return A future completing with the root of the mount point, or null if it was denied
+     */
+    @NotNull
+    public CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly) {
+        return Comitas.getPluginManager().requestMount(name, reason, readOnly);
+    }
+
+    /**
+     * Checks if this plugin was granted a {@link PluginPermission}.
+     *
+     * @param permission The permission to check
+     * @return True, if the permission was granted
+     */
+    public boolean hasPermission(@NotNull PluginPermission permission) {
+        return Comitas.getPluginManager().hasPermission(permission);
+    }
+
+    /**
      * @return The plugins logger
      */
     @NotNull
@@ -36,12 +114,26 @@ public abstract class Plugin {
     }
 
     /**
-     * The plugins on-enable function
+     * The plugins on-load function, optional.
+     * <p>
+     * Called as soon as the plugin is loaded, before the bot is connected to Discord.
+     * Discord dependant parts of the API (e.g. {@link Comitas#getBot()} or command registration) are not available yet.
+     */
+    public void onLoad() {
+    }
+
+    /**
+     * The plugins on-enable function.
+     * <p>
+     * Called once the bot is connected to Discord, the whole API is available from here on.
+     * This is the place to register commands and listeners.
      */
     public abstract void onEnable();
 
     /**
-     * The plugins on-disable function
+     * The plugins on-disable function.
+     * <p>
+     * Called when the plugin is unloaded, only if {@link #onEnable()} was called before.
      */
     public abstract void onDisable();
 
@@ -78,18 +170,37 @@ public abstract class Plugin {
             if (!props.containsKey("uuid"))
                 throw new RuntimeException("Plugin is missing uuid in plugin.properties");
 
+            String name = requirePlain("name", props.getProperty("name"));
+            String version = requirePlain("version", props.getProperty("version"));
+            String apiTarget = requirePlain("api-target", props.getProperty("api-target"));
+            String commandPrefix = requirePlain("command-prefix", props.getProperty("command-prefix", name));
+            if (name.isBlank()) throw new RuntimeException("Plugin has an empty name in plugin.properties");
+
+            UUID uuid;
             try {
-                return new PluginMetadata(
-                        props.getProperty("name"),
-                        props.getProperty("version"),
-                        jarName,
-                        props.getProperty("api-target"),
-                        UUID.fromString(props.getProperty("uuid".toLowerCase())),
-                        props.getProperty("command-prefix", props.getProperty("name"))
-                );
+                uuid = UUID.fromString(props.getProperty("uuid").strip());
             } catch (IllegalArgumentException | NullPointerException e) {
                 throw new RuntimeException("Plugin has an invalid uuid in plugin.properties");
             }
+
+            return new PluginMetadata(name, version, jarName, apiTarget, uuid, commandPrefix);
+        }
+
+        /**
+         * Plugin metadata ends up in log output, console prompts and the security settings file,
+         * so it must not contain line breaks, terminal escape sequences or other control characters.
+         */
+        @NotNull
+        private static String requirePlain(@NotNull String key, @NotNull String value) {
+            if (value.length() > 128)
+                throw new RuntimeException("Plugin has a too long " + key + " in plugin.properties (max. 128 characters)");
+            for (int i = 0; i < value.length(); i++) {
+                char c = value.charAt(i);
+                if (Character.isISOControl(c) || Character.getType(c) == Character.FORMAT
+                        || c == '\u2028' || c == '\u2029')
+                    throw new RuntimeException("Plugin has an illegal character in " + key + " in plugin.properties");
+            }
+            return value.strip();
         }
     }
 }

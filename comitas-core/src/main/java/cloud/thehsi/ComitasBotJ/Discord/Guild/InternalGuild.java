@@ -1,7 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.GuildChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Invite;
@@ -10,11 +10,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalTextChannel;
 import cloud.thehsi.ComitasBotJ.Discord.Role.InternalRole;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,21 +40,23 @@ public record InternalGuild(net.dv8tion.jda.api.entities.Guild guild) implements
     @Override
     public @Nullable Channel getChannelById(@NotNull String id) {
         DebugLogging.action();
-        GuildChannel channel = guild.getChannelById(GuildChannel.class, id);
+        net.dv8tion.jda.api.entities.channel.middleman.GuildChannel channel =
+                guild.getChannelById(net.dv8tion.jda.api.entities.channel.middleman.GuildChannel.class, id);
         if (channel == null) return null;
         return ChannelTypeResolver.resolve(channel);
     }
 
     @Override
-    public @Nullable TextChannel getDefaultChannel() {
+    public @Nullable GuildChannel getDefaultChannel() {
         DebugLogging.action();
         net.dv8tion.jda.api.entities.channel.middleman.GuildChannel defaultChannel = guild.getDefaultChannel();
 
-        if (defaultChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel)
-            return new InternalTextChannel(
-                    (net.dv8tion.jda.api.entities.channel.concrete.TextChannel) guild.getDefaultChannel()
-            );
+        if (defaultChannel == null) return null;
 
+        Channel channel = ChannelTypeResolver.resolve(defaultChannel);
+
+        if (channel instanceof GuildChannel guildChannel)
+            return guildChannel;
         return null;
     }
 

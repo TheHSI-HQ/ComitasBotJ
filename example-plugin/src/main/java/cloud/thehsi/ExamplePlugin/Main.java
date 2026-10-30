@@ -1,7 +1,8 @@
 package cloud.thehsi.ExamplePlugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
-import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.GuildChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Emoji.Emojis.Emojis;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.ActionsRow.Button;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
@@ -13,7 +14,6 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.EmbedField;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Event.EventHandler;
 import cloud.thehsi.ComitasBotJ.API.Event.EventPriority;
-import cloud.thehsi.ComitasBotJ.API.Event.Events.BotReadyEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.MessageReceivedEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.UserJoinGuildEvent;
 import cloud.thehsi.ComitasBotJ.API.Event.Listener;
@@ -27,9 +27,11 @@ import java.awt.*;
 public class Main extends Plugin implements Listener {
     @Override
     public void onEnable() {
-        getLogger().info("Hello World from Example Plugin");
+        getLogger().info("Hello World from Example Plugin, running as {}", Comitas.getBot().getUserName());
 
         Comitas.getPluginManager().registerEvents(this, this);
+
+        Comitas.getCommandRegistry().register(new ExampleCommand());
     }
 
     @Override
@@ -37,22 +39,12 @@ public class Main extends Plugin implements Listener {
         getLogger().info("Bye Bye from ExamplePlugin!");
     }
 
-    @SuppressWarnings({"unused"})
-    @EventHandler(priority = EventPriority.LOW)
-    public void onBotConnect(@NotNull BotReadyEvent event) {
-        getLogger().info("Hello from {}", event.getUserName());
-
-        Comitas.getPluginManager().getPersistentDataStorage();
-
-        Comitas.getCommandRegistry().register(new ExampleCommand());
-    }
-
     @EventHandler(priority = EventPriority.LOW)
     public void onUserJoinGuildEvent(@NotNull UserJoinGuildEvent event) {
-        TextChannel generalChannel = event.getGuild().getDefaultChannel();
-        if (generalChannel == null)
+        GuildChannel generalChannel = event.getGuild().getDefaultChannel();
+        if (!(generalChannel instanceof MessageChannel generalMessageChannel))
             return;
-        generalChannel.sendMessage(
+        generalMessageChannel.sendMessage(
                 Emojis.WAVE().asComponent()
                         .append(" Hello ")
                         .append(event.getMember().mention())

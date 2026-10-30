@@ -188,7 +188,8 @@ public class EmbedBuilder {
      */
     @NotNull
     public EmbedBuilder addField(@Nullable EmbedField field) {
-        this.fields.add(field);
+        if (field != null)
+            this.fields.add(field);
         return this;
     }
 

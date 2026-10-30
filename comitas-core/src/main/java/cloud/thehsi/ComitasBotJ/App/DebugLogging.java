@@ -96,6 +96,28 @@ public class DebugLogging {
                 callee.getLineNumber());
     }
 
+    public static void basic(@NotNull String message, @Nullable Object... args) {
+        if (!isBasicEnabled()) return;
+
+        Class<?> caller = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .walk(frames -> frames
+                        .<Class<?>>map(StackWalker.StackFrame::getDeclaringClass)
+                        .filter(clazz -> clazz != DebugLogging.class)
+                        .findFirst()
+                        .orElse(DebugLogging.class));
+
+        Logger logger = (Logger) (caller != null ?
+                LoggerFactory.getLogger(caller) :
+                LoggerFactory.getLogger("Unknown")
+        );
+
+        logger.setLevel(Level.DEBUG);
+        logger.debug(message, args);
+    }
+
+    interface UnknownClass {
+    }
+
     public static boolean isAPIEnabled() {
         return getVerbosityLevel() >= 4;
     }

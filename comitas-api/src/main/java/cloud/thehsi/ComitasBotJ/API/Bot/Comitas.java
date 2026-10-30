@@ -8,6 +8,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * The comitas api, used for interaction with comitas backend, as well as the bot itself
  */
@@ -16,7 +18,7 @@ public class Comitas {
     private @NotNull
     static final Comitas INSTANCE = new Comitas();
 
-    private @Nullable InternalComitasImpl impl;
+    private volatile @Nullable InternalComitasImpl impl;
 
     private Comitas() {
     }
@@ -34,7 +36,7 @@ public class Comitas {
     public static UtilityBackend getUtilityBackend() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getUtilityBackend();
+        return Objects.requireNonNull(INSTANCE.impl).getUtilityBackend();
     }
 
     /**
@@ -43,7 +45,7 @@ public class Comitas {
     public static void shutdown() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        INSTANCE.impl.shutdown();
+        Objects.requireNonNull(INSTANCE.impl).shutdown();
     }
 
     /**
@@ -55,7 +57,7 @@ public class Comitas {
     public static Bot getBot() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getBot();
+        return Objects.requireNonNull(INSTANCE.impl).getBot();
     }
 
     /**
@@ -78,7 +80,7 @@ public class Comitas {
     public static String getServerVersion() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getServerVersion();
+        return Objects.requireNonNull(INSTANCE.impl).getServerVersion();
     }
 
     /**
@@ -92,7 +94,7 @@ public class Comitas {
     public static PluginManager getPluginManager() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getPluginManager();
+        return Objects.requireNonNull(INSTANCE.impl).getPluginManager();
     }
 
     /**
@@ -106,7 +108,7 @@ public class Comitas {
     public static CommandRegistry getCommandRegistry() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getCommandRegistry();
+        return Objects.requireNonNull(INSTANCE.impl).getCommandRegistry();
     }
 
     /**
@@ -120,7 +122,7 @@ public class Comitas {
     public static ConsoleCommandRegistry getConsoleCommandRegistry() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getConsoleCommandRegistry();
+        return Objects.requireNonNull(INSTANCE.impl).getConsoleCommandRegistry();
     }
 
     /**
@@ -134,7 +136,7 @@ public class Comitas {
     public static Scheduler getScheduler() {
         if (INSTANCE.impl == null)
             throw new IllegalStateException("Intance not initialized");
-        return INSTANCE.impl.getScheduler();
+        return Objects.requireNonNull(INSTANCE.impl).getScheduler();
     }
 
     /**
@@ -152,6 +154,6 @@ public class Comitas {
 
         INSTANCE.impl = impl;
 
-        INSTANCE.impl.init();
+        Objects.requireNonNull(INSTANCE.impl).init();
     }
 }

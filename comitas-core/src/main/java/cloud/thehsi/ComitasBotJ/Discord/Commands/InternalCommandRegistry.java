@@ -3,8 +3,9 @@ package cloud.thehsi.ComitasBotJ.Discord.Commands;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentProvider;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.DynamicCommandBuilder;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Discord.Channel.InternalChannel;
+import cloud.thehsi.ComitasBotJ.Discord.Channel.ChannelTypeResolver;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.Dynamic.InternalCommandArgument;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.Dynamic.InternalCommandArgumentProvider;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
@@ -17,12 +18,12 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.IntegrationType;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -32,11 +33,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 public class InternalCommandRegistry implements CommandRegistry {
-    final @NotNull List<RegisteredCommand> commands = new ArrayList<>();
-    final @NotNull List<RegisteredDynamicCommand> dynamicCommands = new ArrayList<>();
+    final @NotNull List<RegisteredCommand> commands = new CopyOnWriteArrayList<>();
+    final @NotNull List<RegisteredDynamicCommand> dynamicCommands = new CopyOnWriteArrayList<>();
+    final @NotNull Logger debugLogger = DebugLogging.getLogger();
 
     public InternalCommandRegistry() {}
     private @NotNull
@@ -72,7 +75,11 @@ public class InternalCommandRegistry implements CommandRegistry {
                 for (OptionMapping option : options) {
                     if (!option.getName().equals(argument.name())) continue;
                     if (argument.type().converter() == null) continue;
-                    args[i] = argument.type().converter().apply(option);
+                    try {
+                        args[i] = argument.type().converter().apply(option);
+                    } catch (Exception e) {
+                        logger.error("There was an error whilst parsing option '{}' of command '{}'", option.getName(), command.name(), e);
+                    }
                     options.remove(option);
                     break;
                 }
@@ -101,10 +108,14 @@ public class InternalCommandRegistry implements CommandRegistry {
             if (argument == null)
                 return;
 
-            provider.addArgument(
-                    e.getName(),
-                    new InternalCommandArgument<>(extractValue(e, type), !argument.required(), type)
-            );
+            try {
+                provider.addArgument(
+                        e.getName(),
+                        new InternalCommandArgument<>(extractValue(e, type), !argument.required(), type)
+                );
+            } catch (Exception ex) {
+                logger.error("There was an error whilst parsing option '{}' of command '{}'", argument.identifier(), command.name(), ex);
+            }
         });
 
         CommandRanContext commandRanContext = new InternalCommandRanContext(
@@ -136,11 +147,23 @@ public class InternalCommandRegistry implements CommandRegistry {
                 commandBuilder.isNsfw(),
                 commandBuilder.getCommandTypes(),
                 commandBuilder.getCommandContextTypes(),
+                commandBuilder.getRequiredPermissions(),
                 commandBuilder.getArguments(),
                 commandBuilder.getConsumer()
         );
+        requireUnusedName(command.name());
         register(command);
         dynamicCommands.add(command);
+    }
+
+    /**
+     * Discord only knows one command per name, a second handler would silently run as well.
+     */
+    private synchronized void requireUnusedName(@NotNull String name) {
+        boolean taken = commands.stream().anyMatch(cmd -> cmd.name().equals(name))
+                || dynamicCommands.stream().anyMatch(cmd -> cmd.name().equals(name));
+        if (taken)
+            throw new IllegalArgumentException("A command named '" + name + "' is already registered");
     }
 
     void registerMethod(@NotNull Method method, @NotNull CommandSupplier commandSupplier) {
@@ -173,8 +196,19 @@ public class InternalCommandRegistry implements CommandRegistry {
             arguments[i] = new CommandArgument<>(type, option.name(), option.description(), option.required());
         }
 
-        RegisteredCommand command = new RegisteredCommand(commandInfo.name(), commandInfo.description(), commandInfo.nsfw(), commandInfo.commandType(), commandInfo.commandContextType(), arguments, method, commandSupplier);
+        RegisteredCommand command = new RegisteredCommand(
+                commandInfo.name(),
+                commandInfo.description(),
+                commandInfo.nsfw(),
+                commandInfo.commandType(),
+                commandInfo.commandContextType(),
+                commandInfo.requiredPermissions(),
+                arguments,
+                method,
+                commandSupplier
+        );
 
+        requireUnusedName(command.name());
         register(command);
 
         commands.add(
@@ -182,29 +216,48 @@ public class InternalCommandRegistry implements CommandRegistry {
         );
     }
 
-    public void unregisterAll() {
-        if (DiscordAPI.nullableApi() == null)
-            throw new IllegalStateException("Command un-registration requested before ready");
+    /**
+     * Drops all local command handlers, so commands of unloaded plugins aren't executed anymore.
+     * Commands stay registered on Discord, as plugins re-register them after loading.
+     */
+    public void clearHandlers() {
+        commands.clear();
+        dynamicCommands.clear();
+    }
 
+    /**
+     * Asynchronously deletes all commands on Discord, which have no registered handler.
+     * Global commands are compared by name, guild commands are always unused, as only global commands get registered.
+     * Guild commands are only removed with prune-guild-commands, as they aren't necessarily created by ComitasBotJ.
+     */
+    public void pruneUnusedCommands() {
         var jda = DiscordAPI.nullableApi();
+        if (jda == null)
+            throw new IllegalStateException("Command pruning requested before ready");
 
-        List<RestAction<List<Command>>> retrieveActions = new ArrayList<>();
-        retrieveActions.add(jda.retrieveCommands());
+        jda.retrieveCommands().queue(remoteCommands -> {
+            // Resolve names on arrival, so commands registered in the meantime are kept
+            Set<String> used = new HashSet<>();
+            commands.forEach(cmd -> used.add(cmd.name()));
+            dynamicCommands.forEach(cmd -> used.add(cmd.name()));
+
+            for (Command command : remoteCommands) {
+                if (used.contains(command.getName())) continue;
+                if (DebugLogging.isBasicEnabled()) debugLogger.debug("Removing unused command '{}'", command.getName());
+                command.delete().queue(null, e -> logger.warn("Failed to remove unused command '{}'", command.getName(), e));
+            }
+        }, e -> logger.warn("Failed to retrieve commands for pruning", e));
+
+        if (!Main.conf().pruneGuildCommands.get()) return;
 
         for (Guild guild : jda.getGuilds())
-            retrieveActions.add(guild.retrieveCommands());
-
-        RestAction.allOf(retrieveActions).flatMap(results -> {
-            List<RestAction<Void>> deleteActions = results.stream()
-                    .flatMap(Collection::stream)
-                    .map(Command::delete)
-                    .toList();
-
-            return RestAction.allOf(deleteActions);
-        }).complete();
-
-        jda.updateCommands().complete();
-        commands.clear();
+            guild.retrieveCommands().queue(remoteCommands -> {
+                for (Command command : remoteCommands) {
+                    if (DebugLogging.isBasicEnabled())
+                        debugLogger.debug("Removing unused guild command '{}' from {}", command.getName(), guild.getName());
+                    command.delete().queue(null, e -> logger.warn("Failed to remove unused guild command '{}'", command.getName(), e));
+                }
+            }, e -> logger.warn("Failed to retrieve guild commands of {} for pruning", guild.getName(), e));
     }
 
     void register(@NotNull RegisteredCommand command) {
@@ -221,6 +274,15 @@ public class InternalCommandRegistry implements CommandRegistry {
                         .map(e -> IntegrationType.fromKey(e.getKey()))
                         .toArray(IntegrationType[]::new)
         );
+
+        if (command.requiredPermissions.length == 0)
+            data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
+        else
+            data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(
+                    net.dv8tion.jda.api.Permission.getPermissions(
+                            Permission.asLong(command.requiredPermissions)
+                    )
+            ));
 
         data = data.setNSFW(command.nsfw());
 
@@ -251,6 +313,15 @@ public class InternalCommandRegistry implements CommandRegistry {
                         .toArray(IntegrationType[]::new)
         );
 
+        if (command.requiredPermissions.length == 0)
+            data.setDefaultPermissions(DefaultMemberPermissions.ENABLED);
+        else
+            data.setDefaultPermissions(DefaultMemberPermissions.enabledFor(
+                net.dv8tion.jda.api.Permission.getPermissions(
+                    Permission.asLong(command.requiredPermissions)
+                )
+            ));
+
         data = data.setNSFW(command.nsfw());
 
 
@@ -270,7 +341,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     private OptionType optionTypeFromCommandArgumentType(@NotNull cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<?> type) {
         return switch (type.name()) {
             case "STRING" -> OptionType.STRING;
-            case "INTEGER" -> OptionType.INTEGER;
+            case "NUMBER" -> OptionType.INTEGER;
             case "DOUBLE" -> OptionType.NUMBER;
             case "BOOLEAN" -> OptionType.BOOLEAN;
             case "USER" -> OptionType.USER;
@@ -285,7 +356,7 @@ public class InternalCommandRegistry implements CommandRegistry {
     private cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<?> commandArgumentTypeFromOptionType(@NotNull OptionType type) {
         return switch (type) {
             case STRING -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.STRING;
-            case INTEGER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.INTEGER;
+            case INTEGER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.NUMBER;
             case NUMBER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.DOUBLE;
             case BOOLEAN -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.BOOLEAN;
             case USER -> cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType.USER;
@@ -300,21 +371,22 @@ public class InternalCommandRegistry implements CommandRegistry {
     private <T> T extractValue(@NotNull OptionMapping mapping, @NotNull cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType<T> argumentType) {
         return switch (mapping.getType()) {
             case STRING -> argumentType.cast(mapping.getAsString());
-            case INTEGER -> argumentType.cast(mapping.getAsInt());
+            case INTEGER -> argumentType.cast(mapping.getAsLong());
             case NUMBER -> argumentType.cast(mapping.getAsDouble());
             case BOOLEAN -> argumentType.cast(mapping.getAsBoolean());
             case USER -> argumentType.cast(new InternalUser(mapping.getAsUser()));
-            case CHANNEL -> argumentType.cast(new InternalChannel(mapping.getAsChannel()));
+            case CHANNEL -> argumentType.cast(ChannelTypeResolver.resolve(mapping.getAsChannel()));
             case ROLE -> argumentType.cast(new InternalRole(mapping.getAsRole()));
             case ATTACHMENT -> argumentType.cast(new InternalAttachment(mapping.getAsAttachment()));
             default -> throw new IllegalStateException("Unexpected value: " + mapping.getType());
         };
     }
 
-    record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
+    record RegisteredCommand(String name, String description, boolean nsfw, CommandType[] commandTypes, CommandContextType[] commandContextTypes, Permission[] requiredPermissions, CommandArgument<?>[] arguments, Method method, CommandSupplier commandSupplier) {}
 
     record RegisteredDynamicCommand(String name, String description, boolean nsfw, CommandType[] commandTypes,
                                     CommandContextType[] commandContextTypes,
+                                    Permission[] requiredPermissions,
                                     List<DynamicCommandBuilder.ICommandArgument> arguments,
                                     BiConsumer<CommandRanContext, CommandArgumentProvider> consumer) {
     }

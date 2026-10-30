@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Discord;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.ReactionAction;
+import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import cloud.thehsi.ComitasBotJ.API.Event.EventOrigin;
 import cloud.thehsi.ComitasBotJ.API.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -17,6 +18,7 @@ import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
 import cloud.thehsi.ComitasBotJ.Event.EventManager;
 import cloud.thehsi.ComitasBotJ.Event.Events.*;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Role;
@@ -37,12 +39,13 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DiscordAPIListeners extends ListenerAdapter {
@@ -51,11 +54,15 @@ public class DiscordAPIListeners extends ListenerAdapter {
     final @NotNull DiscordAPI api;
     final @NotNull EventManager eventManager;
     final @NotNull InternalCommandRegistry commandRegistry;
+    final @NotNull InternalPluginManager pluginManager;
+    final @NotNull InstanceLock instanceLock;
     boolean firstStartup = true;
 
-    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry) {
+    public DiscordAPIListeners(@NotNull DiscordAPI api, @NotNull EventManager eventManager, @NotNull InternalCommandRegistry commandRegistry, @NotNull InternalPluginManager pluginManager, @NotNull InstanceLock instanceLock) {
         this.eventManager = eventManager;
         this.commandRegistry = commandRegistry;
+        this.pluginManager = pluginManager;
+        this.instanceLock = instanceLock;
         this.api = api;
     }
 
@@ -71,6 +78,11 @@ public class DiscordAPIListeners extends ListenerAdapter {
     @Override
     public void onReady(@NotNull ReadyEvent event) {
         super.onReady(event);
+
+        if (!instanceLock.acquire(event.getJDA(), Main.props().allowConcurrentInstances())) {
+            new Thread(() -> System.exit(1), "ComitasInstanceLockExit").start();
+            return;
+        }
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Setting Bot Presence.");
 
         if (!Main.conf().botActivityName.get().isBlank())
@@ -78,10 +90,18 @@ public class DiscordAPIListeners extends ListenerAdapter {
                     Activity.watching(Main.conf().botActivityName.get())
             );
 
+        // Plugins get enabled once connected, so the whole API is available to them
+        pluginManager.enablePlugins();
+
+        // Deprecated, but still fired for plugins which haven't migrated to onEnable yet
         if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a BotReadyEvent.");
         eventManager.callEvent(new InternalBotReadyEvent(
-                new InternalBot(DiscordAPI.api().getSelfUser(), eventManager)
+                new InternalBot(event.getJDA().getSelfUser(), eventManager)
         ));
+
+        // Plugins registered their commands in onEnable, drop everything else
+        if (DebugLogging.isEventEnabled()) debugLogger.debug("Pruning unused commands.");
+        commandRegistry.pruneUnusedCommands();
 
         if (firstStartup) {
             if (Main.props().noCmd() || Main.props().strictSafeMode())
@@ -135,49 +155,61 @@ public class DiscordAPIListeners extends ListenerAdapter {
 
     @Override
     public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
-        if (event.getMember() == null) return;
+        net.dv8tion.jda.api.entities.Member member = event.getMember();
+        if (member == null) return;
 
-        InternalMessage message = new InternalMessage(event.retrieveMessage().complete());
+        // Queued, blocking here would stall the JDA event thread for every reaction
+        event.retrieveMessage().queue(retrieved -> {
+            InternalMessage message = new InternalMessage(retrieved);
 
-        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
-                new InternalMember(event.getMember()),
-                message,
-                new InternalReaction(event.getReaction(), message),
-                ReactionAction.INCREASED,
-                EventOrigin.EXTERNAL
-        );
+            ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
+                    new InternalMember(member),
+                    message,
+                    new InternalReaction(event.getReaction(), message),
+                    ReactionAction.INCREASED,
+                    EventOrigin.EXTERNAL
+            );
 
-        if (DebugLogging.isEventEnabled())
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(reactionUpdatedEvent);
+            if (DebugLogging.isEventEnabled())
+                debugLogger.debug("Firing a ReactionUpdatedEvent.");
+            eventManager.callEvent(reactionUpdatedEvent);
 
-        if (reactionUpdatedEvent.willUndo()) {
-            EventManager.addUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
-            message.message.removeReaction(event.getReaction().getEmoji(), event.getMember().getUser()).queue();
-        }
+            if (reactionUpdatedEvent.willUndo()) {
+                EventManager.addUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", member.getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
+                retrieved.removeReaction(event.getReaction().getEmoji(), member.getUser()).queue();
+            }
+        }, error -> logger.warn("Failed to retrieve the message of a reaction", error));
     }
 
     @Override
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
-        if (event.getMember() == null) return;
+        net.dv8tion.jda.api.entities.Member member = event.getMember();
+        if (member == null) return;
 
-        Message message = new InternalMessage(event.retrieveMessage().complete());
+        // Resolved now, so a queued callback can't consume the prevention of a later removal
+        EventOrigin origin = EventManager.resolveUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", member.getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName());
 
-        ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
-                new InternalMember(event.getMember()),
-                message,
-                new InternalReaction(event.getReaction(), message),
-                event.getReaction().retrieveUsers().complete().isEmpty() ? ReactionAction.REMOVED : ReactionAction.DECREASED,
-                EventManager.resolveUndoLoopPrevention(ReactionUpdatedEvent.class, "remove", event.getMember().getIdLong(), event.getReaction().getMessageIdLong(), event.getEmoji().getName())
-        );
+        event.retrieveMessage().queue(retrieved -> {
+            Message message = new InternalMessage(retrieved);
+            // The fetched message only lists reactions that still have users
+            ReactionAction action = retrieved.getReaction(event.getEmoji()) == null ? ReactionAction.REMOVED : ReactionAction.DECREASED;
 
-        if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
-            debugLogger.debug("Firing a ReactionUpdatedEvent.");
-        eventManager.callEvent(reactionUpdatedEvent);
+            ReactionUpdatedEvent reactionUpdatedEvent = new InternalReactionUpdatedEvent(
+                    new InternalMember(member),
+                    message,
+                    new InternalReaction(event.getReaction(), message),
+                    action,
+                    origin
+            );
 
-        if (reactionUpdatedEvent.willUndo()) {
-            logger.warn("Cannot undo ReactionUpdatedEvent with a ReactionAction of DECREASED / REMOVED");
-        }
+            if (DebugLogging.isEventEnabled())//noinspection LoggingSimilarMessage
+                debugLogger.debug("Firing a ReactionUpdatedEvent.");
+            eventManager.callEvent(reactionUpdatedEvent);
+
+            if (reactionUpdatedEvent.willUndo()) {
+                logger.warn("Cannot undo ReactionUpdatedEvent with a ReactionAction of DECREASED / REMOVED");
+            }
+        }, error -> logger.warn("Failed to retrieve the message of a reaction", error));
     }
 
     @Override
@@ -243,8 +275,32 @@ public class DiscordAPIListeners extends ListenerAdapter {
         switch (event.getEntry().getType()) {
             case ActionType.KICK:
                 if (DebugLogging.isEventEnabled()) debugLogger.debug("Firing a UserKickedEvent.");
+
+                InternalUser user = (InternalUser) User.fromId(event.getEntry().getTargetIdLong());
+
+                if (user == null) try {
+                    user = new InternalUser(
+                            event.getJDA().retrieveUserById(event.getEntry().getTargetIdLong()).complete()
+                    );
+                } catch (ErrorResponseException e) {
+                    if (e.getErrorResponse() == ErrorResponse.UNKNOWN_USER)
+                        return;
+                    throw e;
+                }
+
+                net.dv8tion.jda.api.entities.User mod_user = event.getEntry().getUser();
+                net.dv8tion.jda.api.entities.Member mod_member = null;
+                InternalMember moderator = null;
+
+                if (mod_user != null)
+                    mod_member = event.getGuild().getMember(mod_user);
+
+                if (mod_member != null)
+                    moderator = new InternalMember(mod_member);
+
                 eventManager.callEvent(new InternalUserKickedEvent(
-                        new InternalUser(Objects.requireNonNull(event.getEntry().getUser())),
+                        user,
+                        moderator,
                         new InternalGuild(event.getGuild())
                 ));
                 break;

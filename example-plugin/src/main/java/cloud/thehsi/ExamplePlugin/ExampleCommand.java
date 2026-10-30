@@ -3,6 +3,7 @@ package cloud.thehsi.ExamplePlugin;
 import cloud.thehsi.ComitasBotJ.API.Discord.Commands.*;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Style;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +13,7 @@ public class ExampleCommand implements CommandSupplier {
     @Command(name = "example", description = "An example command", commandContextType = {
             CommandContextType.BOT_DM,
             CommandContextType.GUILD
-    })
+    }, requiredPermissions = { Permission.ADMINISTRATOR })
     public void exampleCommand(
             @NotNull CommandRanContext commandRanContext,
             @CommandOption(name = "target", description = "The Target") @NotNull User target,

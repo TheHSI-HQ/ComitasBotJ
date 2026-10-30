@@ -1,24 +1,20 @@
 package cloud.thehsi.ComitasBotJ.App;
 
+import cloud.thehsi.ComitasBotJ.Configuration.Secrets;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Properties;
+import java.io.Console;
+import java.io.IOException;
 
 public class FirstTimeStartup {
     private @NotNull
     static final Logger log = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".FirstTimeStartup");
 
     public static boolean shouldFirstTimeStartup() {
-        Path token_path = Path.of("tokens.secret");
-        File token_file = new File(token_path.toUri());
-
-        return !token_file.exists();
+        return !Secrets.exists();
     }
 
     public static void showFirstTimeStartup() {
@@ -69,22 +65,7 @@ public class FirstTimeStartup {
         }
 
         try {
-            Path token_path = Path.of("tokens.secret");
-            File token_file = new File(token_path.toUri());
-
-            if (!token_file.exists() && !token_file.createNewFile())
-                throw new RuntimeException("Unknown error when creating token.secret");
-
-            Properties token_props = new Properties();
-            try (InputStream in = Files.newInputStream(token_path)) {
-                token_props.load(in);
-            }
-
-            token_props.setProperty("bot", String.copyValueOf(token));
-
-            try (OutputStream out = Files.newOutputStream(token_path)) {
-                token_props.store(out, "ComitasBotJ Discord Tokens");
-            }
+            Secrets.writeBotToken(token);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {

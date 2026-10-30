@@ -203,23 +203,23 @@ public enum Permission {
     /**
      * The Set Voice Channel Status permission
      */
-    SET_VOICE_CHANNEL_STATUS(2L << 46, "SET_VOICE_CHANNEL_STATUS", "VOICE_SET_STATUS"),
+    SET_VOICE_CHANNEL_STATUS(2L << 47, "SET_VOICE_CHANNEL_STATUS", "VOICE_SET_STATUS"),
     /**
      * The Send Polls permission
      */
-    SEND_POLLS(2L << 47, "SEND_POLLS", "MESSAGE_SEND_POLLS"),
+    SEND_POLLS(2L << 48, "SEND_POLLS", "MESSAGE_SEND_POLLS"),
     /**
      * The Use External Apps permission
      */
-    USE_EXTERNAL_APPS(2L << 48, "USE_EXTERNAL_APPS", "USE_EXTERNAL_APPLICATIONS"),
+    USE_EXTERNAL_APPS(2L << 49, "USE_EXTERNAL_APPS", "USE_EXTERNAL_APPLICATIONS"),
     /**
      * The Pin Messages permission
      */
-    PIN_MESSAGES(2L << 49, "PIN_MESSAGES"),
+    PIN_MESSAGES(2L << 50, "PIN_MESSAGES"),
     /**
      * The Bypass Slowmode permission
      */
-    BYPASS_SLOWMODE(2L << 50, "BYPASS_SLOWMODE");
+    BYPASS_SLOWMODE(2L << 51, "BYPASS_SLOWMODE");
 
     private @NotNull
     static final Logger logger = LoggerFactory.getLogger("ComitasBotJ.API.Permission");

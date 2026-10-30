@@ -88,14 +88,15 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
     @Override
     public @NotNull MyMessage reply(@NotNull MessageData messageData, boolean ephemeral) throws InteractionAlreadyUsedException {
         DebugLogging.action(messageData, ephemeral);
-        if (used)
-            if (!ephemeral) {
-                logger.warn("[{}] This interaction has already been acknowledged or replied to, using channel.sendMessage(messageData) instead", getCommandName());
-                return channel.sendMessage(messageData);
-            } else
-                throw new InteractionAlreadyUsedException("This interaction has already been acknowledged or replied to. You can only reply or acknowledge an interaction once!");
-        else
-            used = true;
+        if (used) {
+            // Follow up messages keep the ephemeral flag and work in channels the bot can't write to
+            if (DebugLogging.isBasicEnabled())
+                logger.debug("[{}] This interaction has already been acknowledged or replied to, sending a follow up message", getCommandName());
+            return MessageDataParser.send(messageData, data -> new InternalMyMessage(
+                    this.interaction.getHook().sendMessage(data).setEphemeral(ephemeral).complete()
+            ));
+        }
+        used = true;
 
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.interaction.reply(data).setEphemeral(ephemeral).complete().retrieveOriginal().complete()

@@ -6,6 +6,8 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Context;
+import ch.qos.logback.core.CoreConstants;
+import cloud.thehsi.ComitasBotJ.Utility.ConsoleText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,22 +53,34 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
 
         String timestamp = new java.text.SimpleDateFormat("HH:mm:ss")
                 .format(new java.util.Date());
+        appendThrowable(sb, throwable, timestamp, "", 0);
+        return sb.toString();
+    }
 
-        sb.append(GREY + "[" + RESET + DEBUG).append(timestamp).append(RESET).append(GREY).append("] ").append(ERROR);
+    private static void appendThrowable(@NotNull StringBuilder sb, @NotNull IThrowableProxy throwable,
+                                        @NotNull String timestamp, @NotNull String prefix, int depth) {
+        String linePrefix = GREY + "[" + RESET + DEBUG + timestamp + RESET + GREY + "] " + ERROR;
 
-        sb.append(throwable.getClassName())
+        sb.append(linePrefix)
+                .append(prefix)
+                .append(throwable.getClassName())
                 .append(": ")
-                .append(throwable.getMessage())
+                .append(ConsoleText.forTerminal(throwable.getMessage()))
                 .append('\n');
 
-        for (StackTraceElementProxy step : throwable.getStackTraceElementProxyArray()) {
-            sb.append(GREY + "[" + RESET + DEBUG).append(timestamp).append(RESET).append(GREY).append("] ").append(ERROR);
-            sb.append("\t")
-                    .append(step.getSTEAsString())
-                    .append('\n');
-        }
+        StackTraceElementProxy[] steps = throwable.getStackTraceElementProxyArray();
+        int shown = steps.length - throwable.getCommonFrames();
+        for (int i = 0; i < shown; i++)
+            sb.append(linePrefix).append('\t').append(steps[i].getSTEAsString()).append('\n');
+        if (throwable.getCommonFrames() > 0)
+            sb.append(linePrefix).append("\t... ").append(throwable.getCommonFrames()).append(" more\n");
 
-        return sb.toString();
+        // Guard against cyclic causes
+        if (depth >= 16) return;
+        for (IThrowableProxy suppressed : throwable.getSuppressed())
+            appendThrowable(sb, suppressed, timestamp, CoreConstants.SUPPRESSED, depth + 1);
+        if (throwable.getCause() != null)
+            appendThrowable(sb, throwable.getCause(), timestamp, CoreConstants.CAUSED_BY, depth + 1);
     }
 
     @Override
@@ -97,17 +111,19 @@ public class TuiAppender extends AppenderBase<ILoggingEvent> {
                 + GREY + "/" + RESET
                 + levelColor + BOLD + levelStr + RESET
                 + GREY + "]: " + RESET
-                + event.getFormattedMessage() + RESET;
-
-        IThrowableProxy throwable = event.getThrowableProxy();
-        if (throwable != null) {
-            instance.appendLog(formatThrowable(throwable));
-        }
+                // Plugins and Discord users control parts of log messages, only colors are passed through
+                + ConsoleText.forTerminal(event.getFormattedMessage()) + RESET;
 
         if (bypass) {
             instance.writeDirect(formatted);
         } else {
             instance.appendLog(formatted);
+        }
+
+        IThrowableProxy throwable = event.getThrowableProxy();
+        if (throwable != null) {
+            if (bypass) instance.writeDirect(formatThrowable(throwable));
+            else instance.appendLog(formatThrowable(throwable));
         }
     }
 

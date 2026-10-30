@@ -73,6 +73,14 @@ public interface UtilityBackend {
 
     @NotNull
     @ApiStatus.Internal
+    AttachmentUpload uploadVoiceMessage(@NotNull Path path) throws IOException;
+
+    @NotNull
+    @ApiStatus.Internal
+    AttachmentUpload uploadVoiceMessage(@NotNull String filename, byte[] data);
+
+    @NotNull
+    @ApiStatus.Internal
     ForumTag createTagOnChannel(@NotNull Channel channel, @NotNull String tagName);
 
     @NotNull

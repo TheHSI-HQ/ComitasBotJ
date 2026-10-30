@@ -26,7 +26,7 @@ public record CommandArgumentType<T>(String name, Class<T> type) {
      * The Integer Command Argument Type
      */
     public @NotNull
-    static final CommandArgumentType<Integer> INTEGER = new CommandArgumentType<>("INTEGER", Integer.class);
+    static final CommandArgumentType<Long> NUMBER = new CommandArgumentType<>("NUMBER", Long.class);
     /**
      * The Double Command Argument Type
      */

@@ -77,8 +77,10 @@ public record InternalInvite(net.dv8tion.jda.api.entities.Invite invite) impleme
     }
 
     @Override
-    public @NotNull OffsetDateTime getExpiryTime() {
+    public @Nullable OffsetDateTime getExpiryTime() {
         DebugLogging.action();
+        if (invite.getMaxAge() == 0)
+            return null;
         return invite().getTimeCreated().plusSeconds(invite.getMaxAge());
     }
 

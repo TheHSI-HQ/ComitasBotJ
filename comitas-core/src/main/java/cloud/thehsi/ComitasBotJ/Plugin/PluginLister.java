@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
@@ -9,9 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -24,7 +22,7 @@ public class PluginLister {
     static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH);
 
     public static void listAllPlugins() {
-        File pluginDir = new File("plugins");
+        File pluginDir = DataPaths.PLUGINS.toFile();
 
         if (!pluginDir.exists()) if (!pluginDir.mkdir()) throw new RuntimeException("Couldn't create plugins folder");
 
@@ -49,18 +47,9 @@ public class PluginLister {
 
         for (File jar : jars) {
             try {
-                try (URLClassLoader loader = new URLClassLoader(
-                        new URL[]{jar.toURI().toURL()},
-                        PluginLister.class.getClassLoader()
-                )) {
-                    InputStream is = loader.getResourceAsStream("plugin.properties");
-
-                    if (is == null) {
-                        throw new IllegalStateException("Missing plugin.properties");
-                    }
-
-                    Properties props = new Properties();
-                    props.load(is);
+                {
+                    // Read from the jar itself, a class loader would look into the core jar first
+                    Properties props = PluginLoaderManager.readPluginProperties(jar);
 
                     Plugin.PluginMetadata metadata =
                             Plugin.PluginMetadata.fromProperties(props, jar.getName());

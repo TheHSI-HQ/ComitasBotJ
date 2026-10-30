@@ -75,8 +75,11 @@ java -jar comitas-core-<version>.jar
 6. Configure the Bot
 
     Before ComitasBotJ can connect to Discord, you must provide a valid Discord bot token.
-    
-    Open the generated `tokens.secret` file and add your token after `bot=`:
+
+   **In modern installs, ComitasBotJ will prompt you at first startup once for your bot token, so you can skip ahead**
+
+   If you decide not to use First Time Startup config,
+   open the generated `data/token.secret` file and add your token after `bot=`:
     
     ```properties
     bot=YOUR_DISCORD_BOT_TOKEN
@@ -90,15 +93,106 @@ java -jar comitas-core-<version>.jar
 > [!IMPORTANT]
 > For production use, add a [permission integer](https://discordapi.com/permissions.html#248896) to the `invite` command (e.g. `invite 248896`)!
 >
-> Only give the bot permissions it actuall needs, in case it gets compromised.
+> Only give the bot permissions it actually needs, in case it gets compromised.
+
+> [!IMPORTANT]
+> Due to current limitations, the bot requires all of these intents: `GUILD_MEMBERS`, `MESSAGE_CONTENT`,
+> `GUILD_PRESENCES`!
 
 ## Security
 
 > [!WARNING]
-> **DO NOT INSTALL PLUGINS FROM UNTRUSTED SOURCES**
+> The sandbox is not a cure all solution, **DO NOT INSTALL UNTRUSTED PLUGINS**,
+> they may still be able to damage your system.
 >
-> ComitasBotJ doesn't *yet* sandbox / isolate plugins in any way, so any plugin has the ability to run any command or
-> modify any files, as long as the user running ComitasBotJ has the required access
+> The sandbox only prevents common entry points to our best knowledge, it is not
+> uncircumventable.
+
+
+Plugins run in a sandbox. Every plugin class is verified before it is loaded, and plugins can only use the
+Comitas API and a safe subset of the JDK:
+
+- Plugins can never reach the Discord token: core classes, JDA, the token file, environment variables, system
+  properties, reflection on foreign classes, method handles, native code, processes, deserialization and JMX are
+  unavailable. Plugin jars bundling JDA are refused.
+- Everything else needs a permission, which the server owner grants per plugin:
+
+| Permission     | Allows                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)                        |
+| `file_storage` | Writing files in the plugin's own folder, `data/volumes/<Plugin UUID>/` (always readable) |
+
+Each plugin sees its own, fake file system: `/` is `data/volumes/<Plugin UUID>/` and `/mnt/<name>` are its mount points.
+Without `file_storage`, the plugin can only read its folder.
+
+When a plugin requesting permissions is installed, ComitasBotJ asks on the console:
+
+```text
+──── Permission Request ────────────────────────────────
+Plugin Weather 1.0 (weather.jar) requested:
+  1. Network Access (required): Fetches forecasts from api.weather.example
+  2. File Storage: Caches downloaded radar images
+What do you grant?
+  [A] All / [O] Only Required / [N] None / [1,2] Selected
+  [E] All for Every Plugin / [R] Only Required for Every Plugin / [X] None for Every Plugin
+> 
+```
+
+`A` grants everything, `O` only the permissions the plugin marked as required, `N` nothing and `1,2` single permissions.
+`E`, `R` and `X` do the same for every plugin from now on, without asking again (sets `plugin-permission-default` to
+`all`, `required` or `none`). A plugin isn't loaded, if one of its required permissions isn't granted. Without an
+interactive console (e.g. `--no-cmd` or Docker without a TTY), requested permissions are denied until they are decided.
+
+The answers are stored in `data/security/<Plugin UUID>.security.properties`, which can also be edited by hand
+(changes apply on the next reload). It can additionally make host directories available to the plugin:
+
+```properties
+uuid=d152236f-96df-4be1-8f2b-6738c4194ed7
+permission.network=true
+permission.file_storage=false
+# Visible to the plugin as /mnt/music (use / or \\ as path separator)
+mount.music=D:/Music
+mount.music.read-only=true
+# The plugin may not request /mnt/photos anymore
+denied-mount.photos=true
+```
+
+Plugins can also request a mount point while running, you're then asked on the console:
+
+```text
+──── Mount Request ─────────────────────────────────────
+Plugin Weather requested a directory as /mnt/music (read-only):
+  Plays your music collection
+Do you grant it?
+  [Y] Yes / [N] No / [I] Never
+> 
+```
+
+After `Y`, you enter the directory, which is saved to the security file. `I` saves `denied-mount.<name>=true`.
+
+To see what a plugin is allowed to do, run `permissions <uuid>` (or `perms`, the name of a loaded plugin works too) on
+the console. Without an argument, it lists every plugin with security settings:
+
+```text
+> permissions 44444444-4444-4444-4444-444444444444
+Weather 1.0 (44444444-4444-4444-4444-444444444444) - loaded
+  Settings: data/security/44444444-4444-4444-4444-444444444444.security.properties
+  Files:    data/volumes/44444444-4444-4444-4444-444444444444 (seen as /)
+Permissions:
+  Network Access (network): granted
+  File Storage (file_storage): denied
+Mount points:
+  /mnt/music -> D:/Music (read-only)
+Never granted: /mnt/photos
+```
+
+Mount points the plugin can't use (missing directory, protected location, ...) are marked as unavailable with the reason.
+
+Directories overlapping `data/`, `server.properties`, `plugins/`, `logs/` or the Comitas jar can't be mounted.
+
+> [!WARNING]
+> The sandbox protects your token and files, but a plugin can still use the bot through the Comitas API
+> (e.g. send messages or kick members, if the bot is allowed to). Only install plugins you trust with that.
 
 ## Configuration
 
@@ -106,12 +200,13 @@ java -jar comitas-core-<version>.jar
 
 The `server.properties` file is automatically created on the first startup. It is used to persistently configure ComitasBotJ.
 
-| Property            | Type     | Default       | Description                                                                                              |
-|---------------------|----------|---------------|----------------------------------------------------------------------------------------------------------|
-| `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                              |
-| `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                               |
-| `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. |
-| `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                  |
+| Property            | Type     | Default       | Description                                                                                                                                                                 |
+|---------------------|----------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled`           | boolean  | `true`        | Enables or disables the bot                                                                                                                                                 |
+| `load-plugins`      | boolean  | `true`        | Enables or disables the loading of plugins                                                                                                                                  |
+| `allowed-plugins`   | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. Optionally, suffix the plugin name / uuid with `!sha256=FILE_HASH` |
+| `bot-activity-name` | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                                                                                     |
+| `plugin-permission-default` | string | `ask` | What new plugins are granted without asking: `ask` (ask on the console), `all` (not recommended), `required` or `none`                                       |
 
 ### File Structure
 
@@ -121,18 +216,29 @@ The following files and directories are created and used by ComitasBotJ:
 .
 ├── comitas-core-<version>.jar # The ComitasBotJ executable JAR file
 ├── server.properties          # The main configuration file
-├── tokens.secret              # The file containing the Discord bot token
 ├── logs/                      # Logs from the last 365 days
 │   ├── latest.log             # The current log file
 │   └── ...
-├── plugin_data/               # Persistent data used by plugins
-│   └── ...
-└── plugins/                   # Directory from which plugins are loaded
-    └── ...
+├── plugins/                   # Directory from which plugins are loaded
+│   └── <plugin>.jar
+└── data/                      # Everything ComitasBotJ manages, never accessible to plugins
+    ├── token.secret           # The file containing the Discord bot token
+    ├── .cache/                # Instance lock, prevents two instances controlling the same bot
+    ├── persistent/
+    │   └── <uuid>.dat         # Persistent data storage of a plugin
+    ├── security/
+    │   └── <uuid>.security.properties # Granted permissions & mount points of a plugin
+    └── volumes/
+        └── <uuid>/            # Files of a plugin, its root directory (writable with file_storage)
 ```
 
+Plugins are identified by the `uuid` in their `plugin.properties`, it is also shown when the plugin is loaded.
+Files of older versions (`tokens.secret`, `.cache/`, `plugin_data/`, `plugins/<Plugin Name>.security.properties`)
+are moved into `data/` automatically on startup.
+
 > [!WARNING]
-> Do not modify or delete files in `plugin_data/` unless you know exactly what you are doing. Plugins may rely on the data stored in this directory.
+> Never share the `data/` directory, it contains your bot token. Do not modify or delete files in `data/persistent/`
+> unless you know exactly what you are doing, plugins rely on the data stored in this directory.
 
 
 ## Plugin Development

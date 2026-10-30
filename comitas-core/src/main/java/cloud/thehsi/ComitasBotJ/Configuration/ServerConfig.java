@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -20,6 +21,9 @@ public class ServerConfig {
     static final String DEFAULT_RESOURCE = "/server.properties";
     private @NotNull
     final Properties properties = new Properties();
+    // Reapplied on reload, so removed keys don't break their getters
+    private @NotNull
+    final Properties defaults = new Properties();
 
     public ServerConfig() throws IOException {
         load();
@@ -43,9 +47,16 @@ public class ServerConfig {
             }
         }
 
-        // Load properties
+        // Load into a fresh object, so a failed reload keeps the old values
+        Properties loaded = new Properties();
         try (InputStream in = Files.newInputStream(CONFIG_PATH)) {
-            properties.load(in);
+            loaded.load(in);
+        }
+
+        synchronized (properties) {
+            properties.clear();
+            properties.putAll(loaded);
+            defaults.forEach(properties::putIfAbsent);
         }
     }
 
@@ -128,20 +139,28 @@ public class ServerConfig {
     }
 
     public void setIfNotExist(@NotNull String key, @NotNull String value) {
-        if (!properties.contains(key)) properties.setProperty(key, value);
+        defaults.setProperty(key, value);
+        if (properties.getProperty(key) == null) properties.setProperty(key, value);
     }
 
     public void setIfNotExist(@NotNull String key, boolean value) {
-        if (properties.getProperty(key) == null) properties.setProperty(key, fromBool(value));
+        setIfNotExist(key, fromBool(value));
     }
 
     public void setIfNotExist(@NotNull String key, double value) {
-        if (!properties.contains(key)) properties.setProperty(key, fromNumber(value));
+        setIfNotExist(key, fromNumber(value));
     }
 
     public void save() throws IOException {
-        try (OutputStream out = Files.newOutputStream(CONFIG_PATH)) {
+        // Written next to the config first, so a crash can't leave a half written file
+        Path temp = CONFIG_PATH.resolveSibling(CONFIG_PATH.getFileName() + ".tmp");
+        try (OutputStream out = Files.newOutputStream(temp)) {
             properties.store(out, "ComitasBotJ Config File");
+        }
+        try {
+            Files.move(temp, CONFIG_PATH, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(temp, CONFIG_PATH, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -154,6 +173,12 @@ public class ServerConfig {
         final StringProperty allowedPlugins;
         public @NotNull
         final StringProperty botActivityName;
+        public @NotNull
+        final StringProperty pluginPermissionDefault;
+        public @NotNull
+        final BooleanProperty pruneGuildCommands;
+        public @NotNull
+        final NumberProperty pluginDataQuotaMb;
         private @NotNull
         final ServerConfig cfg;
 
@@ -164,6 +189,11 @@ public class ServerConfig {
             this.loadPlugins = makeProperty("load-plugins", true);
             this.allowedPlugins = makeProperty("allowed-plugins", "*");
             this.botActivityName = makeProperty("bot-activity-name", "ComitasBotJ");
+            this.pluginPermissionDefault = makeProperty("plugin-permission-default", "ask");
+            // Guild commands may belong to other applications of the same bot, so they are only removed on request
+            this.pruneGuildCommands = makeProperty("prune-guild-commands", false);
+            // Maximum size of each plugin data folder in MB, 0 disables the limit
+            this.pluginDataQuotaMb = makeProperty("plugin-data-quota-mb", 0);
         }
 
         public int count() {

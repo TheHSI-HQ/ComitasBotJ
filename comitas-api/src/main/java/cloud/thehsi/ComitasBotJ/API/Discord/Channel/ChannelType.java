@@ -20,7 +20,7 @@ public enum ChannelType {
     /**
      * The Voice Chnnel Type
      */
-    VOICE(TextChannel.class),
+    VOICE(VoiceChannel.class),
     /**
      * The Group Chnnel Type
      */
@@ -36,7 +36,7 @@ public enum ChannelType {
     /**
      * The Stage Chnnel Type
      */
-    STAGE(TextChannel.class),
+    STAGE(VoiceChannel.class),
     /**
      * The Guild News Thread Chnnel Type
      */

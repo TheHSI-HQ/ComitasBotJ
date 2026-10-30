@@ -42,3 +42,5 @@ build/
 /.venv/
 .hash
 .new_hash
+/comitas-api/.flattened-pom.xml
+dependency-reduced-pom.xml

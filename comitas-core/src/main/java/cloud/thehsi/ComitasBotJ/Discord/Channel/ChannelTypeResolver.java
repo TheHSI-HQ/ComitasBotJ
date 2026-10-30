@@ -18,6 +18,7 @@ public class ChannelTypeResolver {
             case TEXT -> new InternalTextChannel((TextChannel) channel);
             case NEWS -> new InternalNewsChannel((NewsChannel) channel);
             case FORUM -> new InternalForumChannel((ForumChannel) channel);
+            case VOICE, STAGE -> new InternalVoiceChannel((net.dv8tion.jda.api.entities.channel.middleman.AudioChannel) channel);
             default -> null;
         };
 

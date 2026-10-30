@@ -1,6 +1,9 @@
 package cloud.thehsi.ComitasBotJ.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.NewsChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Channel.TextChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.Discord.BotPermissions;
 import cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MessageNotFoundException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.NewsChannelMessageAlreadyCrossposted;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
@@ -44,5 +47,16 @@ public class InternalNewsChannel extends InternalMessageChannel implements NewsC
                 throw new MessageNotFoundException("Message was not posted in this channel");
             throw e;
         }
+    }
+
+    @Override
+    public void follow(@NotNull TextChannel target) {
+        DebugLogging.action(target);
+        if (!(target instanceof InternalTextChannel internal))
+            throw new IllegalArgumentException("Channel was not created by Comitas");
+
+        // Following creates a webhook in the target channel
+        BotPermissions.require(internal.channel.getGuild(), internal.channel, Permission.MANAGE_WEBHOOKS);
+        channel.follow(internal.channel).complete();
     }
 }

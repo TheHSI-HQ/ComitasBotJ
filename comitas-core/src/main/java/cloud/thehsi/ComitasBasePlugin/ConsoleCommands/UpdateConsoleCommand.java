@@ -29,7 +29,8 @@ public class UpdateConsoleCommand extends ConsoleCommandExecutor {
 
             Comitas.getScheduler().runTaskLaterAsynchronously(Comitas.getPluginManager().getPlugin(), () -> needsConfirmation.set(false), 30, TimeUnit.SECONDS);
             return;
-        } else if (Objects.equals(args[0], "confirm") && needsConfirmation.get()) {
+        } else if (Objects.equals(args[0], "confirm") && needsConfirmation.compareAndSet(true, false)) {
+            // Consumed, so a second confirm doesn't start another update
             getConsoleLogger().info("Updating...");
             Updater.update();
             return;
