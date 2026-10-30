@@ -101,6 +101,14 @@ java -jar comitas-core-<version>.jar
 
 ## Security
 
+> [!WARNING]
+> The sandbox is not a cure all solution, **DO NOT INSTALL UNTRUSTED PLUGINS**,
+> they may still be able to damage your system.
+>
+> The sandbox only prevents common entry points to our best knowledge, it is not
+> uncircumventable.
+
+
 Plugins run in a sandbox. Every plugin class is verified before it is loaded, and plugins can only use the
 Comitas API and a safe subset of the JDK:
 
@@ -109,9 +117,9 @@ Comitas API and a safe subset of the JDK:
   unavailable. Plugin jars bundling JDA are refused.
 - Everything else needs a permission, which the server owner grants per plugin:
 
-| Permission     | Allows                                                                          |
-|----------------|---------------------------------------------------------------------------------|
-| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)              |
+| Permission     | Allows                                                                                    |
+|----------------|-------------------------------------------------------------------------------------------|
+| `network`      | Outgoing network access (`HttpClient`, sockets, `http(s)://` URLs)                        |
 | `file_storage` | Writing files in the plugin's own folder, `data/volumes/<Plugin UUID>/` (always readable) |
 
 Each plugin sees its own, fake file system: `/` is `data/volumes/<Plugin UUID>/` and `/mnt/<name>` are its mount points.
