@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
@@ -93,6 +94,25 @@ public abstract class Plugin {
     @NotNull
     public CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly) {
         return Comitas.getPluginManager().requestMount(name, reason, readOnly);
+    }
+
+    /**
+     * Gets the location of a file of this plugin's file system on the host, to hand it to a library loaded with
+     * {@link PluginPermission#LIBRARIES}, e.g. a database driver:
+     * <pre>
+     * DriverManager.getConnection("jdbc:sqlite:" + getHostPath(getDataFolder().resolve("data.db")));
+     * </pre>
+     * Libraries aren't sandboxed, so the path isn't restricted to what the plugin itself could do with it
+     * (read-only data folder or mount points, data quota).
+     *
+     * @param path A path of the plugin's file system
+     * @return The absolute path on the host, as a string. It can't be used with {@code Path.of} in the plugin itself.
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     * @throws IOException       If the path can't be mapped onto the host, e.g. it leaves the file system
+     */
+    @NotNull
+    public String getHostPath(@NotNull Path path) throws IOException {
+        return Comitas.getPluginManager().getHostPath(path);
     }
 
     /**

@@ -244,6 +244,12 @@ public class InternalPluginManager implements PluginManager {
     }
 
     @Override
+    public @NotNull String getHostPath(@NotNull Path path) throws IOException {
+        DebugLogging.action(path);
+        return requireSandbox().hostPath(path);
+    }
+
+    @Override
     public boolean hasPermission(@NotNull PluginPermission permission) {
         DebugLogging.action(permission);
         PluginSandbox sandbox = pluginLoaderManager.getSandbox(getPlugin());

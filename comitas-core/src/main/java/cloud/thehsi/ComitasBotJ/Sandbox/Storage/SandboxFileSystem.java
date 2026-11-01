@@ -130,6 +130,23 @@ public final class SandboxFileSystem extends FileSystem {
         return new Resolved(absolute, mapUnder(dataRoot, names, display), names.isEmpty());
     }
 
+    /**
+     * Maps a path of this file system onto the host, for handing it to unsandboxed libraries.
+     * Doesn't check write access, the caller can't control what the library does with it anyway.
+     *
+     * @return The absolute host path
+     * @throws ProviderMismatchException If the path doesn't belong to this file system
+     */
+    @NotNull
+    public Path hostPath(@NotNull Path path) throws IOException {
+        if (!(path instanceof SandboxPath sandboxPath) || sandboxPath.getFileSystem() != this)
+            throw new ProviderMismatchException("Not a path of this plugin's file system");
+        Resolved resolved = resolve(sandboxPath, false);
+        if (resolved.host() == null)
+            throw new AccessDeniedException(resolved.path().toString(), null, "the mount directory is virtual");
+        return resolved.host().toAbsolutePath();
+    }
+
     @NotNull
     private static Path mapUnder(@NotNull Path root, @NotNull List<String> names, @NotNull String display) throws IOException {
         Path host = root;

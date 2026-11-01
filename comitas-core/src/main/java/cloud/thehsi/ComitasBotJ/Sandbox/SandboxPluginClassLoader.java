@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,8 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Enumeration;
-import java.util.Set;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -17,7 +19,8 @@ import java.util.stream.Collectors;
 /**
  * Loads the classes of one plugin jar, after verifying and rewriting them with {@link SandboxTransformer}.
  * <p>
- * Classes from the jar are loaded child first, everything else comes from {@link SandboxParentClassLoader}.
+ * Classes from the jar are loaded child first, then the plugin's libraries ({@link PluginLibraryClassLoader},
+ * only with {@link PluginPermission#LIBRARIES}), everything else comes from {@link SandboxParentClassLoader}.
  * Classes in reserved packages (java.*, the Comitas core, JDA, ...) are never loaded from the jar.
  */
 public final class SandboxPluginClassLoader extends URLClassLoader {
@@ -28,8 +31,26 @@ public final class SandboxPluginClassLoader extends URLClassLoader {
     private final @NotNull PluginSandbox sandbox;
     private final @NotNull Set<String> entries;
     private final @NotNull SandboxTransformer transformer;
+    private final @Nullable PluginLibraryClassLoader libraries;
 
     public SandboxPluginClassLoader(@NotNull File jar, @NotNull PluginSandbox sandbox) throws IOException {
+        this(jar, sandbox, List.of());
+    }
+
+    /**
+     * @param libraries Paths of library jars inside the plugin jar, see {@link #parseLibraries(Properties)}.
+     *                  They are only loaded, if the plugin was granted {@link PluginPermission#LIBRARIES}.
+     */
+    public SandboxPluginClassLoader(@NotNull File jar, @NotNull PluginSandbox sandbox,
+                                    @NotNull List<String> libraries) throws IOException {
+        this(jar, sandbox, libraries, DataPaths.LIBRARIES);
+    }
+
+    /**
+     * @param libraryCache The directory, library jars are extracted to
+     */
+    SandboxPluginClassLoader(@NotNull File jar, @NotNull PluginSandbox sandbox, @NotNull List<String> libraries,
+                             @NotNull Path libraryCache) throws IOException {
         super("plugin-" + sandbox.pluginName(), new URL[]{jar.toURI().toURL()}, SandboxParentClassLoader.INSTANCE);
         this.sandbox = sandbox;
 
@@ -45,7 +66,29 @@ public final class SandboxPluginClassLoader extends URLClassLoader {
             }
         }
 
+        try {
+            this.libraries = libraries.isEmpty() || !sandbox.has(PluginPermission.LIBRARIES)
+                    ? null : PluginLibraryClassLoader.create(jar, libraries, sandbox.pluginName(), libraryCache);
+        } catch (IOException | RuntimeException e) {
+            close();
+            throw e;
+        }
+
         this.transformer = new SandboxTransformer(sandbox, new ClassHierarchy(this));
+    }
+
+    /**
+     * Parses the {@code libraries} property of a plugin.properties: paths of jars inside the plugin jar.
+     */
+    @NotNull
+    public static List<String> parseLibraries(@NotNull Properties props) {
+        List<String> libraries = new ArrayList<>();
+        for (String library : props.getProperty("libraries", "").split("[,\\s]+")) {
+            String path = library.strip();
+            while (path.startsWith("/")) path = path.substring(1);
+            if (!path.isEmpty() && !libraries.contains(path)) libraries.add(path);
+        }
+        return List.copyOf(libraries);
     }
 
     @NotNull
@@ -57,12 +100,33 @@ public final class SandboxPluginClassLoader extends URLClassLoader {
         return !SandboxPolicy.isReserved(internalName) && entries.contains(internalName + ".class");
     }
 
+    /**
+     * @return True if the class comes from one of the plugin's (unsandboxed) libraries
+     */
+    boolean isLibraryClass(@NotNull String internalName) {
+        return libraries != null && !ownsClass(internalName) && libraries.isLibraryClass(internalName);
+    }
+
+    /**
+     * Loads a library class without initializing it.
+     *
+     * @return The class, or null if it isn't a library class or couldn't be loaded
+     */
+    @Nullable
+    Class<?> libraryClass(@NotNull String internalName) {
+        if (libraries == null || !isLibraryClass(internalName)) return null;
+        try {
+            return Class.forName(internalName.replace('/', '.'), false, libraries);
+        } catch (ClassNotFoundException | LinkageError e) {
+            return null;
+        }
+    }
+
     byte @Nullable [] readOwnClass(@NotNull String internalName) {
         if (!ownsClass(internalName)) return null;
-        URL resource = findResource(internalName + ".class");
-        if (resource == null) return null;
-        try (InputStream in = resource.openStream()) {
-            return in.readAllBytes();
+        // Not URL#openStream, it would keep the jar open in the JVM wide jar cache, even after close()
+        try (InputStream in = getResourceAsStream(internalName + ".class")) {
+            return in == null ? null : in.readAllBytes();
         } catch (IOException e) {
             return null;
         }
@@ -73,9 +137,10 @@ public final class SandboxPluginClassLoader extends URLClassLoader {
         synchronized (getClassLoadingLock(name)) {
             Class<?> clazz = findLoadedClass(name);
             if (clazz == null) {
-                clazz = ownsClass(name.replace('.', '/'))
-                        ? findClass(name)
-                        : getParent().loadClass(name);
+                String internalName = name.replace('.', '/');
+                if (ownsClass(internalName)) clazz = findClass(name);
+                else if (libraries != null && isLibraryClass(internalName)) clazz = libraries.loadClass(name);
+                else clazz = getParent().loadClass(name);
             }
             if (resolve) resolveClass(clazz);
             return clazz;
@@ -113,5 +178,16 @@ public final class SandboxPluginClassLoader extends URLClassLoader {
     @Override
     public Enumeration<URL> getResources(@NotNull String name) throws IOException {
         return findResources(name);
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            super.close();
+        } finally {
+            // Null while the constructor fails
+            //noinspection ConstantValue
+            if (libraries != null) libraries.close();
+        }
     }
 }

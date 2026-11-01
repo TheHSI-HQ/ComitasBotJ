@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -46,8 +47,9 @@ public final class PluginSandbox {
     }
 
     private static long dataQuotaBytes() {
-        if (cloud.thehsi.ComitasBotJ.Main.conf() == null) return 0;
-        return (long) (cloud.thehsi.ComitasBotJ.Main.conf().pluginDataQuotaMb.get() * 1024 * 1024);
+        var conf = cloud.thehsi.ComitasBotJ.Main.confIfLoaded();
+        if (conf == null) return 0;
+        return (long) (conf.pluginDataQuotaMb.get() * 1024 * 1024);
     }
 
     @NotNull
@@ -122,6 +124,20 @@ public final class PluginSandbox {
     public Path getMount(@NotNull String name) {
         if (!mounts.containsKey(name)) return null;
         return fileSystem.getPath("/mnt", name);
+    }
+
+    /**
+     * The host location of a path in the plugin's file system, for unsandboxed libraries.
+     * A string, so that the plugin's own (sandboxed) code can't use it as a host {@link Path}.
+     *
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     */
+    @NotNull
+    public String hostPath(@NotNull Path path) throws IOException {
+        if (!has(PluginPermission.LIBRARIES))
+            throw new SecurityException("Plugin " + pluginName + " may not get host paths, it requires the "
+                    + PluginPermission.LIBRARIES.getKey() + " permission");
+        return fileSystem.hostPath(path).toString();
     }
 
     @NotNull

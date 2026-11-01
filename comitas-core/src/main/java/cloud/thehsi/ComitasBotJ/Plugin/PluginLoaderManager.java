@@ -4,6 +4,7 @@ import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
+import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
@@ -312,7 +313,15 @@ public class PluginLoaderManager {
                 PluginSandbox sandbox = security.resolve(metadata, props);
 
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating sandboxed class loader for: {}", jar.getName());
-                loader = new SandboxPluginClassLoader(jar, sandbox);
+                List<String> libraries = SandboxPluginClassLoader.parseLibraries(props);
+                if (!libraries.isEmpty()) {
+                    if (sandbox.has(PluginPermission.LIBRARIES))
+                        logger.warn("Plugin {} loads the unsandboxed libraries [{}]", metadata.name(), String.join(", ", libraries));
+                    else
+                        logger.warn("Plugin {} bundles the libraries [{}], but wasn't granted the libraries permission, "
+                                + "they aren't loaded", metadata.name(), String.join(", ", libraries));
+                }
+                loader = new SandboxPluginClassLoader(jar, sandbox, libraries);
 
                 // Before the plugin is created, its constructor may already use the data store
                 if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());

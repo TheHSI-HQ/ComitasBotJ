@@ -159,12 +159,12 @@ public final class PluginSecurity {
             case ALL -> {
                 logger.warn("Granting {} the requested permissions [{}], because plugin-permission-default is all",
                         metadata.name(), keys);
-                yield grantAll(undecided);
+                yield withoutManualOnly(metadata, grantAll(undecided));
             }
             case REQUIRED -> {
                 logger.warn("Granting {} only the required permissions of [{}], because plugin-permission-default is required",
                         metadata.name(), keys);
-                yield grantRequired(undecided);
+                yield withoutManualOnly(metadata, grantRequired(undecided));
             }
             case NONE -> {
                 logger.warn("Denying {} the requested permissions [{}], because plugin-permission-default is none",
@@ -173,6 +173,23 @@ public final class PluginSecurity {
             }
             case ASK -> ask(metadata, undecided);
         };
+    }
+
+    /**
+     * Permissions, which are never granted by {@code plugin-permission-default}, only by the server owner.
+     */
+    private static final Set<PluginPermission> MANUAL_ONLY = EnumSet.of(PluginPermission.LIBRARIES);
+
+    @NotNull
+    private static Set<PluginPermission> withoutManualOnly(@NotNull Plugin.PluginMetadata metadata,
+                                                           @NotNull Set<PluginPermission> granted) {
+        for (PluginPermission permission : MANUAL_ONLY) {
+            if (!granted.remove(permission)) continue;
+            logger.warn("Not granting {} the {} permission, it is never granted by plugin-permission-default. "
+                            + "Set permission.{}=true in {} and reload to grant it.",
+                    metadata.name(), permission.getKey(), permission.getKey(), securityFile(metadata.uuid()));
+        }
+        return granted;
     }
 
     @NotNull
@@ -354,6 +371,9 @@ public final class PluginSecurity {
                     .append(ConsoleColor.RESET).append(' ').append(highlight(permission.permission().getDisplayName()))
                     .append(permission.required() ? " " + error("(required)") : "")
                     .append(": ").append(reason(permission.reason())).append('\n');
+            if (permission.permission() == PluginPermission.LIBRARIES)
+                request.append("     ").append(error("Libraries aren't sandboxed, they have full access to the server, "
+                        + "including the bot token. Only grant this to plugins you trust.")).append('\n');
         }
 
         String options = generateGrantMessage(undecided, anyRequired);

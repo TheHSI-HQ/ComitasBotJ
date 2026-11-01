@@ -771,11 +771,12 @@ permission.network.required=true
 permission.file_storage.reason=Caches downloaded radar images
 ```
 
-| Permission     | `PluginPermission` | Allows                                                                              |
-|----------------|--------------------|-------------------------------------------------------------------------------------|
-| `network`      | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
-| `file_storage` | `FILE_STORAGE`     | Writing to your own folder, see below                                               |
-| `server_control` | `SERVER_CONTROL` | `Comitas.shutdown()`, `reloadSoft()` and `reloadHard()` of the plugin manager       |
+| Permission       | `PluginPermission` | Allows                                                                              |
+|------------------|--------------------|-------------------------------------------------------------------------------------|
+| `network`        | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
+| `file_storage`   | `FILE_STORAGE`     | Writing to your own folder, see below                                               |
+| `server_control` | `SERVER_CONTROL`   | `Comitas.shutdown()`, `reloadSoft()` and `reloadHard()` of the plugin manager       |
+| `libraries`      | `LIBRARIES`        | Unsandboxed libraries like database drivers, and JDBC, see [Libraries](#libraries)  |
 
 Mark a permission as `required`, if your plugin can't work without it, it is then only loaded if the permission was
 granted. Check optional ones with `hasPermission(PluginPermission.FILE_STORAGE)` and degrade gracefully, the owner may
@@ -813,6 +814,66 @@ available right away and after restarts. After `Never`, requests for that name c
 Mount points may be read-only, writing to them throws an `AccessDeniedException`.
 
 Resources from your own jar can be read with `getClass().getResourceAsStream("/config.yml")`.
+
+### Libraries
+
+Pure Java libraries can simply be shaded into your jar, they are sandboxed like your own code. Libraries that need more
+than the sandbox allows, like JDBC drivers with native code (`sqlite-jdbc`, H2, ...), can be bundled as jars inside
+your jar instead. List them in `plugin.properties` and request the `libraries` permission:
+
+```properties
+permissions=libraries,file_storage
+permission.libraries.reason=Stores levels in an SQLite database
+permission.libraries.required=true
+permission.file_storage.reason=The database file
+# Paths inside your jar, separated by commas
+libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
+```
+
+With Maven, `maven-dependency-plugin` can copy the driver into your jar (don't also shade it):
+
+```xml
+<plugin>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <phase>prepare-package</phase>
+            <goals><goal>copy</goal></goals>
+            <configuration>
+                <artifactItems>
+                    <artifactItem>
+                        <groupId>org.xerial</groupId>
+                        <artifactId>sqlite-jdbc</artifactId>
+                        <version>3.50.3.0</version>
+                    </artifactItem>
+                </artifactItems>
+                <outputDirectory>${project.build.outputDirectory}/META-INF/libs</outputDirectory>
+                <stripVersion>false</stripVersion>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Library classes are **not sandboxed**, they can do anything the server can, so the owner should only grant this to
+plugins they trust. It is never granted automatically through `plugin-permission-default`, the owner has to accept it in
+the prompt or set `permission.libraries=true` in the plugin's security file. Your own classes stay sandboxed, but may use
+the library classes and `java.sql`:
+
+```java
+Class.forName("org.sqlite.JDBC"); // registers the driver
+String database = getHostPath(getDataFolder().resolve("levels.db"));
+try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + database)) {
+    // ...
+}
+```
+
+Libraries see the host's real file system, not your plugin's. `getHostPath(path)` translates a path of your file
+system into the host path (as a `String`, it only works with the `libraries` permission). What a library does with it
+isn't restricted by `file_storage`, read-only mount points or the data quota. Libraries only see the JDK and the Comitas API, not the core's own
+dependencies or other plugins. Library methods taking or returning classes the sandbox denies (like `java.io.File`)
+can't be called from your code. Without the permission, the libraries aren't loaded and using them throws a
+`SecurityException`.
 
 ## Plugin Manager & Cross-Plugin Communication
 

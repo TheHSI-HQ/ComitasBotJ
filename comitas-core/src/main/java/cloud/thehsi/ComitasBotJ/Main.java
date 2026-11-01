@@ -130,6 +130,14 @@ public class Main implements Runnable {
         return conf;
     }
 
+    /**
+     * @return The server config, or null if it wasn't loaded yet (e.g. in tests)
+     */
+    @Nullable
+    public static ServerConfig.ParsedServerConfig confIfLoaded() {
+        return conf;
+    }
+
     public static void main(@NotNull String[] args) {
         //noinspection JavaPrintToLogpoint
         System.out.println("" + ConsoleColor.BRIGHT_WHITE + ConsoleColor.BOLD + """

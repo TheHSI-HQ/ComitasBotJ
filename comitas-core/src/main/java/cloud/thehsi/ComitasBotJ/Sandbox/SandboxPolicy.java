@@ -20,7 +20,10 @@ import java.util.Set;
  * serialization, native code, processes, JMX or the file system.
  */
 final class SandboxPolicy {
-    enum Access {ALLOW, DENY, NETWORK}
+    /**
+     * {@code NETWORK} needs the network permission, {@code JDBC} the network or libraries permission.
+     */
+    enum Access {ALLOW, DENY, NETWORK, JDBC}
 
     /**
      * Class name prefixes, which are never loaded from a plugin jar.
@@ -167,7 +170,9 @@ final class SandboxPolicy {
         denyMembers("java/awt/color/ICC_Profile", "getInstance(Ljava/lang/String;", "write(Ljava/lang/String;");
 
         // --- networking, needs the NETWORK permission ---
-        network("java/net/", "java/net/http/", "javax/net/", "java/sql/", "javax/sql/");
+        network("java/net/", "java/net/http/", "javax/net/");
+        // Remote databases need the network, local ones (SQLite & co.) a driver loaded as library
+        jdbc("java/sql/", "javax/sql/");
         allow("java/net/URI", "java/net/URISyntaxException", "java/net/URLEncoder", "java/net/URLDecoder",
                 "java/net/IDN", "java/net/MalformedURLException");
         deny("java/net/URLClassLoader", "java/net/URLStreamHandler", "java/net/URLStreamHandlerFactory",
@@ -219,6 +224,10 @@ final class SandboxPolicy {
 
     private static void network(String... keys) {
         for (String key : keys) CLASS_RULES.put(key, Access.NETWORK);
+    }
+
+    private static void jdbc(String... keys) {
+        for (String key : keys) CLASS_RULES.put(key, Access.JDBC);
     }
 
     private static void denyMembers(String owner, String... entries) {

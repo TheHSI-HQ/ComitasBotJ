@@ -22,6 +22,7 @@ import java.util.stream.Stream;
  * data/
  * ├── token.secret                       Discord bot token
  * ├── .cache/                            Instance lock
+ * │   └── libraries/&lt;sha256&gt;.jar        Libraries extracted from plugin jars
  * ├── persistent/&lt;uuid&gt;.dat             Persistent data storage of a plugin
  * ├── security/&lt;uuid&gt;.security.properties Granted permissions &amp; mount points of a plugin
  * └── volumes/&lt;uuid&gt;/                    Files of a plugin, its root directory
@@ -36,6 +37,10 @@ public final class DataPaths {
     public static final @NotNull Path DATA = Path.of("data");
     public static final @NotNull Path TOKEN = DATA.resolve("token.secret");
     public static final @NotNull Path CACHE = DATA.resolve(".cache");
+    /**
+     * Library jars extracted from plugin jars, named by their SHA-256 hash.
+     */
+    public static final @NotNull Path LIBRARIES = CACHE.resolve("libraries");
     public static final @NotNull Path PLUGIN_DATA = DATA.resolve("persistent");
     public static final @NotNull Path SECURITY = DATA.resolve("security");
     public static final @NotNull Path VOLUMES = DATA.resolve("volumes");

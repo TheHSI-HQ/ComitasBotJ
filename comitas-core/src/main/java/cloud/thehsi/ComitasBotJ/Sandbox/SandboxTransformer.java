@@ -23,6 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * (only the plugin's own jar), URL creation (only http/https) and {@code Path.of} / {@code Paths.get} /
  * {@code FileSystems.getDefault()} (the plugin's own file system).
  * <p>
+ * Classes of the plugin's libraries ({@link PluginLibraryClassLoader}) may be used like allowed host classes,
+ * they only exist if the plugin was granted {@link PluginPermission#LIBRARIES}.
+ * <p>
  * The checks run on the original bytecode, the injected calls are not visible to plugins.
  */
 final class SandboxTransformer {
@@ -278,12 +281,14 @@ final class SandboxTransformer {
             type = element.getInternalName();
         }
 
-        if (hierarchy.isOwn(type)) return null;
+        if (hierarchy.isOwn(type) || hierarchy.isLibrary(type)) return null;
 
         return switch (SandboxPolicy.classAccess(type)) {
             case ALLOW -> null;
             case NETWORK -> permissionMissing(PluginPermission.NETWORK) == null
                     ? null : type.replace('/', '.') + " " + permissionMissing(PluginPermission.NETWORK);
+            case JDBC -> sandbox.has(PluginPermission.NETWORK) || sandbox.has(PluginPermission.LIBRARIES)
+                    ? null : type.replace('/', '.') + " requires the network or libraries permission, neither was granted";
             case DENY -> type.replace('/', '.') + " is not available to plugins";
         };
     }
@@ -365,7 +370,7 @@ final class SandboxTransformer {
         String reason = checkType(owner);
         if (reason != null) return reason;
 
-        Class<?> hostOwner = ClassHierarchy.hostClass(owner);
+        Class<?> hostOwner = hierarchy.resolve(owner);
         if (hostOwner == null) return owner.replace('/', '.') + " could not be found";
 
         Class<?> declaring = ClassHierarchy.findDeclaring(hostOwner, name, descriptor, field);

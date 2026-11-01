@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -86,6 +87,17 @@ public interface PluginManager {
      */
     @NotNull
     CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly);
+
+    /**
+     * Gets the host location of a path in the current plugin's file system, see {@link Plugin#getHostPath(Path)}.
+     *
+     * @param path A path of the plugin's file system, like {@code getDataFolder().resolve("data.db")}
+     * @return The absolute path on the host
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     * @throws IOException       If the path can't be mapped onto the host, e.g. it leaves the file system
+     */
+    @NotNull
+    String getHostPath(@NotNull Path path) throws IOException;
 
     /**
      * Checks if the current plugin was granted a {@link PluginPermission}.

@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Resolves the class hierarchy of plugin classes (read from the jar, without loading them)
- * and host classes (through reflection, without initializing them).
+ * and host and library classes (through reflection, without initializing them).
  */
 final class ClassHierarchy {
     private static final ClassLoader HOST_LOADER = ClassHierarchy.class.getClassLoader();
@@ -96,6 +96,21 @@ final class ClassHierarchy {
         return loader.ownsClass(internalName);
     }
 
+    /**
+     * @return True if the class comes from the plugin's (unsandboxed) libraries
+     */
+    boolean isLibrary(@NotNull String internalName) {
+        return loader.isLibraryClass(internalName);
+    }
+
+    /**
+     * Resolves a class, which isn't one of the plugin's own: a library class or a host class.
+     */
+    @Nullable
+    Class<?> resolve(@NotNull String internalName) {
+        return isLibrary(internalName) ? loader.libraryClass(internalName) : hostClass(internalName);
+    }
+
     @Nullable
     OwnClassInfo own(@NotNull String internalName) {
         return ownCache.computeIfAbsent(internalName, name -> {
@@ -132,7 +147,7 @@ final class ClassHierarchy {
             OwnClassInfo info = own(internalName);
             return info == null ? null : info.superName;
         }
-        Class<?> host = hostClass(internalName);
+        Class<?> host = resolve(internalName);
         if (host == null || host.getSuperclass() == null) return null;
         return internalName(host.getSuperclass());
     }
@@ -142,7 +157,7 @@ final class ClassHierarchy {
             OwnClassInfo info = own(internalName);
             return info != null && (info.access & Opcodes.ACC_INTERFACE) != 0;
         }
-        Class<?> host = hostClass(internalName);
+        Class<?> host = resolve(internalName);
         return host != null && host.isInterface();
     }
 

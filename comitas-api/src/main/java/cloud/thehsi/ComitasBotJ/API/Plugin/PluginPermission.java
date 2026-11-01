@@ -35,7 +35,22 @@ public enum PluginPermission {
      * Allows controlling the whole server: shutting it down ({@link cloud.thehsi.ComitasBotJ.API.Bot.Comitas#shutdown()})
      * and reloading all plugins ({@link PluginManager#reloadSoft()}, {@link PluginManager#reloadHard()}).
      */
-    SERVER_CONTROL("server_control", "Server Control (shutdown, reload)");
+    SERVER_CONTROL("server_control", "Server Control (shutdown, reload)"),
+
+    /**
+     * Allows loading libraries, that need more than the sandbox permits, like JDBC drivers with native code
+     * (e.g. {@code sqlite-jdbc}). The plugin bundles them as jars inside its own jar and lists them in its
+     * {@code plugin.properties}:
+     * <pre>
+     * permissions=libraries
+     * permission.libraries.reason=Stores its data in an SQLite database
+     * libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
+     * </pre>
+     * Library classes are <b>not sandboxed</b>, they have full access to the server (including the bot token).
+     * The plugin's own classes stay sandboxed, but may use the library classes and {@code java.sql}.
+     * Because of that, this permission is never granted automatically by {@code plugin-permission-default}.
+     */
+    LIBRARIES("libraries", "Unsandboxed Libraries (e.g. database drivers)");
 
     private final @NotNull String key;
     private final @NotNull String displayName;
