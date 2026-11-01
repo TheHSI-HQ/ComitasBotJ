@@ -36,7 +36,7 @@ public record InternalReaction(MessageReaction reaction, Message message) implem
     }
 
     @Override
-    public @Nullable @Unmodifiable List<Member> getReactorMemberss() {
+    public @Nullable @Unmodifiable List<Member> getReactorMembers() {
         DebugLogging.action();
 
         if (reaction.isFromType(ChannelType.PRIVATE))

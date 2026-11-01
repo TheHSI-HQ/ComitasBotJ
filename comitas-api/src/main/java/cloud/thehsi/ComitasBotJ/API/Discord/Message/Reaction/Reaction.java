@@ -39,7 +39,7 @@ public interface Reaction {
      */
     @Nullable
     @Unmodifiable
-    List<Member> getReactorMemberss();
+    List<Member> getReactorMembers();
 
     /**
      * Gets the amount of reactions
