@@ -74,6 +74,14 @@ public class InternalScheduler implements Scheduler {
             if (task.getOwner() != keep) task.cancel();
     }
 
+    /**
+     * Cancels the tasks of one plugin.
+     */
+    public void cancelAll(@NotNull Plugin owner) {
+        for (Task task : tasks.values())
+            if (task.getOwner() == owner) task.cancel();
+    }
+
     public void cancelAll() {
         cancelAllExcept(null);
     }

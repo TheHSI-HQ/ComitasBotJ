@@ -226,6 +226,15 @@ public class InternalCommandRegistry implements CommandRegistry {
     }
 
     /**
+     * Drops the command handlers of one plugin, identified by the class loader, which defined its handlers.
+     * Use {@link #pruneUnusedCommands()} afterward, to remove them on Discord as well.
+     */
+    public void clearHandlers(@NotNull ClassLoader pluginLoader) {
+        commands.removeIf(cmd -> cmd.commandSupplier().getClass().getClassLoader() == pluginLoader);
+        dynamicCommands.removeIf(cmd -> cmd.consumer().getClass().getClassLoader() == pluginLoader);
+    }
+
+    /**
      * Asynchronously deletes all commands on Discord, which have no registered handler.
      * Global commands are compared by name, guild commands are always unused, as only global commands get registered.
      * Guild commands are only removed with prune-guild-commands, as they aren't necessarily created by ComitasBotJ.

@@ -222,6 +222,14 @@ public class EventManager {
         }
     }
 
+    /**
+     * Removes the event listeners of one plugin.
+     */
+    public void unregisterListeners(@NotNull Plugin plugin) {
+        for (List<RegisteredListener> registered : listeners.values())
+            registered.removeIf(listener -> listener.plugin() == plugin);
+    }
+
     public void clearEventListeners() {
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Clearing {} event listeners", listeners.size());
         listeners.clear();

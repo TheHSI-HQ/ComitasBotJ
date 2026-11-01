@@ -5,15 +5,13 @@ import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Utility.ConsoleText;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager.versionId;
 
@@ -137,77 +135,82 @@ public class PluginLister {
         logger.info(createBorder(widths, '└', '┴', '┘'));
     }
 
-    public static void listPlugins() {
-        record PluginInfo(
-                String name,
-                String version,
-                String fileName,
-                UUID uuid
-        ) {
+    /**
+     * Lists the loaded plugins.
+     *
+     * @param all Also lists the jars, which aren't loaded (unloaded, disabled and errored ones), with the reason why
+     */
+    public static void listPlugins(boolean all) {
+        PluginLoaderManager loaderManager = ((InternalPluginManager) Comitas.getPluginManager()).pluginLoaderManager();
+
+        List<String[]> loaded = new ArrayList<>();
+        for (PluginLoaderManager.LoadedInfo info : loaderManager.loadedPlugins()) {
+            Plugin.PluginMetadata metadata = info.metadata();
+            loaded.add(new String[]{
+                    metadata.name(), metadata.version(), metadata.jarName(), metadata.uuid().toString(),
+                    info.base() ? "built in" : info.enabled() ? "enabled" : "loaded"
+            });
         }
+        printTable("Loaded plugins", ConsoleColor.BRIGHT_GREEN,
+                new String[]{"Name", "Version", "File", "UUID", "State"}, loaded);
 
-        List<PluginInfo> plugins = new ArrayList<>();
+        if (!all) return;
 
-
-        for (Plugin.PluginMetadata metadata : Comitas.getPluginManager().getAllPluginMetadata()) {
-            plugins.add(new PluginInfo(
-                    metadata.name(),
-                    metadata.version(),
-                    metadata.jarName(),
-                    metadata.uuid()
-            ));
-        }
-
-        String[] headers = {
-                "Name",
-                "Version",
-                "File",
-                "UUID"
-        };
-
-        List<String[]> rows = new ArrayList<>();
-
-        for (PluginInfo plugin : plugins) {
-            rows.add(new String[]{
-                    plugin.name(),
-                    plugin.version(),
-                    plugin.fileName(),
-                    plugin.uuid().toString()
+        Map<PluginLoaderManager.JarState, List<String[]>> notLoaded = new EnumMap<>(PluginLoaderManager.JarState.class);
+        for (PluginLoaderManager.JarStatus status : loaderManager.notLoadedJars()) {
+            Plugin.PluginMetadata metadata = status.metadata();
+            notLoaded.computeIfAbsent(status.state(), state -> new ArrayList<>()).add(new String[]{
+                    metadata == null ? "?" : metadata.name(),
+                    metadata == null ? "?" : metadata.version(),
+                    status.jarName(),
+                    metadata == null ? "?" : metadata.uuid().toString(),
+                    shorten(status.reason() == null ? "" : status.reason())
             });
         }
 
-        int[] widths = new int[headers.length];
+        String[] headers = {"Name", "Version", "File", "UUID", "Reason"};
+        printTable("Unloaded plugins", ConsoleColor.BRIGHT_YELLOW, headers,
+                notLoaded.getOrDefault(PluginLoaderManager.JarState.UNLOADED, List.of()));
+        printTable("Disabled plugins", ConsoleColor.BRIGHT_BLACK, headers,
+                notLoaded.getOrDefault(PluginLoaderManager.JarState.DISABLED, List.of()));
+        printTable("Errored plugins", ConsoleColor.BRIGHT_RED, headers,
+                notLoaded.getOrDefault(PluginLoaderManager.JarState.ERRORED, List.of()));
+    }
 
+    private static final int MAX_REASON_LENGTH = 120;
+
+    @NotNull
+    private static String shorten(@NotNull String reason) {
+        // Reasons may contain exception messages of plugins, they must not contain escape sequences or line breaks
+        String plain = ConsoleText.plain(reason).replaceAll("\\s+", " ").strip();
+        return plain.length() > MAX_REASON_LENGTH ? plain.substring(0, MAX_REASON_LENGTH - 3) + "..." : plain;
+    }
+
+    private static void printTable(@NotNull String title, @NotNull ConsoleColor color, @NotNull String[] headers,
+                                   @NotNull List<String[]> rows) {
+        logger.info("{}{}{}{} ({}){}", ConsoleColor.BOLD, color, title, ConsoleColor.RESET + color.toString(),
+                rows.size(), ConsoleColor.RESET);
+        if (rows.isEmpty()) return;
+
+        int[] widths = new int[headers.length];
         for (int i = 0; i < headers.length; i++) {
             widths[i] = headers[i].length();
-
-            for (String[] row : rows) {
-                widths[i] = Math.max(widths[i], row[i].length());
-            }
+            for (String[] row : rows) widths[i] = Math.max(widths[i], row[i].length());
         }
-
-        logger.info("Plugins:");
 
         logger.info(createBorder(widths, '┌', '┬', '┐'));
-
         logger.info(createHeaderRow(headers, widths));
-
         logger.info(createBorder(widths, '├', '┼', '┤'));
-
-        for (PluginInfo plugin : plugins) {
-            String[] row = {
-                    plugin.name(),
-                    plugin.version(),
-                    plugin.fileName(),
-                    plugin.uuid().toString()
-            };
-
-            logger.info(createRow(
-                    row,
-                    widths
-            ));
+        for (String[] row : rows) {
+            StringBuilder line = new StringBuilder("│");
+            for (int i = 0; i < row.length; i++) {
+                //noinspection StringConcatenationInFormatCall
+                line.append(' ').append(ConsoleColor.WHITE)
+                        .append(String.format("%-" + widths[i] + "s", row[i]))
+                        .append(ConsoleColor.RESET).append(" │");
+            }
+            logger.info(line.toString());
         }
-
         logger.info(createBorder(widths, '└', '┴', '┘'));
     }
 
@@ -242,46 +245,6 @@ public class PluginLister {
         }
 
         return builder.toString();
-    }
-
-    @NotNull
-    private static String createRow(
-            @NotNull String[] values,
-            int[] widths
-    ) {
-        //noinspection StringConcatenationInFormatCall
-        return "│ " + // Name
-                ConsoleColor.WHITE +
-                String.format(
-                        "%-" + widths[0] + "s",
-                        values[0]
-                ) +
-                ConsoleColor.RESET +
-                " │" + // Version
-                " " +
-                ConsoleColor.WHITE +
-                String.format(
-                        "%-" + widths[1] + "s",
-                        values[1]
-                ) +
-                ConsoleColor.RESET +
-                " │" + // File
-                " " +
-                ConsoleColor.WHITE +
-                String.format(
-                        "%-" + widths[2] + "s",
-                        values[2]
-                ) +
-                ConsoleColor.RESET +
-                " │" + // UUID
-                " " +
-                ConsoleColor.WHITE +
-                String.format(
-                        "%-" + widths[3] + "s",
-                        values[3]
-                ) +
-                ConsoleColor.RESET +
-                " │";
     }
 
     @NotNull

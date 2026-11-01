@@ -65,6 +65,13 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
         consoleCommands.removeIf(cmd -> cmd.plugin() != keep);
     }
 
+    /**
+     * Removes the console commands of one plugin.
+     */
+    public void unregisterAll(@NotNull Plugin plugin) {
+        consoleCommands.removeIf(cmd -> cmd.plugin() == plugin);
+    }
+
     @Override
     public @NotNull List<ConsoleCommand> registeredCommands() {
         DebugLogging.action();

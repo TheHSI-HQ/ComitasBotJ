@@ -472,6 +472,96 @@ public class InternalPluginManager implements PluginManager {
         logger.info("Reloaded (Soft) in {}s", (System.currentTimeMillis() - reloadTime) / 1000d);
     }
 
+    // --- Single plugins, used by the plugins console command ---
+
+    @NotNull
+    PluginLoaderManager pluginLoaderManager() {
+        return pluginLoaderManager;
+    }
+
+    /**
+     * Unloads one plugin, it stays unloaded on reloads until it is loaded again.
+     *
+     * @param id The plugin's uuid, jar name or name
+     */
+    public void unloadPlugin(@NotNull String id) {
+        DebugLogging.action(id);
+        requireServerControl("unload plugins");
+        reload("unload", () -> runSinglePluginAction(() -> {
+            pluginLoaderManager.unloadPlugin(id, true, this::removeRegistrations);
+            pruneCommands();
+        }));
+    }
+
+    /**
+     * Loads one jar of the plugins folder and enables it, if the bot is connected.
+     *
+     * @param jarName The jar's file name, .jar is optional
+     */
+    public void loadPlugin(@NotNull String jarName) {
+        DebugLogging.action(jarName);
+        requireServerControl("load plugins");
+        reload("load", () -> runSinglePluginAction(() -> loadAndEnable(jarName)));
+    }
+
+    /**
+     * Unloads one plugin and loads its jar again, e.g. after it was replaced.
+     *
+     * @param id The plugin's uuid, jar name or name
+     */
+    public void reloadPlugin(@NotNull String id) {
+        DebugLogging.action(id);
+        requireServerControl("reload plugins");
+        reload("plugin", () -> runSinglePluginAction(() -> {
+            long reloadTime = System.currentTimeMillis();
+            Plugin.PluginMetadata unloaded = pluginLoaderManager.unloadPlugin(id, false, this::removeRegistrations);
+            Plugin.PluginMetadata loaded = loadAndEnable(unloaded.jarName());
+            // The plugin re-registered its commands in onEnable, drop the ones it doesn't register anymore
+            pruneCommands();
+            if (loaded != null)
+                logger.info("Reloaded {} in {}s", loaded.name(), (System.currentTimeMillis() - reloadTime) / 1000d);
+        }));
+    }
+
+    /**
+     * Wrong input (unknown plugin, ...) is logged without a stack trace.
+     */
+    private void runSinglePluginAction(@NotNull Runnable action) {
+        try {
+            action.run();
+        } catch (IllegalArgumentException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    @Nullable
+    private Plugin.PluginMetadata loadAndEnable(@NotNull String jarName) {
+        Plugin.PluginMetadata loaded = pluginLoaderManager.loadPlugin(jarName);
+        if (loaded == null) {
+            String reason = pluginLoaderManager.failureReason(jarName);
+            logger.error("Plugin {} wasn't loaded{}", jarName, reason == null ? "" : ": " + reason);
+            return null;
+        }
+        // Before the bot is connected, plugins are enabled once it is
+        if (DiscordAPI.nullableApi() != null) enablePlugins();
+        return loaded;
+    }
+
+    private void pruneCommands() {
+        if (DiscordAPI.nullableApi() != null) commandRegistry.pruneUnusedCommands();
+    }
+
+    /**
+     * Removes everything a single plugin registered.
+     */
+    private void removeRegistrations(@NotNull Plugin plugin, @NotNull ClassLoader loader) {
+        commandRegistry.clearHandlers(loader);
+        consoleCommandRegistry.unregisterAll(plugin);
+        scheduler.cancelAll(plugin);
+        ButtonCallbackManager.unregisterAll(plugin);
+        eventManager.unregisterListeners(plugin);
+    }
+
     /**
      * Enables all loaded plugins, called once the bot is connected.
      */

@@ -59,6 +59,15 @@ public class ButtonCallbackManager {
         }
     }
 
+    /**
+     * Removes the button callbacks of one plugin.
+     */
+    public static void unregisterAll(@NotNull Plugin owner) {
+        synchronized (metadataMap) {
+            metadataMap.values().removeIf(metadata -> metadata.owner() == owner);
+        }
+    }
+
     public static void runCallback(@NotNull ButtonInteractionEvent event) {
         ButtomMetadata metadata = ButtonCallbackManager.metadataMap.get(event.getButton().getCustomId());
 
