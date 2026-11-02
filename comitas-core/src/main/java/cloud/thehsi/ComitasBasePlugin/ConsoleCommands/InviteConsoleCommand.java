@@ -2,12 +2,14 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public class InviteConsoleCommand extends ConsoleCommandExecutor {
+public class InviteConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     public InviteConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,
@@ -17,7 +19,8 @@ public class InviteConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         switch (args.length) {
             case 0:
                 getConsoleLogger().warn("No permissions specified, granting Administator permission (8)");
@@ -41,5 +44,15 @@ public class InviteConsoleCommand extends ConsoleCommandExecutor {
             default:
                 getConsoleLogger().error("Usage: invite [permissions]");
         }
+    }
+
+    /**
+     * Suggests the permission integer of Administrator.
+     */
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        if (args.length != 1) return new String[0];
+        return new String[]{String.valueOf(Permission.asLong(Permission.ADMINISTRATOR))};
     }
 }

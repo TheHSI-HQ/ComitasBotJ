@@ -3,6 +3,7 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import org.jetbrains.annotations.NotNull;
 
 public class VersionConsoleCommand extends ConsoleCommandExecutor {
@@ -15,7 +16,8 @@ public class VersionConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         getConsoleLogger().info("Currently running:");
         getConsoleLogger().info("  ComitasBotJ {}v{}", "" + ConsoleColor.BLUE + ConsoleColor.BOLD, Comitas.getServerVersion());
     }

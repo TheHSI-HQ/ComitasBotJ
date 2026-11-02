@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import cloud.thehsi.ComitasBotJ.App.Updater;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +11,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class UpdateConsoleCommand extends ConsoleCommandExecutor {
+public class UpdateConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     @NotNull
     final AtomicBoolean needsConfirmation = new AtomicBoolean(false);
 
@@ -22,7 +24,8 @@ public class UpdateConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length == 0) {
             needsConfirmation.set(true);
             getConsoleLogger().info("To confirm the update, run update confirm within the 30 seconds");
@@ -37,5 +40,11 @@ public class UpdateConsoleCommand extends ConsoleCommandExecutor {
         }
 
         getConsoleLogger().error("Usage: update [confirm]");
+    }
+
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        return args.length == 1 ? new String[]{"confirm"} : new String[0];
     }
 }

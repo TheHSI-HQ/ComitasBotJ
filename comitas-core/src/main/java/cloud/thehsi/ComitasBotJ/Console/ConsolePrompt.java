@@ -6,6 +6,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jline.reader.*;
+import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -31,6 +32,10 @@ public class ConsolePrompt {
     private @NotNull
     final Deque<Question> questions = new ArrayDeque<>();
     private static volatile @Nullable Thread consoleThread;
+    /**
+     * True while a question is read directly (see {@link #ask(String, String)}), it isn't a command
+     */
+    private volatile boolean answeringDirectly;
 
     public ConsolePrompt(@NotNull InternalConsoleCommandRegistry registry) {
         this.registry = registry;
@@ -39,10 +44,8 @@ public class ConsolePrompt {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
             lineReader = LineReaderBuilder.builder()
                     .terminal(terminal)
-                    .completer((r, l, c) -> {
-                        for (String cmd : registry.validCommandList())
-                            c.add(new Candidate(cmd));
-                    })
+                    .parser(createParser())
+                    .completer(this::complete)
                     .build();
 
             // Tell JLine not to print logs directly to the terminal —
@@ -54,6 +57,44 @@ public class ConsolePrompt {
         }
 
         registerLogAppender();
+    }
+
+    /**
+     * Completes the command name for the first word, otherwise asks the command's tab completer.
+     * Answers to questions (permission prompts, ...) aren't completed.
+     */
+    private void complete(@NotNull LineReader reader, @NotNull ParsedLine line, @NotNull List<Candidate> candidates) {
+        if (answeringDirectly) return;
+        synchronized (questions) {
+            if (!questions.isEmpty()) return;
+        }
+
+        for (String suggestion : registry.complete(wordsBeforeCursor(line)))
+            candidates.add(new Candidate(suggestion));
+    }
+
+    /**
+     * Plain whitespace separated words, like commands are run. Quotes and backslashes have no meaning,
+     * an unclosed quote would otherwise make JLine wait for more lines.
+     */
+    @NotNull
+    static Parser createParser() {
+        return new DefaultParser()
+                .quoteChars(new char[0])
+                .escapeChars(new char[0])
+                .eofOnUnclosedQuote(false);
+    }
+
+    /**
+     * @return The words left of the cursor, the last one is the word being completed, cut at the cursor (may be empty)
+     */
+    @NotNull
+    static List<String> wordsBeforeCursor(@NotNull ParsedLine line) {
+        int index = line.wordIndex();
+        if (index < 0) return List.of("");
+        List<String> words = new ArrayList<>(line.words().subList(0, index));
+        words.add(line.word().substring(0, Math.min(line.wordCursor(), line.word().length())));
+        return words;
     }
 
     /**
@@ -78,6 +119,7 @@ public class ConsolePrompt {
         Thread thread = consoleThread;
         if (thread == null || Thread.currentThread() == thread) {
             synchronized (this) {
+                answeringDirectly = true;
                 try {
                     lineReader.getTerminal().writer().println(message);
                     lineReader.getTerminal().writer().flush();
@@ -86,6 +128,8 @@ public class ConsolePrompt {
                     return CompletableFuture.completedFuture("");
                 } catch (EndOfFileException | IllegalStateException e) {
                     return CompletableFuture.completedFuture(null);
+                } finally {
+                    answeringDirectly = false;
                 }
             }
         }
@@ -134,7 +178,8 @@ public class ConsolePrompt {
 
                     stdInLogger.info(input);
                     if (input != null && !input.isBlank()) {
-                        List<String> parts = new ArrayList<>(List.of(input.split(" ")));
+                        // Split like the completion parser does, so repeated spaces don't create empty arguments
+                        List<String> parts = new ArrayList<>(List.of(input.strip().split("\\s+")));
 
                         String command = parts.removeFirst();
                         String[] args = parts.toArray(new String[0]);

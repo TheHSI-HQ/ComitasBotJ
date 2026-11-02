@@ -3,6 +3,8 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
@@ -13,11 +15,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class PermissionsConsoleCommand extends ConsoleCommandExecutor {
+public class PermissionsConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     private static final String SUFFIX = ".security.properties";
 
     public PermissionsConsoleCommand() {
@@ -29,7 +32,8 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length == 0) {
             listKnownPlugins();
             return;
@@ -137,6 +141,37 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor {
             }
             getConsoleLogger().info("  {} {}", uuid, metadata == null ? ConsoleColor.BRIGHT_BLACK + "(not loaded)" + ConsoleColor.RESET
                     : ConsoleColor.WHITE + metadata.name() + " " + metadata.version() + ConsoleColor.RESET);
+        }
+    }
+
+    /**
+     * Suggests the uuids of plugins with security settings and the names of loaded plugins.
+     */
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        if (args.length != 1) return new String[0];
+
+        List<String> suggestions = new ArrayList<>();
+        for (Path file : securityFiles()) {
+            String name = file.getFileName().toString();
+            suggestions.add(name.substring(0, name.length() - SUFFIX.length()));
+        }
+        for (Plugin.PluginMetadata metadata : Comitas.getPluginManager().getAllPluginMetadata())
+            suggestions.add(metadata.name());
+        return suggestions.toArray(String[]::new);
+    }
+
+    /**
+     * @return The security files of all plugins, sorted
+     */
+    @NotNull
+    private static List<Path> securityFiles() {
+        if (!Files.isDirectory(DataPaths.SECURITY)) return List.of();
+        try (Stream<Path> paths = Files.list(DataPaths.SECURITY)) {
+            return paths.filter(path -> path.getFileName().toString().endsWith(SUFFIX)).sorted().toList();
+        } catch (IOException e) {
+            return List.of();
         }
     }
 }

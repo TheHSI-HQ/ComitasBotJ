@@ -16,7 +16,8 @@ public class HelpConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         getConsoleLogger().info("Help:");
 
         for (ConsoleCommandRegistry.ConsoleCommand cmd : Comitas.getConsoleCommandRegistry().registeredCommands()) {

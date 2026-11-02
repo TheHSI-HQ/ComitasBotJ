@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
 import org.jetbrains.annotations.NotNull;
 
 public class StopConsoleCommand extends ConsoleCommandExecutor {
@@ -14,7 +15,8 @@ public class StopConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         getConsoleLogger().info("Sending shutdown Signal");
         System.exit(0);
     }

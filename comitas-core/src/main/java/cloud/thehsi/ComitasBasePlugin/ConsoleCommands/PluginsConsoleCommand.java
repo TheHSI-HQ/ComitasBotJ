@@ -2,6 +2,8 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLister;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +20,7 @@ import java.util.Locale;
  * plugins reload &lt;uuid/jar&gt;        Reloads a single plugin, e.g. after its jar was replaced
  * </pre>
  */
-public class PluginsConsoleCommand extends ConsoleCommandExecutor {
+public class PluginsConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     private static final String USAGE = "plugins [-a] | plugins load <jar> | plugins unload <uuid/jar> | plugins reload <uuid/jar>";
 
     public PluginsConsoleCommand() {
@@ -30,7 +32,8 @@ public class PluginsConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length == 0) {
             PluginLister.listPlugins(false);
             return;
@@ -63,5 +66,19 @@ public class PluginsConsoleCommand extends ConsoleCommandExecutor {
 
     private void usage() {
         getConsoleLogger().error("Usage: {}", USAGE);
+    }
+
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        if (args.length == 1) return new String[]{"-a", "load", "unload", "reload"};
+        if (args.length != 2) return new String[0];
+
+        InternalPluginManager pluginManager = (InternalPluginManager) Comitas.getPluginManager();
+        return switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "load" -> pluginManager.loadableJarNames().toArray(String[]::new);
+            case "unload", "reload" -> pluginManager.unloadableJarNames().toArray(String[]::new);
+            default -> new String[0];
+        };
     }
 }

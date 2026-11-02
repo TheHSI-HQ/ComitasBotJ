@@ -2,9 +2,11 @@ package cloud.thehsi.ComitasBasePlugin.ConsoleCommands;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import org.jetbrains.annotations.NotNull;
 
-public class ReloadConsoleCommand extends ConsoleCommandExecutor {
+public class ReloadConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     public ReloadConsoleCommand() {
         Comitas.getConsoleCommandRegistry().register(
                 this,
@@ -14,7 +16,8 @@ public class ReloadConsoleCommand extends ConsoleCommandExecutor {
     }
 
     @Override
-    public void execute(@NotNull String[] args) {
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length == 1) {
             String verb = args[0].toLowerCase();
             if (verb.equals("hard")) {
@@ -31,5 +34,11 @@ public class ReloadConsoleCommand extends ConsoleCommandExecutor {
         getConsoleLogger().info("Reloading...");
 
         Comitas.getPluginManager().reloadSoft();
+    }
+
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        return args.length == 1 ? new String[]{"soft", "hard"} : new String[0];
     }
 }

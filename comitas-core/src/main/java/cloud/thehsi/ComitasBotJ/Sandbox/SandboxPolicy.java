@@ -206,9 +206,9 @@ final class SandboxPolicy {
         allow("cloud/thehsi/ComitasBotJ/API/");
         deny("cloud/thehsi/ComitasBotJ/API/Bot/InternalComitasImpl", "cloud/thehsi/ComitasBotJ/API/Bot/UtilityBackend");
         denyMembers("cloud/thehsi/ComitasBotJ/API/Bot/Comitas", "getUtilityBackend", "init");
-        // Would allow running other plugins' (and the base plugin's) console commands
+        // Would allow running other plugins' (and the base plugin's) console commands and tab completers
         denyMembers("cloud/thehsi/ComitasBotJ/API/Console/ConsoleCommandRegistry$ConsoleCommand",
-                "plugin", "consoleCommandExecutor");
+                "plugin", "consoleCommandExecutor", "consoleCommandTabCompleter");
     }
 
     private SandboxPolicy() {

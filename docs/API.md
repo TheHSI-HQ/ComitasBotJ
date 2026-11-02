@@ -686,22 +686,40 @@ newsChannel.follow(textChannel); // needs MANAGE_WEBHOOKS in the target channel
 Console commands run only from the server operator's console/terminal, not from Discord — useful for admin tooling that shouldn't be exposed to guild members:
 
 ```java
-public class ReloadConsoleCommand extends ConsoleCommandExecutor {
+public class GreetConsoleCommand extends ConsoleCommandExecutor implements ConsoleCommandTabCompleter {
     @Override
-    public void execute(@NotNull String[] args) {
-        getConsoleLogger().info("Reloading plugins...");
-        Comitas.getPluginManager().reloadSoft();
+    public void execute(@NotNull String[] args, @NotNull String alias,
+                        @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        // alias is what was typed, e.g. "greet" or "hi"
+        if (args.length != 1) {
+            getConsoleLogger().error("Usage: {} <morning|evening>", alias);
+            return;
+        }
+        getConsoleLogger().info("Good {}!", args[0]);
+    }
+
+    // Optional: suggestions when TAB is pressed after the command name
+    @Override
+    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+                                      @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
+        return args.length == 1 ? new String[]{"morning", "evening"} : new String[0];
     }
 }
 ```
 
 ```java
 Comitas.getConsoleCommandRegistry().register(
-        new ReloadConsoleCommand(),
-        "Reloads all plugins",
-        "reload", "rl" // aliases
+        new GreetConsoleCommand(),
+        "Greets the console",
+        "greet", "hi" // aliases
 );
 ```
+
+Command names are completed automatically. For the arguments, an executor implementing `ConsoleCommandTabCompleter`
+is used as the command's tab completer, or pass one (e.g. a lambda) with
+`register(executor, tabCompleter, description, aliases...)`. The last element of `args` is the argument being typed, up
+to the cursor (empty if a new one was just started). Return all suggestions for it, the console only shows the ones
+matching what was typed. Arguments are separated by whitespace, quotes have no special meaning.
 
 `ConsoleCommandRegistry#registeredCommands()` lists every console command currently registered, across all plugins, as `ConsoleCommand` records. For colored console output outside of a command (e.g. in `getLogger()` calls that bypass SLF4J formatting), `ConsoleColor` provides ANSI constants (`ConsoleColor.RED`, `ConsoleColor.BOLD`, `ConsoleColor.BG_BLUE`, ...) plus `ConsoleColor.of(Color)` for arbitrary RGB colors.
 

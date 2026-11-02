@@ -17,7 +17,9 @@ public abstract class ConsoleCommandExecutor {
     /**
      * Execute the console command with an array of arguments
      *
+     * @param alias The command alias used
+     * @param consoleCommand The console command, which got ran
      * @param args Array of arguments
      */
-    abstract public void execute(@NotNull String[] args);
+    abstract public void execute(@NotNull String[] args, @NotNull String alias, @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand);
 }

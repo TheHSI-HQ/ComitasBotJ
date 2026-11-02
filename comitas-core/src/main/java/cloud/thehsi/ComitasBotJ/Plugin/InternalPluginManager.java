@@ -480,6 +480,27 @@ public class InternalPluginManager implements PluginManager {
     }
 
     /**
+     * @return The jar names of the loaded plugins, which can be unloaded (not the base plugin)
+     */
+    @NotNull
+    public List<String> unloadableJarNames() {
+        return pluginLoaderManager.loadedPlugins().stream()
+                .filter(info -> !info.base())
+                .map(info -> info.metadata().jarName())
+                .toList();
+    }
+
+    /**
+     * @return The jar names of the plugins folder, which aren't loaded
+     */
+    @NotNull
+    public List<String> loadableJarNames() {
+        return pluginLoaderManager.notLoadedJars().stream()
+                .map(PluginLoaderManager.JarStatus::jarName)
+                .toList();
+    }
+
+    /**
      * Unloads one plugin, it stays unloaded on reloads until it is loaded again.
      *
      * @param id The plugin's uuid, jar name or name

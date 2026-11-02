@@ -3,9 +3,11 @@ package cloud.thehsi.ComitasBotJ.Console;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandTabCompleter;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Utility.ConsoleText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,7 +32,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
             if (!isCommandMeant(command, cmd)) continue;
 
             try {
-                cmd.consoleCommandExecutor().execute(args);
+                cmd.consoleCommandExecutor().execute(args, command, cmd);
             } catch (Exception e) {
                 logger.error("Failed to execute command '{}'", command, e);
             }
@@ -40,21 +42,68 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
         return false;
     }
 
+    @Override
+    public void register(@NotNull ConsoleCommandExecutor executor, @Nullable String description, @NotNull String... aliases) {
+        register(executor, executor instanceof ConsoleCommandTabCompleter completer ? completer : null, description, aliases);
+    }
+
+    /**
+     * Completes a console line: the command name for the first word, otherwise the command's arguments.
+     *
+     * @param words The words of the line up to the cursor, the last one is the word being completed (may be empty)
+     * @return The suggestions, without escape sequences
+     */
     @NotNull
-    public String[] validCommandList() {
-        List<String> commandList = new ArrayList<>();
+    public List<String> complete(@NotNull List<String> words) {
+        if (words.size() <= 1) return validCommandNames();
 
-        consoleCommands.forEach(cmd -> commandList.addAll(cmd.aliases()));
+        String alias = words.getFirst();
+        for (ConsoleCommand cmd : consoleCommands) {
+            if (!isCommandMeant(alias, cmd)) continue;
 
-        return commandList.toArray(new String[0]);
+            ConsoleCommandTabCompleter completer = cmd.consoleCommandTabCompleter();
+            if (completer == null) return List.of();
+
+            String[] args = words.subList(1, words.size()).toArray(String[]::new);
+            String[] suggestions;
+            try {
+                suggestions = completer.complete(args, alias, cmd);
+            } catch (Exception | LinkageError e) {
+                if (DebugLogging.isBasicEnabled())
+                    DebugLogging.getLogger().debug("Tab completion of '{}' failed", alias, e);
+                return List.of();
+            }
+
+            //noinspection ConstantValue - plugins may still return null
+            if (suggestions == null) return List.of();
+            List<String> result = new ArrayList<>();
+            for (String suggestion : suggestions) {
+                // Comes from plugins, it must not be able to write escape sequences to the terminal
+                String plain = suggestion == null ? "" : ConsoleText.plain(suggestion).strip();
+                if (!plain.isEmpty() && !result.contains(plain)) result.add(plain);
+            }
+            return result;
+        }
+        return List.of();
+    }
+
+    @NotNull
+    private List<String> validCommandNames() {
+        List<String> names = new ArrayList<>();
+        for (ConsoleCommand cmd : consoleCommands)
+            for (String alias : cmd.aliases())
+                if (!names.contains(alias)) names.add(alias);
+        return names;
     }
 
     @Override
-    public void register(@NotNull ConsoleCommandExecutor executor, @Nullable String description, @NotNull String... aliases) {
+    public void register(@NotNull ConsoleCommandExecutor executor, @Nullable ConsoleCommandTabCompleter tabCompleter, @Nullable String description, @NotNull String... aliases) {
         DebugLogging.action(executor, description, aliases);
-        consoleCommands.add(
-                new ConsoleCommand(List.of(aliases), Comitas.getPluginManager().getPlugin(), description == null ? "" : description, executor)
-        );
+        add(new ConsoleCommand(List.of(aliases), Comitas.getPluginManager().getPlugin(), description == null ? "" : description, executor, tabCompleter));
+    }
+
+    void add(@NotNull ConsoleCommand command) {
+        consoleCommands.add(command);
     }
 
     /**
