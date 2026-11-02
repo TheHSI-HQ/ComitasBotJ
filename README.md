@@ -61,7 +61,7 @@ java -jar comitas-core-<version>.jar
 4. Build ComitasBotJ (comitas-core)
 
     ```bash
-    mvn -pl comitas-core -am clean install
+    mvn -pl comitas-core -am clean package
     cd comitas-core
     cd target
     ```
@@ -97,7 +97,7 @@ java -jar comitas-core-<version>.jar
 
 > [!IMPORTANT]
 > Due to current limitations, the bot requires all of these intents: `GUILD_MEMBERS`, `MESSAGE_CONTENT`,
-> `GUILD_PRESENCES`!
+> `GUILD_PRESENCES`
 
 ## Security
 
