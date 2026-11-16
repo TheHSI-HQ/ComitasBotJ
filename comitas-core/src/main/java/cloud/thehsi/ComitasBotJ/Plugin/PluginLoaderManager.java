@@ -748,12 +748,8 @@ public class PluginLoaderManager {
     }
 
     @Nullable
-    public Plugin getPlugin(@NotNull ClassLoader classLoader) { // TODO: Actually fix this
-        if (loaderToPluginCache.containsKey(classLoader))
-            return loaderToPluginCache.get(classLoader); // O(1) lookup
-        if (basePlugin == null)
-            return null;
-        return basePlugin.plugin;
+    public Plugin getPlugin(@NotNull ClassLoader classLoader) { // TODO: Fixy this: base plugin commands broken
+        return loaderToPluginCache.get(classLoader); // O(1) lookup
     }
 
     @Nullable
