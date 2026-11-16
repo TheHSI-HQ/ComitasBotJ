@@ -22,6 +22,6 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <comitas.version>0.0.17</comitas.version>
+        <comitas.version>0.0.18</comitas.version>
     </properties>
 </project>
