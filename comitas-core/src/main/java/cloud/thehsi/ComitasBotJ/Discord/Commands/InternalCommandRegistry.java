@@ -167,6 +167,12 @@ public class InternalCommandRegistry implements CommandRegistry {
     }
 
     void registerMethod(@NotNull Method method, @NotNull CommandSupplier commandSupplier) {
+        if (!method.trySetAccessible())
+            throw new IllegalStateException(
+                    "Cannot access command method: " + method.getDeclaringClass().getName()
+                            + "#" + method.getName()
+            );
+
         cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command commandInfo = method.getAnnotation(cloud.thehsi.ComitasBotJ.API.Discord.Commands.Command.class);
         CommandArgument<?>[] arguments = new CommandArgument<?>[method.getParameters().length];
 
