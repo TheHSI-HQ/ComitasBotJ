@@ -190,7 +190,7 @@ public class InternalPluginManager implements PluginManager {
                         .map(pluginLoaderManager::getPlugin)
                         .filter(Objects::nonNull)
                         .findFirst()
-                        .orElse(pluginLoaderManager.getBasePlugin())
+                        .orElseGet(pluginLoaderManager::getBasePlugin)
                 );
         if (plugin == null)
             throw new RuntimeException("Plugin Query didn't find a plugin");

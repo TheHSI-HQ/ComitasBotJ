@@ -748,13 +748,12 @@ public class PluginLoaderManager {
     }
 
     @Nullable
-    public Plugin getPlugin(@NotNull ClassLoader classLoader) {
-        return loaderToPluginCache.get(classLoader); // O(1) lookup
-    }
+    public Plugin getPlugin(@Nullable ClassLoader classLoader) {
+        if (classLoader == null) {
+            return null;
+        }
 
-    @Nullable
-    public Plugin getPlugin(@NotNull UUID uuid) {
-        return uuidToPluginCache.get(uuid);  // O(1) lookup
+        return loaderToPluginCache.get(classLoader);
     }
 
     /**
