@@ -1,11 +1,11 @@
 package cloud.thehsi.ComitasBotJ.Plugin;
 
-import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
@@ -748,8 +748,12 @@ public class PluginLoaderManager {
     }
 
     @Nullable
-    public Plugin getPlugin(@NotNull ClassLoader classLoader) {
-        return loaderToPluginCache.get(classLoader);  // O(1) lookup
+    public Plugin getPlugin(@NotNull ClassLoader classLoader) { // TODO: Actually fix this
+        if (loaderToPluginCache.containsKey(classLoader))
+            return loaderToPluginCache.get(classLoader); // O(1) lookup
+        if (basePlugin == null)
+            return null;
+        return basePlugin.plugin;
     }
 
     @Nullable
