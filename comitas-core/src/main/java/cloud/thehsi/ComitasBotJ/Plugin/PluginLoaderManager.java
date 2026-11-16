@@ -748,7 +748,7 @@ public class PluginLoaderManager {
     }
 
     @Nullable
-    public Plugin getPlugin(@NotNull ClassLoader classLoader) { // TODO: Fixy this: base plugin commands broken
+    public Plugin getPlugin(@NotNull ClassLoader classLoader) {
         return loaderToPluginCache.get(classLoader); // O(1) lookup
     }
 
