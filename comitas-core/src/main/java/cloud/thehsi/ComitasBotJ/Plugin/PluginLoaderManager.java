@@ -381,16 +381,16 @@ public class PluginLoaderManager {
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating UUID ({}) for: {}", props.getProperty("uuid"), jar.getName());
             if (!Objects.equals(props.getProperty("uuid"), metadata.uuid().toString()))
-                logger.warn("Plugin {} is not using universal UUID formatting", metadata.name());
+                logger.warn("Plugin '{}' ({}) is not using universal UUID formatting", metadata.name(), jar.getName());
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Validating name ({}) for: {}", metadata.name(), jar.getName());
             if (metadata.name().contains(","))
-                logger.warn("Plugin {} contains an illegal character in its name [,]", metadata.name());
+                logger.warn("Plugin '{}' ({}) contains an illegal character in its name [,]", metadata.name(), jar.getName());
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking compatibility ({}) for: {}", props.getProperty("api-target"), jar.getName());
             if (!isApiTargetCompatible(props.getProperty("api-target")))
                 if (Main.props().ignoreApiTarget())
-                    logger.warn("Plugin only supports {}, current version is {}", props.getProperty("api-target"), Comitas.getServerVersion());
+                    logger.warn("Plugin '{}' ({}) only supports {}, current version is {}", metadata.name(), jar.getName(), props.getProperty("api-target"), Comitas.getServerVersion());
                 else
                     throw new PluginCompatibilityException(
                             props.getProperty("api-target"), Comitas.getServerVersion()
