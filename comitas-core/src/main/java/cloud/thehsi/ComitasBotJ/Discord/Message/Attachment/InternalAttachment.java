@@ -109,11 +109,12 @@ public class InternalAttachment implements Attachment {
     }
 
     @Override
-    public @Nullable byte[] getWaveform() {
+    public byte @Nullable [] getWaveform() {
         DebugLogging.action();
         if (!isVoiceMessage())
             return null;
-
+        if (attachment.getWaveform() == null)
+            return null;
         return attachment.getWaveform().clone();
     }
 

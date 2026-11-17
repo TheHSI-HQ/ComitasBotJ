@@ -23,6 +23,7 @@ public class InternalConsoleCommandRegistry implements ConsoleCommandRegistry {
     private @NotNull
     final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".ConsoleCommandRegistry");
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isCommandMeant(@NotNull String command, @NotNull ConsoleCommand consoleCommand) {
         return consoleCommand.aliases().contains(command);
     }

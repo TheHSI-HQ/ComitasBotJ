@@ -72,6 +72,7 @@ public interface Attachment {
      *
      * @return Is attachment a voice message
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isVoiceMessage();
 
     /**
@@ -90,8 +91,7 @@ public interface Attachment {
      *
      * @return A copy of the waveform, or null if this is not a voice message
      */
-    @Nullable
-    byte[] getWaveform();
+    byte @Nullable [] getWaveform();
 
     /**
      * Converts the attachment into {@link MessageData}

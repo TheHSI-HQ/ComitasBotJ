@@ -225,7 +225,7 @@ public final class SandboxFileSystem extends FileSystem {
 
     @NotNull
     @Override
-    public SandboxPath getPath(@NotNull String first, @NotNull String... more) {
+    public SandboxPath getPath(@NotNull String first, @NotNull String @NotNull ... more) {
         return SandboxPath.parse(this, first, more);
     }
 

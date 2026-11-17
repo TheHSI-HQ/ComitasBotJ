@@ -293,8 +293,6 @@ public class InternalPluginManager implements PluginManager {
             } catch (RuntimeException e) {
                 throw new IOException("The data store " + dataFile + " is corrupt, fix or remove it", e);
             }
-            // An empty file contains no data
-            if (data == null) data = Map.of();
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Registering data store for {}.", pluginUUID);
             pluginDataStores.put(

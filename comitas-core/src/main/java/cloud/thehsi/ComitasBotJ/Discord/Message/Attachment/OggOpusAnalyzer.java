@@ -80,10 +80,10 @@ public class OggOpusAnalyzer {
             pageStart = bodyStart + bodyLength;
         }
 
-        if (packets.size() < 2 || !startsWith(packets.get(0), "OpusHead") || packets.get(0).length < 19)
+        if (packets.size() < 2 || !startsWith(packets.getFirst(), "OpusHead") || packets.get(0).length < 19)
             throw new IllegalArgumentException("Voice message must be an Ogg Opus file (missing OpusHead)");
 
-        int preSkip = ByteBuffer.wrap(packets.get(0)).order(ByteOrder.LITTLE_ENDIAN).getShort(10) & 0xFFFF;
+        int preSkip = ByteBuffer.wrap(packets.getFirst()).order(ByteOrder.LITTLE_ENDIAN).getShort(10) & 0xFFFF;
         long samples = lastGranule - preSkip;
 
         if (samples <= 0)
@@ -101,7 +101,7 @@ public class OggOpusAnalyzer {
         );
     }
 
-    private static boolean startsWith(byte[] packet, @NotNull String magic) {
+    private static boolean startsWith(byte[] packet, @SuppressWarnings("SameParameterValue") @NotNull String magic) {
         return packet.length >= magic.length()
                 && magic.equals(new String(packet, 0, magic.length(), StandardCharsets.US_ASCII));
     }

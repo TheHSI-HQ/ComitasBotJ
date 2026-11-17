@@ -58,7 +58,7 @@ public class PluginLoaderManager {
      */
     private @NotNull
     final Set<String> manuallyUnloaded = ConcurrentHashMap.newKeySet();
-    private static final String UNLOADED_REASON = "unloaded with 'plugins unload'";
+    private @NotNull static final String UNLOADED_REASON = "unloaded with 'plugins unload'";
 
     public enum JarState {LOADED, UNLOADED, DISABLED, ERRORED}
 
@@ -415,6 +415,7 @@ public class PluginLoaderManager {
 
             // Before the plugin is created, its constructor may already use the data store
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
+            assert pluginManager != null;
             pluginManager.loadDataStore(metadata.uuid());
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Reflecting main class for: {}", jar.getName());
@@ -453,6 +454,7 @@ public class PluginLoaderManager {
         } catch (PluginCompatibilityException e) {
             closeQuietly(loader);
             logger.error("Incompatible plugin found: \"{}\":", jar.getName());
+            //noinspection DuplicateExpressions
             logger.error("{}[{}]{} {}",
                     ConsoleColor.BRIGHT_BLACK,
                     ConsoleColor.BRIGHT_RED + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
@@ -463,6 +465,7 @@ public class PluginLoaderManager {
         } catch (PluginPermissionException e) {
             closeQuietly(loader);
             logger.error("Plugin not loaded: \"{}\":", jar.getName());
+            //noinspection DuplicateExpressions
             logger.error("{}[{}]{} {}",
                     ConsoleColor.BRIGHT_BLACK,
                     ConsoleColor.BRIGHT_RED + jar.getName().replaceFirst(".jar$", "") + ConsoleColor.BRIGHT_BLACK,
@@ -494,6 +497,7 @@ public class PluginLoaderManager {
      */
     @NotNull
     public List<LoadedInfo> loadedPlugins() {
+        //noinspection resource
         return plugins.stream()
                 .map(loaded -> new LoadedInfo(loaded.metadata(), enabledPlugins.contains(loaded.plugin()), loaded.loader() == null))
                 .toList();
@@ -531,6 +535,7 @@ public class PluginLoaderManager {
     private LoadedPlugin findLoaded(@NotNull String id) {
         String needle = id.strip();
         for (LoadedPlugin loaded : plugins) {
+            //noinspection resource
             if (loaded.loader() == null) continue;
             Plugin.PluginMetadata metadata = loaded.metadata();
             if (metadata.uuid().toString().equalsIgnoreCase(needle) || metadata.jarName().equalsIgnoreCase(needle)
@@ -538,6 +543,7 @@ public class PluginLoaderManager {
                 return loaded;
         }
         for (LoadedPlugin loaded : plugins)
+            //noinspection resource
             if (loaded.loader() != null && loaded.metadata().name().equalsIgnoreCase(needle)) return loaded;
         return null;
     }
@@ -578,6 +584,7 @@ public class PluginLoaderManager {
             throw new IllegalStateException("Plugin Manager not initialized");
 
         LoadedPlugin loaded = findLoaded(id);
+        //noinspection resource
         if (loaded == null || loaded.loader() == null)
             throw new IllegalArgumentException(isBasePlugin(id)
                     ? "The Comitas base plugin can't be unloaded"
@@ -763,6 +770,7 @@ public class PluginLoaderManager {
     public PluginSandbox getSandbox(@NotNull Plugin plugin) {
         for (LoadedPlugin loaded : plugins)
             if (loaded.plugin() == plugin)
+                //noinspection resource
                 return loaded.loader() == null ? null : loaded.loader().sandbox();
         return null;
     }

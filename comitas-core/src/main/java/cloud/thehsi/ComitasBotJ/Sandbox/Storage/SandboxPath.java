@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * A path inside a plugin's {@link SandboxFileSystem}, always '/' separated and never pointing to the host directly.
  */
-final class SandboxPath implements Path {
+public final class SandboxPath implements Path {
     private final @NotNull SandboxFileSystem fs;
     private final boolean absolute;
     private final @NotNull List<String> names;

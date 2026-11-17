@@ -126,13 +126,13 @@ final class ClassHierarchy {
                 }
 
                 @Override
-                public FieldVisitor visitField(int access, String n, String descriptor, String signature, Object value) {
+                public @Nullable FieldVisitor visitField(int access, String n, String descriptor, String signature, Object value) {
                     info.fields.add(n + ":" + descriptor);
                     return null;
                 }
 
                 @Override
-                public MethodVisitor visitMethod(int access, String n, String descriptor, String signature, String[] exceptions) {
+                public @Nullable MethodVisitor visitMethod(int access, String n, String descriptor, String signature, String[] exceptions) {
                     info.methods.add(n + descriptor);
                     return null;
                 }

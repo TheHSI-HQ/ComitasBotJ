@@ -28,7 +28,7 @@ final class SandboxPolicy {
     /**
      * Class name prefixes, which are never loaded from a plugin jar.
      */
-    private static final List<String> RESERVED_PREFIXES = List.of(
+    private @NotNull static final List<String> RESERVED_PREFIXES = List.of(
             "java/", "javax/", "jdk/", "sun/", "com/sun/",
             "cloud/thehsi/ComitasBotJ/", "cloud/thehsi/ComitasBasePlugin/",
             "net/dv8tion/", "org/slf4j/", "org/jetbrains/annotations/"
@@ -38,9 +38,9 @@ final class SandboxPolicy {
      * Keys ending in '/' are packages (including sub packages), all others classes (including nested classes).
      * The most specific rule wins.
      */
-    private static final Map<String, Access> CLASS_RULES = new HashMap<>();
-    private static final Map<String, MemberRule> MEMBER_RULES = new HashMap<>();
-    private static final Set<String> ALLOWED_BOOTSTRAPS = Set.of(
+    private @NotNull static final Map<String, Access> CLASS_RULES = new HashMap<>();
+    private @NotNull static final Map<String, MemberRule> MEMBER_RULES = new HashMap<>();
+    private @NotNull static final Set<String> ALLOWED_BOOTSTRAPS = Set.of(
             "java/lang/invoke/LambdaMetafactory.metafactory",
             "java/lang/invoke/LambdaMetafactory.altMetafactory",
             "java/lang/invoke/StringConcatFactory.makeConcatWithConstants",
@@ -137,7 +137,7 @@ final class SandboxPolicy {
         // --- misc pure libraries ---
         allow("java/math/", "java/text/", "java/time/", "javax/crypto/");
         deny("java/text/spi/", "java/time/zone/ZoneRulesProvider");
-        // java.security is allow listed: parts of it open URIs (DomainLoadStoreParameter / DKS key stores),
+        // java.security is allowed listed: parts of it open URIs (DomainLoadStoreParameter / DKS key stores),
         // LDAP connections (CertStore) or fetch OCSP / CRL data (CertPathValidator), all without the NETWORK permission
         allow("java/security/MessageDigest", "java/security/DigestInputStream", "java/security/DigestOutputStream",
                 "java/security/SecureRandom", "java/security/SecureRandomParameters", "java/security/DrbgParameters",
@@ -214,27 +214,27 @@ final class SandboxPolicy {
     private SandboxPolicy() {
     }
 
-    private static void allow(String... keys) {
+    private static void allow(@NotNull String... keys) {
         for (String key : keys) CLASS_RULES.put(key, Access.ALLOW);
     }
 
-    private static void deny(String... keys) {
+    private static void deny(@NotNull String... keys) {
         for (String key : keys) CLASS_RULES.put(key, Access.DENY);
     }
 
-    private static void network(String... keys) {
+    private static void network(@NotNull String... keys) {
         for (String key : keys) CLASS_RULES.put(key, Access.NETWORK);
     }
 
-    private static void jdbc(String... keys) {
+    private static void jdbc(@SuppressWarnings("SameParameterValue") @NotNull String... keys) {
         for (String key : keys) CLASS_RULES.put(key, Access.JDBC);
     }
 
-    private static void denyMembers(String owner, String... entries) {
+    private static void denyMembers(@NotNull String owner, @NotNull String... entries) {
         MEMBER_RULES.put(owner, new MemberRule(false, Set.of(entries)));
     }
 
-    private static void allowOnly(String owner, String... entries) {
+    private static void allowOnly(@NotNull String owner, @NotNull String... entries) {
         MEMBER_RULES.put(owner, new MemberRule(true, Set.of(entries)));
     }
 
@@ -301,7 +301,7 @@ final class SandboxPolicy {
      * Denied classes, whose public members may still be used through an allowed subclass.
      * E.g. {@code FileChannel#close()} is declared in {@code AbstractInterruptibleChannel}.
      */
-    private static final Set<String> INHERITABLE = Set.of(
+    private @NotNull static final Set<String> INHERITABLE = Set.of(
             "java/nio/channels/spi/AbstractInterruptibleChannel",
             "java/nio/channels/spi/AbstractSelectableChannel",
             "java/nio/channels/spi/AbstractSelector"

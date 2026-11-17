@@ -82,8 +82,7 @@ public final class PluginSandbox {
     /**
      * Replacement of {@code System.out} in plugin code.
      */
-    @NotNull
-    PrintStream stdout() {
+    @Nullable PrintStream stdout() {
         PrintStream stream = stdout;
         if (stream == null) {
             synchronized (this) {
@@ -97,8 +96,7 @@ public final class PluginSandbox {
     /**
      * Replacement of {@code System.err} in plugin code.
      */
-    @NotNull
-    PrintStream stderr() {
+    @Nullable PrintStream stderr() {
         PrintStream stream = stderr;
         if (stream == null) {
             synchronized (this) {

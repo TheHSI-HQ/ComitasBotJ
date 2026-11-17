@@ -74,14 +74,18 @@ public final class SandboxFileSystemProvider extends FileSystemProvider {
         String other = b == null ? null : b.toString();
         if (!(e instanceof FileSystemException fse)) return new IOException("I/O error accessing " + file);
         String reason = fse.getReason();
-        if (e instanceof NoSuchFileException) return new NoSuchFileException(file, other, null);
-        if (e instanceof FileAlreadyExistsException) return new FileAlreadyExistsException(other != null ? other : file);
-        if (e instanceof DirectoryNotEmptyException) return new DirectoryNotEmptyException(file);
-        if (e instanceof NotDirectoryException) return new NotDirectoryException(file);
-        if (e instanceof AccessDeniedException) return new AccessDeniedException(file, other, reason);
-        if (e instanceof AtomicMoveNotSupportedException) return new AtomicMoveNotSupportedException(file, other, reason);
-        if (e instanceof FileSystemLoopException) return new FileSystemLoopException(file);
-        return new FileSystemException(file, other, reason);
+        return switch (e) {
+            case NoSuchFileException noSuchFileException -> new NoSuchFileException(file, other, null);
+            case FileAlreadyExistsException fileAlreadyExistsException ->
+                    new FileAlreadyExistsException(other != null ? other : file);
+            case DirectoryNotEmptyException directoryNotEmptyException -> new DirectoryNotEmptyException(file);
+            case NotDirectoryException notDirectoryException -> new NotDirectoryException(file);
+            case AccessDeniedException accessDeniedException -> new AccessDeniedException(file, other, reason);
+            case AtomicMoveNotSupportedException atomicMoveNotSupportedException ->
+                    new AtomicMoveNotSupportedException(file, other, reason);
+            case FileSystemLoopException fileSystemLoopException -> new FileSystemLoopException(file);
+            default -> new FileSystemException(file, other, reason);
+        };
     }
 
     @NotNull

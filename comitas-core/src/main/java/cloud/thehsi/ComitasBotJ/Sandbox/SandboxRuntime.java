@@ -81,6 +81,7 @@ public final class SandboxRuntime {
 
     @NotNull
     public static Path pathOf(@NotNull String first, @NotNull String[] more, @NotNull Class<?> caller) {
+        //noinspection resource
         return sandboxOf(caller).fileSystem().getPath(first, more);
     }
 
@@ -211,13 +212,13 @@ public final class SandboxRuntime {
         return target.getRecordComponents();
     }
 
-    public static Method getEnclosingMethod(Class<?> target, Class<?> caller) {
+    public static @Nullable Method getEnclosingMethod(Class<?> target, Class<?> caller) {
         requireOwn(target, caller);
         Method method = target.getEnclosingMethod();
         return method == null || isOwn(method.getDeclaringClass(), caller) ? method : null;
     }
 
-    public static Constructor<?> getEnclosingConstructor(Class<?> target, Class<?> caller) {
+    public static @Nullable Constructor<?> getEnclosingConstructor(Class<?> target, Class<?> caller) {
         requireOwn(target, caller);
         Constructor<?> constructor = target.getEnclosingConstructor();
         return constructor == null || isOwn(constructor.getDeclaringClass(), caller) ? constructor : null;

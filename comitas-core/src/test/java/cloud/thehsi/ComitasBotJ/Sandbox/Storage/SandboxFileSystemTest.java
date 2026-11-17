@@ -24,14 +24,14 @@ class SandboxFileSystemTest {
 
     @Test
     void writesLandInTheDataFolder() throws IOException {
-        SandboxFileSystem fs = fileSystem(true, 0);
+        @SuppressWarnings("resource") SandboxFileSystem fs = fileSystem(true, 0);
         Files.writeString(fs.getPath("/notes/../note.txt"), "hello");
         assertEquals("hello", Files.readString(temp.resolve("data/note.txt")));
     }
 
     @Test
     void parentReferencesCantLeaveTheDataFolder() throws IOException {
-        SandboxFileSystem fs = fileSystem(true, 0);
+        @SuppressWarnings("resource") SandboxFileSystem fs = fileSystem(true, 0);
         try {
             Files.writeString(fs.getPath("/../../escape.txt"), "x");
         } catch (IOException ignored) {
@@ -41,7 +41,7 @@ class SandboxFileSystemTest {
 
     @Test
     void dataFolderIsReadOnlyWithoutPermission() throws IOException {
-        SandboxFileSystem fs = fileSystem(false, 0);
+        @SuppressWarnings("resource") SandboxFileSystem fs = fileSystem(false, 0);
         assertThrows(AccessDeniedException.class, () -> Files.writeString(fs.getPath("/note.txt"), "x"));
     }
 
@@ -61,7 +61,7 @@ class SandboxFileSystemTest {
 
     @Test
     void quotaStopsFurtherWrites() throws IOException {
-        SandboxFileSystem fs = fileSystem(true, 10);
+        @SuppressWarnings("resource") SandboxFileSystem fs = fileSystem(true, 10);
         Files.writeString(fs.getPath("/big.txt"), "more than ten bytes");
 
         FileSystemException e = assertThrows(FileSystemException.class, () -> Files.writeString(fs.getPath("/next.txt"), "x"));
@@ -74,7 +74,7 @@ class SandboxFileSystemTest {
 
     @Test
     void exceptionsDontContainHostPaths() throws IOException {
-        SandboxFileSystem fs = fileSystem(true, 0);
+        @SuppressWarnings("resource") SandboxFileSystem fs = fileSystem(true, 0);
         NoSuchFileException e = assertThrows(NoSuchFileException.class, () -> Files.readString(fs.getPath("/missing.txt")));
         assertEquals("/missing.txt", e.getFile());
     }

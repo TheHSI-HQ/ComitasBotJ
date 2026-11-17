@@ -264,7 +264,7 @@ final class SandboxTransformer {
     }
 
     @Nullable
-    private String permissionMissing(@NotNull PluginPermission permission) {
+    private String permissionMissing(@SuppressWarnings("SameParameterValue") @NotNull PluginPermission permission) {
         return sandbox.has(permission) ? null
                 : "requires the " + permission.getKey() + " permission, which wasn't granted";
     }

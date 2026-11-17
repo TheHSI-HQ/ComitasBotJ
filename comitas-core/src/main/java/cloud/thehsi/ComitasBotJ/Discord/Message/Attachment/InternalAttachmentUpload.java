@@ -113,7 +113,7 @@ public class InternalAttachmentUpload implements AttachmentUpload {
     }
 
     @Override
-    public @Nullable byte[] getWaveform() {
+    public byte @Nullable [] getWaveform() {
         DebugLogging.action();
         return waveform == null ? null : waveform.clone();
     }
