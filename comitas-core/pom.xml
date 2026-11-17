@@ -80,6 +80,12 @@
                                     </includes>
                                 </filter>
                                 <filter>
+                                    <artifact>ch.qos.logback:*</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
                                         <exclude>META-INF/*.SF</exclude>
