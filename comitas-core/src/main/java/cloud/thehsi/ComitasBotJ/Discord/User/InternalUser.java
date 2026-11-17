@@ -48,7 +48,7 @@ public class InternalUser implements User {
     }
 
     @Override
-    public @NotNull String getLoggableName() {
+    public @NotNull String getConsoleLoggableName() {
         DebugLogging.action();
         return getDisplayName();
     }

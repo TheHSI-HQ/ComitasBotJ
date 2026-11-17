@@ -72,12 +72,15 @@ public interface User {
     boolean isMe();
 
     /**
-     * Returns the users name.
+     * Returns the user's name in their color in console ascii codes.
+     * <p>
+     * This is meant for printing the user to the console whilst preserving
+     * the user's colors as they would be shown in discord.
      *
-     * @return The users name
+     * @return The user's name with their color for console logging
      */
     @NotNull
-    String getLoggableName();
+    String getConsoleLoggableName();
 
     /**
      * Generates a Mention-String ({@code <@USERID>}).

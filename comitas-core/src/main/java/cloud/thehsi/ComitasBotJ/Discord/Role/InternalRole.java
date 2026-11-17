@@ -59,7 +59,7 @@ public record InternalRole(net.dv8tion.jda.api.entities.Role role) implements Ro
     }
 
     @Override
-    public @NotNull String getLoggableName() {
+    public @NotNull String getConsoleLoggableName() {
         DebugLogging.action();
         Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
 

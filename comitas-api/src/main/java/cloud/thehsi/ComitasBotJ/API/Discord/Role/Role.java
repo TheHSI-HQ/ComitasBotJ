@@ -71,12 +71,15 @@ public interface Role {
     Color getTertiaryColor();
 
     /**
-     * Returns the user's name in there color.
+     * Returns the role's name in its color in console ascii codes.
+     * <p>
+     * This is meant for printing the role to the console whilst preserving
+     * the role's colors as it would be shown in discord.
      *
-     * @return The user's name with there color
+     * @return The role's name with its color for console logging
      */
     @NotNull
-    String getLoggableName();
+    String getConsoleLoggableName();
 
     /**
      * Generates a list of all role permissions

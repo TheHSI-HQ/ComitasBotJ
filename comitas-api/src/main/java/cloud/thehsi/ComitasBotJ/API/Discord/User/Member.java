@@ -61,13 +61,16 @@ public interface Member extends User {
     Color getTertiaryColor();
 
     /**
-     * Returns the member's name in their color.
+     * Returns the member's name in their color in console ascii codes.
+     * <p>
+     * This is meant for printing the member to the console whilst preserving
+     * the member's colors as they would be shown in discord.
      *
-     * @return The member's name with their color
+     * @return The member's name with their color for console logging
      */
     @NotNull
     @Override
-    String getLoggableName();
+    String getConsoleLoggableName();
 
     /**
      * Generates a list of all member permissions

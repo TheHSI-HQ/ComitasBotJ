@@ -93,7 +93,7 @@ public class InternalMember extends InternalUser implements Member {
     }
 
     @Override
-    public @NotNull String getLoggableName() {
+    public @NotNull String getConsoleLoggableName() {
         DebugLogging.action();
         Color color = Objects.requireNonNullElse(getPrimaryColor(), new Color(153, 170, 181));
 
