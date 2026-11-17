@@ -7,6 +7,7 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,10 @@ import java.util.function.BiConsumer;
 
 /**
  * Allows creation of commands at runtime
+ * <p>
+ * Use {@link #setParent(String)} (and {@link #setGroup(String)}) to create a subcommand instead, the parent has to be
+ * declared with a {@link CommandParentBuilder} first. For subcommands, nsfw, command types, command context types
+ * and required permissions are taken from the parent.
  */
 public class DynamicCommandBuilder {
     @NotNull
@@ -24,6 +29,8 @@ public class DynamicCommandBuilder {
     final List<ICommandArgument> arguments = new ArrayList<>();
     @NotNull
     final BiConsumer<CommandRanContext, CommandArgumentProvider> consumer;
+    @Nullable String parent = null;
+    @Nullable String group = null;
     boolean nsfw = false;
     @NotNull CommandType[] commandTypes = new CommandType[]{CommandType.GUILD_INSTALL};
     @NotNull CommandContextType[] commandContextTypes = new CommandContextType[]{CommandContextType.GUILD};
@@ -75,7 +82,50 @@ public class DynamicCommandBuilder {
     }
 
     /**
-     * @return The command name
+     * Make this command a subcommand of a parent command (<code>/parent name</code>),
+     * declared using a {@link CommandParentBuilder}
+     *
+     * @param parent The name of the parent command, or null for a regular top level command
+     * @return The builder
+     */
+    @NotNull
+    @Contract("_ -> this")
+    public DynamicCommandBuilder setParent(@Nullable String parent) {
+        this.parent = parent;
+        return this;
+    }
+
+    /**
+     * Place this subcommand in a subcommand group (<code>/parent group name</code>) of its parent,
+     * the group has to be added to the parent using {@link CommandParentBuilder#addGroup(String, String)}.
+     * Requires {@link #setParent(String)}
+     *
+     * @param group The name of the group, or null to place the subcommand directly below the parent
+     * @return The builder
+     */
+    @NotNull
+    @Contract("_ -> this")
+    public DynamicCommandBuilder setGroup(@Nullable String group) {
+        this.group = group;
+        return this;
+    }
+
+    /**
+     * @return The name of the parent command, or null if this isn't a subcommand
+     */
+    public @Nullable String getParent() {
+        return parent;
+    }
+
+    /**
+     * @return The name of the subcommand group, or null if this subcommand isn't in a group
+     */
+    public @Nullable String getGroup() {
+        return group;
+    }
+
+    /**
+     * @return The command name, or the subcommand name if a parent is set
      */
     public @NotNull String getName() {
         return name;

@@ -1,3 +1,5 @@
+* text=auto eol=lf
+
 # Shell scripts always use LF
 *.sh text eol=lf
 

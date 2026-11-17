@@ -650,9 +650,74 @@ Comitas.getCommandRegistry().register(sayCommand);
 
 `CommandArgumentType` ships typed constants: `STRING`, `NUMBER` (`Long`), `DOUBLE`, `BOOLEAN`, `USER`, `CHANNEL`, `ROLE`, `ATTACHMENT`. Use `CommandArgumentProvider#has(identifier)` to check presence before reading an optional argument.
 
+### Subcommands
+
+Discord groups related commands as subcommands: `/mod ban`, or one level deeper in a group, `/mod roles add`. Declare the
+top level (parent) command with `@CommandParent` on a `CommandSupplier`, then turn any `@Command` method into a subcommand
+by setting `parent` (and optionally `group`). Everything else works like a normal command, including `@CommandOption` arguments:
+
+```java
+@CommandParent(
+        name = "mod",
+        description = "Moderation commands",
+        requiredPermissions = { Permission.BAN_MEMBERS },
+        groups = @CommandGroup(name = "roles", description = "Manage roles")
+)
+public class ModCommands implements CommandSupplier {
+    @Command(parent = "mod", name = "ban", description = "Ban a user")                        // /mod ban
+    public void ban(
+            @NotNull CommandRanContext ctx,
+            @CommandOption(name = "target", description = "Who") @NotNull User target
+    ) { /* ... */ }
+
+    @Command(parent = "mod", group = "roles", name = "add", description = "Add a role")       // /mod roles add
+    public void addRole(@NotNull CommandRanContext ctx) { /* ... */ }
+}
+
+Comitas.getCommandRegistry().register(new ModCommands());
+```
+
+Things to know:
+
+* A parent can't be run itself, only its subcommands. `commandType`, `commandContextType`, `requiredPermissions` and `nsfw` only exist
+  on the parent in Discord, so they're set on `@CommandParent`; setting them on a subcommand has no effect (a warning is logged).
+* The parent has to be declared before its subcommands are registered. It may live in a different supplier, as long as that one is
+  registered first, otherwise an `IllegalStateException` explains what's missing. Declaring a parent more than once is fine,
+  the first declaration wins and additional groups are merged in. Repeat `@CommandParent` to declare several parents on one class.
+* All subcommands of a supplier are sent to Discord together, so the parent shows up with all of them at once.
+* Parent and subcommand names share the namespace of regular commands, a parent can't have the name of a regular command.
+* Discord allows 25 subcommands per command, 25 groups, and 25 subcommands per group. Names are lowercase.
+* `CommandRanContext#getCommandName()` returns the parent (`mod`), use `getSubcommandName()` (`add`) and `getSubcommandGroup()`
+  (`roles`, or `null`) to find out what was run, e.g. when several subcommands share one method.
+* If a plugin is unloaded, its subcommands are removed from Discord, and the parent as well once nothing is left in it.
+
+Dynamic commands do the same with `CommandParentBuilder` and `DynamicCommandBuilder#setParent` / `#setGroup`:
+
+```java
+CommandRegistry registry = Comitas.getCommandRegistry();
+
+registry.register(
+        new CommandParentBuilder("tools", "Utility commands")
+                .addGroup("text", "Text tools")
+                .setRequiredPermissions(Permission.MANAGE_MESSAGES)
+);
+
+registry.register(
+        new DynamicCommandBuilder("shout", "Repeat in capitals", (ctx, args) -> {
+            CommandArgument<String> text = args.get("text", CommandArgumentType.STRING);
+            ctx.reply(Component.raw(String.valueOf(text.getValue()).toUpperCase()));   // /tools text shout
+        })
+        .addArgument("text", "What to shout", CommandArgumentType.STRING)
+        .setParent("tools")
+        .setGroup("text")
+);
+```
+
+Every dynamic subcommand is sent to Discord when it is registered, register the parent first.
+
 ### Permissions
 
-Both command flavors take `Permission[]` to gate access — e.g. `Permission.ADMINISTRATOR`, `Permission.MANAGE_MESSAGES`, `Permission.BAN_MEMBERS`, `Permission.KICK_MEMBERS`. Leave the array empty to allow anyone to use the command.
+Both command flavors (and `@CommandParent`) take `Permission[]` to gate access — e.g. `Permission.ADMINISTRATOR`, `Permission.MANAGE_MESSAGES`, `Permission.BAN_MEMBERS`, `Permission.KICK_MEMBERS`. Leave the array empty to allow anyone to use the command.
 
 ## Voice Channels & Announcements
 

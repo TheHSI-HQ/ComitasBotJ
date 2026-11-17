@@ -32,6 +32,7 @@ public class Main extends Plugin implements Listener {
         Comitas.getPluginManager().registerEvents(this, this);
 
         Comitas.getCommandRegistry().register(new ExampleCommand());
+        Comitas.getCommandRegistry().register(new ExampleSubcommands());
     }
 
     @Override

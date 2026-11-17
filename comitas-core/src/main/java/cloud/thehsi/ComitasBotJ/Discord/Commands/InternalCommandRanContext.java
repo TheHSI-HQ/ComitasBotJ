@@ -28,6 +28,10 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
     final @NotNull MessageChannel channel;
     @NotNull
     final String commandName;
+    @Nullable
+    final String subcommandName;
+    @Nullable
+    final String subcommandGroup;
     @NotNull
     final SlashCommandInteraction interaction;
     boolean used = false;
@@ -40,6 +44,8 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
         this.channel = new InternalMessageChannel(interaction.getMessageChannel());
         this.guild = interaction.getGuild() == null ? null : new InternalGuild(interaction.getGuild());
         this.commandName = interaction.getName();
+        this.subcommandName = interaction.getSubcommandName();
+        this.subcommandGroup = interaction.getSubcommandGroup();
 
         this.interaction = interaction;
     }
@@ -80,6 +86,18 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
     }
 
     @Override
+    public @Nullable String getSubcommandName() {
+        DebugLogging.action();
+        return subcommandName;
+    }
+
+    @Override
+    public @Nullable String getSubcommandGroup() {
+        DebugLogging.action();
+        return subcommandGroup;
+    }
+
+    @Override
     public @NotNull MyMessage reply(@NotNull Component message, boolean ephemeral) throws InteractionAlreadyUsedException {
         DebugLogging.action(message, ephemeral);
         return reply(message.asMessageData(), ephemeral);
@@ -91,7 +109,7 @@ public class InternalCommandRanContext extends InternalInteractionContext implem
         if (used) {
             // Follow up messages keep the ephemeral flag and work in channels the bot can't write to
             if (DebugLogging.isBasicEnabled())
-                logger.debug("[{}] This interaction has already been acknowledged or replied to, sending a follow up message", getCommandName());
+                logger.debug("[{}] This interaction has already been acknowledged or replied to, sending a follow up message", interaction.getFullCommandName());
             return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                     this.interaction.getHook().sendMessage(data).setEphemeral(ephemeral).complete()
             ));
