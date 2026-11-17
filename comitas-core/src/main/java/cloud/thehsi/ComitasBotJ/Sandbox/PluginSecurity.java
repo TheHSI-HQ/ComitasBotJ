@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
  */
 public final class PluginSecurity {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Sandbox");
+    private static final Logger debugLogger = DebugLogging.getLogger();
     private static final Pattern MOUNT_NAME = Pattern.compile("[A-Za-z0-9_-]+");
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_DIRECTORY_ATTEMPTS = 3;
@@ -346,7 +347,7 @@ public final class PluginSecurity {
             if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
                 sandbox.addNeverMount(key.substring("denied-mount.".length()));
 
-        if (!Main.props().quiet()) logger.info("Plugin {} sandbox: granted [{}], mounts [{}]", name,
+        if (DebugLogging.isBasicEnabled()) debugLogger.info("Plugin {} sandbox: granted [{}], mounts [{}]", name,
                 String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
                 String.join(", ", mounts.values().stream()
                         .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
