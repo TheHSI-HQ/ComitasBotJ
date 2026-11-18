@@ -80,7 +80,7 @@ public class OggOpusAnalyzer {
             pageStart = bodyStart + bodyLength;
         }
 
-        if (packets.size() < 2 || !startsWith(packets.getFirst(), "OpusHead") || packets.get(0).length < 19)
+        if (packets.size() < 2 || !startsWith(packets.getFirst(), "OpusHead") || packets.getFirst().length < 19)
             throw new IllegalArgumentException("Voice message must be an Ogg Opus file (missing OpusHead)");
 
         int preSkip = ByteBuffer.wrap(packets.getFirst()).order(ByteOrder.LITTLE_ENDIAN).getShort(10) & 0xFFFF;

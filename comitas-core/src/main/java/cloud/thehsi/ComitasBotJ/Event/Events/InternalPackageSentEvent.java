@@ -5,7 +5,7 @@ import cloud.thehsi.ComitasBotJ.API.Plugin.Package;
 import org.jetbrains.annotations.NotNull;
 
 public class InternalPackageSentEvent<T extends Package> implements PackageSentEvent<T> {
-    @NotNull T aPackage;
+    @NotNull final T aPackage;
 
     public InternalPackageSentEvent(@NotNull T aPackage) {
         this.aPackage = aPackage;

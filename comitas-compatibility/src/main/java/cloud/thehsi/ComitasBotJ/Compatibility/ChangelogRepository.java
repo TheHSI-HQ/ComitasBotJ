@@ -2,7 +2,6 @@ package cloud.thehsi.ComitasBotJ.Compatibility;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,13 +20,11 @@ import java.util.Set;
  * <p>
  * The changelogs are bundled as resources, {@value #INDEX} lists their file names.
  */
-public final class ChangelogRepository {
+public record ChangelogRepository(@NotNull List<ApiChangelog> changelogs) {
     public static final String DIRECTORY = "comitas-compatibility/changelog/";
     public static final String INDEX = DIRECTORY + "index.txt";
 
     private static volatile @Nullable ChangelogRepository bundled;
-
-    private final @NotNull List<ApiChangelog> changelogs;
 
     public ChangelogRepository(@NotNull List<ApiChangelog> changelogs) {
         List<ApiChangelog> sorted = new ArrayList<>(changelogs);
@@ -69,7 +66,8 @@ public final class ChangelogRepository {
         for (String file : readIndex(loader)) {
             String path = DIRECTORY + file;
             try (InputStream in = loader.getResourceAsStream(path)) {
-                if (in == null) throw new IllegalStateException("Changelog " + path + " is listed in the index, but missing");
+                if (in == null)
+                    throw new IllegalStateException("Changelog " + path + " is listed in the index, but missing");
                 changelogs.add(ApiChangelog.parse(new InputStreamReader(in, StandardCharsets.UTF_8), path));
             } catch (IOException e) {
                 throw new UncheckedIOException("Couldn't read " + path, e);
@@ -94,12 +92,6 @@ public final class ChangelogRepository {
         } catch (IOException e) {
             throw new UncheckedIOException("Couldn't read " + INDEX, e);
         }
-    }
-
-    @NotNull
-    @Unmodifiable
-    public List<ApiChangelog> changelogs() {
-        return changelogs;
     }
 
     /**
