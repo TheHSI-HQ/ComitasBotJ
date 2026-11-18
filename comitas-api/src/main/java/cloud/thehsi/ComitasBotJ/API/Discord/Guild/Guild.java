@@ -2,6 +2,9 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.GuildChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission.Scope;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
@@ -87,6 +90,7 @@ public interface Guild {
      *
      * @return An invitation list of this guild.
      */
+    @RequiresBotPermission(value = Permission.MANAGE_GUILD, scope = Scope.GUILD)
     @NotNull
     @Unmodifiable
     List<Invite> getInvites();
@@ -96,6 +100,7 @@ public interface Guild {
      *
      * @return A list of banned users in this guild.
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     @Unmodifiable
     List<Ban> getBans();
@@ -172,6 +177,7 @@ public interface Guild {
      *
      * @param member The member to be kicked
      */
+    @RequiresBotPermission(value = Permission.KICK_MEMBERS, scope = Scope.GUILD)
     void kick(@NotNull Member member);
 
     /**
@@ -180,6 +186,7 @@ public interface Guild {
      * @param member The member to be kicked
      * @param reason The kick reason
      */
+    @RequiresBotPermission(value = Permission.KICK_MEMBERS, scope = Scope.GUILD)
     void kick(@NotNull Member member, @Nullable String reason);
 
     /**
@@ -188,6 +195,7 @@ public interface Guild {
      * @param member The member to be banned
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull Member member);
 
@@ -198,6 +206,7 @@ public interface Guild {
      * @param reason The ban reason
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull Member member, @Nullable String reason);
 
@@ -208,6 +217,7 @@ public interface Guild {
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull Member member, @Nullable Integer deletionPeriodHours);
 
@@ -219,6 +229,7 @@ public interface Guild {
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull Member member, @Nullable String reason, @Nullable Integer deletionPeriodHours);
 
@@ -227,6 +238,7 @@ public interface Guild {
      *
      * @param user The user to be unbanned
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     void unban(@NotNull User user);
 
     /**

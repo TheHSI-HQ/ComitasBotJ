@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTag;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -25,6 +27,7 @@ public interface ForumPost extends ThreadChannel {
      *
      * @param tag The tag to add
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_THREADS)
     void addTag(@NotNull ForumTag tag);
 
     /**
@@ -32,6 +35,7 @@ public interface ForumPost extends ThreadChannel {
      *
      * @param tag The tag to remove
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_THREADS)
     void removeTag(@NotNull ForumTag tag);
 
     /**
@@ -54,5 +58,6 @@ public interface ForumPost extends ThreadChannel {
      *
      * @param pinned Should this thread be pinned
      */
+    @RequiresBotPermission(Permission.MANAGE_THREADS)
     void setPinned(boolean pinned);
 }

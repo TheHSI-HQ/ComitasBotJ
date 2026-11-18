@@ -6,6 +6,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageHistory;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MyMessage;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +22,7 @@ public interface MessageChannel extends Channel {
      * @param message The message to be sent
      * @return The message that was sent
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES, conditional = {Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull
     MyMessage sendMessage(@NotNull Component message);
 
@@ -29,6 +32,7 @@ public interface MessageChannel extends Channel {
      * @param messageData The message data to be sent
      * @return The message that was sent
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES, conditional = {Permission.EMBED_LINKS, Permission.ATTACH_FILES, Permission.SEND_VOICE_MESSAGES, Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull
     MyMessage sendMessage(@NotNull MessageData messageData);
 
@@ -46,6 +50,7 @@ public interface MessageChannel extends Channel {
      * @param id The message id
      * @return The requested message or null
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     @Nullable
     Message getMessageById(long id);
 
@@ -55,6 +60,7 @@ public interface MessageChannel extends Channel {
      * @param id The message id
      * @return The requested message or null
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     @Nullable
     Message getMessageById(@NotNull String id);
 

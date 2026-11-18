@@ -1,5 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission.Scope;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,5 +39,6 @@ public interface Ban {
     /**
      * Pardon the ban (Unban the banned member)
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     void unban();
 }

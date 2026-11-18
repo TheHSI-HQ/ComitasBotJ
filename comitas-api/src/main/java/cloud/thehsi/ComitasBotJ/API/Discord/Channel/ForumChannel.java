@@ -6,6 +6,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTagNameNotUniqueE
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Forum.ForumTagUsedOnIncorrectChannelException;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.MessageData;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -42,6 +44,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * @param tagName The tag to get / add
      * @return The found / created Tag
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_CHANNEL)
     @NotNull
     ForumTag getOrAddTag(@NotNull String tagName);
 
@@ -52,6 +55,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * @return The created Tag
      * @throws ForumTagNameNotUniqueException Thrown if the forum tag name isn't unique
      */
+    @RequiresBotPermission(Permission.MANAGE_CHANNEL)
     @NotNull
     ForumTag addTag(@NotNull String tagName) throws ForumTagNameNotUniqueException;
 
@@ -61,6 +65,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * @param tag The tag to add
      * @throws ForumTagUsedOnIncorrectChannelException Thrown if the forum tag was used on the incorrect channel
      */
+    @RequiresBotPermission(Permission.MANAGE_CHANNEL)
     void addTag(@NotNull ForumTag tag) throws ForumTagUsedOnIncorrectChannelException;
 
     /**
@@ -68,6 +73,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      *
      * @param tag The tag to remove
      */
+    @RequiresBotPermission(Permission.MANAGE_CHANNEL)
     void removeTag(@NotNull ForumTag tag);
 
     /**
@@ -86,6 +92,7 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * @param message The initial message
      * @return The created forum post
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES, conditional = {Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull ForumPost createForumPost(@NotNull String title, @NotNull Component message);
 
     /**
@@ -95,5 +102,6 @@ public interface ForumChannel extends Channel, GuildChannel, IThreadContainer {
      * @param messageData The message data to be sent as the initial message
      * @return The created forum post
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES, conditional = {Permission.EMBED_LINKS, Permission.ATTACH_FILES, Permission.SEND_VOICE_MESSAGES, Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull ForumPost createForumPost(@NotNull String title, @NotNull MessageData messageData);
 }

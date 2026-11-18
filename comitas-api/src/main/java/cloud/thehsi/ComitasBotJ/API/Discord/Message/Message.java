@@ -6,6 +6,9 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Message.Attachment.MessageAttachment
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Embeds.Embed;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission.Scope;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +32,7 @@ public interface Message {
     /**
      * Delete the message
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_MESSAGES)
     void delete();
 
     /**
@@ -36,6 +40,7 @@ public interface Message {
      *
      * @return Has this message been deleted
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     boolean isDeleted();
 
     /**
@@ -124,6 +129,7 @@ public interface Message {
      *
      * @param emoji Emoji to react with
      */
+    @RequiresBotPermission(value = {Permission.ADD_REACTIONS, Permission.READ_MESSAGE_HISTORY}, conditional = Permission.USE_EXTERNAL_EMOJIS)
     void react(@NotNull Emoji emoji);
 
     /**
@@ -131,6 +137,7 @@ public interface Message {
      *
      * @param emoji Emoji to unreact from
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     void unreact(@NotNull Emoji emoji);
 
     /**
@@ -164,6 +171,7 @@ public interface Message {
      * @param channel Where to forward the message to
      * @return The message with the forwarded message
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES, scope = Scope.TARGET_CHANNEL)
     @Nullable
     MyMessage forward(@NotNull MessageChannel channel);
 
@@ -182,6 +190,7 @@ public interface Message {
      * @param message The message to be sent
      * @return The message that was sent
      */
+    @RequiresBotPermission(value = {Permission.SEND_MESSAGES, Permission.READ_MESSAGE_HISTORY}, conditional = {Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull
     MyMessage reply(@NotNull Component message);
 
@@ -191,6 +200,7 @@ public interface Message {
      * @param messageData The message data
      * @return The message that was sent
      */
+    @RequiresBotPermission(value = {Permission.SEND_MESSAGES, Permission.READ_MESSAGE_HISTORY}, conditional = {Permission.EMBED_LINKS, Permission.ATTACH_FILES, Permission.SEND_VOICE_MESSAGES, Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     @NotNull
     MyMessage reply(@NotNull MessageData messageData);
 }

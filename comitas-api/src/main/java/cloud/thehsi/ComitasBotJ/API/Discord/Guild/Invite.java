@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Guild;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Channel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +17,7 @@ public interface Invite {
     /**
      * Delete the invite
      */
+    @RequiresBotPermission(anyOf = {Permission.MANAGE_CHANNEL, Permission.MANAGE_GUILD})
     void delete();
 
     /**

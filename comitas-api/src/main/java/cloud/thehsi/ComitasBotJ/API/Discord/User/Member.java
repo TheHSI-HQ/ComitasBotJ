@@ -4,6 +4,8 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Channel.VoiceChannel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Ban;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission.Scope;
 import cloud.thehsi.ComitasBotJ.API.Discord.Role.Role;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.Activity;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Presence.ClientType;
@@ -112,6 +114,7 @@ public interface Member extends User {
      *
      * @param role The role to add
      */
+    @RequiresBotPermission(value = Permission.MANAGE_ROLES, scope = Scope.GUILD)
     void addRole(@NotNull Role role);
 
 
@@ -120,6 +123,7 @@ public interface Member extends User {
      *
      * @param role The role to remove
      */
+    @RequiresBotPermission(value = Permission.MANAGE_ROLES, scope = Scope.GUILD)
     void removeRole(@NotNull Role role);
 
 
@@ -143,6 +147,7 @@ public interface Member extends User {
     /**
      * Kick this member
      */
+    @RequiresBotPermission(value = Permission.KICK_MEMBERS, scope = Scope.GUILD)
     void kick();
 
     /**
@@ -150,6 +155,7 @@ public interface Member extends User {
      *
      * @param reason The kick reason
      */
+    @RequiresBotPermission(value = Permission.KICK_MEMBERS, scope = Scope.GUILD)
     void kick(@NotNull String reason);
 
     /**
@@ -157,6 +163,7 @@ public interface Member extends User {
      *
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban();
 
@@ -166,6 +173,7 @@ public interface Member extends User {
      * @param reason The ban reason
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull String reason);
 
@@ -175,6 +183,7 @@ public interface Member extends User {
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(int deletionPeriodHours);
 
@@ -185,6 +194,7 @@ public interface Member extends User {
      * @param deletionPeriodHours The amount of hours of messages to delete alongside the ban
      * @return The ban
      */
+    @RequiresBotPermission(value = Permission.BAN_MEMBERS, scope = Scope.GUILD)
     @NotNull
     Ban ban(@NotNull String reason, int deletionPeriodHours);
 
@@ -193,6 +203,7 @@ public interface Member extends User {
      *
      * @param displayName The new display name, or null to reset to default (global)
      */
+    @RequiresBotPermission(conditional = {Permission.CHANGE_NICKNAME, Permission.MANAGE_NICKNAMES}, scope = Scope.GUILD)
     void setDisplayName(@Nullable String displayName);
 
     /**
@@ -211,6 +222,8 @@ public interface Member extends User {
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MOVE_MEMBERS} or {@link Permission#CONNECT}
      * @throws IllegalArgumentException                                                      If the channel belongs to another guild
      */
+    @RequiresBotPermission(Permission.MOVE_MEMBERS)
+    @RequiresBotPermission(value = {Permission.MOVE_MEMBERS, Permission.CONNECT}, scope = Scope.TARGET_CHANNEL)
     void moveTo(@NotNull VoiceChannel channel);
 
     /**
@@ -219,6 +232,7 @@ public interface Member extends User {
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MOVE_MEMBERS}
      */
+    @RequiresBotPermission(Permission.MOVE_MEMBERS)
     void disconnectFromVoice();
 
     /**
@@ -235,6 +249,7 @@ public interface Member extends User {
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#MUTE_MEMBERS}
      */
+    @RequiresBotPermission(Permission.MUTE_MEMBERS)
     void setGuildMuted(boolean muted);
 
     /**
@@ -251,5 +266,6 @@ public interface Member extends User {
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MemberNotInVoiceException     If the member isn't in a voice channel
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link Permission#DEAFEN_MEMBERS}
      */
+    @RequiresBotPermission(Permission.DEAFEN_MEMBERS)
     void setGuildDeafened(boolean deafened);
 }

@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Components.Component;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,6 +15,7 @@ public interface MyMessage extends Message {
      *
      * @param content The new message content
      */
+    @RequiresBotPermission(conditional = {Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     void setContent(@NotNull Component content);
 
     /**
@@ -20,5 +23,6 @@ public interface MyMessage extends Message {
      *
      * @param messageData The new message data
      */
+    @RequiresBotPermission(conditional = {Permission.EMBED_LINKS, Permission.ATTACH_FILES, Permission.MENTION_EVERYONE, Permission.USE_EXTERNAL_EMOJIS})
     void setMessageData(@NotNull MessageData messageData);
 }

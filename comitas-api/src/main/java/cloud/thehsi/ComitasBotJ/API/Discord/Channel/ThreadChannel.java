@@ -3,6 +3,8 @@ package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.Attributes.IThreadContainer;
 import cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild;
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @return The threads initial message
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     @Nullable
     Message getInitialMessage();
 
@@ -55,6 +58,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @param member The member to add
      */
+    @RequiresBotPermission(value = Permission.SEND_MESSAGES_IN_THREADS, conditional = Permission.MANAGE_THREADS)
     void addMember(@NotNull Member member);
 
     /**
@@ -62,11 +66,13 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @param member The member to remove
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_THREADS)
     void removeMember(@NotNull Member member);
 
     /**
      * Delete this thread
      */
+    @RequiresBotPermission(Permission.MANAGE_THREADS)
     void delete();
 
     /**
@@ -88,6 +94,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @param closed Should this thread be closed
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_THREADS)
     void setClosed(boolean closed);
 
     /**
@@ -102,6 +109,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @param locked Should this thread be locked
      */
+    @RequiresBotPermission(Permission.MANAGE_THREADS)
     void setLocked(boolean locked);
 
     /**
@@ -117,6 +125,7 @@ public interface ThreadChannel extends MessageChannel, GuildChannel {
      *
      * @param title The new post title
      */
+    @RequiresBotPermission(conditional = Permission.MANAGE_THREADS)
     void setTitle(@NotNull String title);
 
     /**

@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Message;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.MessageChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -24,6 +26,7 @@ public interface MessageHistory {
      * @param amount Amount of messages to go back
      * @return The retrieved messages
      */
+    @RequiresBotPermission(Permission.READ_MESSAGE_HISTORY)
     @NotNull
     @Unmodifiable
     List<Message> retrieve(int amount);

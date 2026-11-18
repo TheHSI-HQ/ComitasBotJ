@@ -1,6 +1,9 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Message.Message;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission.Scope;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,6 +18,7 @@ public interface NewsChannel extends MessageChannel, GuildChannel {
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MessageNotFoundException             If the message doesn't originate from this channel
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.NewsChannelMessageAlreadyCrossposted If the message has already been crossposted
      */
+    @RequiresBotPermission(conditional = {Permission.SEND_MESSAGES, Permission.MANAGE_MESSAGES})
     void crosspostMessage(@NotNull Message message);
 
     /**
@@ -23,5 +27,6 @@ public interface NewsChannel extends MessageChannel, GuildChannel {
      * @param target The channel to post the messages in, may belong to another guild
      * @throws cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException If the bot lacks {@link cloud.thehsi.ComitasBotJ.API.Discord.Permission#MANAGE_WEBHOOKS} in the target channel
      */
+    @RequiresBotPermission(value = Permission.MANAGE_WEBHOOKS, scope = Scope.TARGET_CHANNEL)
     void follow(@NotNull TextChannel target);
 }

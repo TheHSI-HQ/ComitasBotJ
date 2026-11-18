@@ -1,6 +1,8 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel.Attributes;
 
 import cloud.thehsi.ComitasBotJ.API.Discord.Channel.ThreadChannel;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -25,6 +27,7 @@ public interface IThreadContainer {
      * @param title The thread title
      * @return The created thread
      */
+    @RequiresBotPermission(Permission.CREATE_PUBLIC_THREADS)
     @NotNull
     ThreadChannel createThread(@NotNull String title);
 
@@ -35,6 +38,7 @@ public interface IThreadContainer {
      * @param isPrivate Is this thread private
      * @return The created thread
      */
+    @RequiresBotPermission(conditional = {Permission.CREATE_PUBLIC_THREADS, Permission.CREATE_PRIVATE_THREADS})
     @NotNull
     ThreadChannel createThread(@NotNull String title, boolean isPrivate);
 }
