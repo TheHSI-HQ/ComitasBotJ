@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.Compatibility.Change;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,8 @@ final class SandboxPolicy {
      * {@code NETWORK} needs the network permission, {@code JDBC} the network or libraries permission.
      */
     enum Access {ALLOW, DENY, NETWORK, JDBC}
+
+    private static final String SHIM_PACKAGE_BINARY = Change.SHIM_PACKAGE.replace('/', '.');
 
     /**
      * Class name prefixes, which are never loaded from a plugin jar.
@@ -209,6 +212,9 @@ final class SandboxPolicy {
         // Would allow running other plugins' (and the base plugin's) console commands and tab completers
         denyMembers("cloud/thehsi/ComitasBotJ/API/Console/ConsoleCommandRegistry$ConsoleCommand",
                 "plugin", "consoleCommandExecutor", "consoleCommandTabCompleter");
+
+        // --- Compatibility layer: calls of old plugins are redirected to these shims, which only use the API ---
+        allow(Change.SHIM_PACKAGE);
     }
 
     private SandboxPolicy() {
@@ -250,6 +256,7 @@ final class SandboxPolicy {
      */
     static boolean isExposedHostClass(@NotNull String binaryName) {
         return binaryName.startsWith("cloud.thehsi.ComitasBotJ.API.")
+                || binaryName.startsWith(SHIM_PACKAGE_BINARY)
                 || binaryName.startsWith("org.slf4j.")
                 || binaryName.startsWith("org.jetbrains.annotations.")
                 || binaryName.equals(SandboxRuntime.class.getName());

@@ -12,6 +12,7 @@
 
     <modules>
         <module>comitas-api</module>
+        <module>comitas-compatibility</module>
         <module>comitas-core</module>
         <module>example-plugin</module>
         <module>checkstyle-rules</module>
@@ -23,5 +24,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <comitas.version>0.0.18</comitas.version>
+        <!-- The last released API version, every breaking change since then must be in the compatibility changelog -->
+        <comitas.previous.version>0.0.17</comitas.previous.version>
     </properties>
 </project>

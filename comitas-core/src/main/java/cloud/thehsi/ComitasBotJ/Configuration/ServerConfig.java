@@ -179,6 +179,8 @@ public class ServerConfig {
         final BooleanProperty pruneGuildCommands;
         public @NotNull
         final NumberProperty pluginDataQuotaMb;
+        public @NotNull
+        final BooleanProperty compatibilityLayer;
         private @NotNull
         final ServerConfig cfg;
 
@@ -194,6 +196,8 @@ public class ServerConfig {
             this.pruneGuildCommands = makeProperty("prune-guild-commands", false);
             // Maximum size of each plugin data folder in MB, 0 disables the limit
             this.pluginDataQuotaMb = makeProperty("plugin-data-quota-mb", 0);
+            // Runs plugins built against older API versions through the compatibility layer
+            this.compatibilityLayer = makeProperty("compatibility-layer", true);
         }
 
         public int count() {

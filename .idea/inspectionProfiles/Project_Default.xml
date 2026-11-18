@@ -17,7 +17,9 @@
     <inspection_tool class="CanConvertToMultiDollarString" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="CanUnescapeDollarLiteral" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="CascadeIf" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="CheckStyle" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
+    <inspection_tool class="CheckStyle" enabled="true" level="INFORMATION" enabled_by_default="false" editorAttributes="INFORMATION_ATTRIBUTES">
+      <scope name="API" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
     <inspection_tool class="ClassName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ComplexRedundantLet" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ConstPropertyName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />

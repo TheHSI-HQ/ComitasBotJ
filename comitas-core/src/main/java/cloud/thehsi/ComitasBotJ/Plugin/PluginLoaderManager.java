@@ -5,6 +5,12 @@ import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Compatibility.ApiVersion;
+import cloud.thehsi.ComitasBotJ.Compatibility.Change;
+import cloud.thehsi.ComitasBotJ.Compatibility.ChangeKind;
+import cloud.thehsi.ComitasBotJ.Compatibility.ChangelogRepository;
+import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityPlan;
+import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityReport;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
@@ -388,13 +394,18 @@ public class PluginLoaderManager {
                 logger.warn("Plugin '{}' ({}) contains an illegal character in its name [,]", metadata.name(), jar.getName());
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking compatibility ({}) for: {}", props.getProperty("api-target"), jar.getName());
-            if (!isApiTargetCompatible(props.getProperty("api-target")))
-                if (Main.props().ignoreApiTarget())
-                    logger.warn("Plugin '{}' ({}) only supports {}, current version is {}", metadata.name(), jar.getName(), props.getProperty("api-target"), Comitas.getServerVersion());
-                else
-                    throw new PluginCompatibilityException(
-                            props.getProperty("api-target"), Comitas.getServerVersion()
-                    );
+            CompatibilityPlan compatibilityPlan = null;
+            if (!isApiTargetCompatible(props.getProperty("api-target"))) {
+                // Plugins built against an older API run through the compatibility layer, if the changelogs cover their version
+                compatibilityPlan = compatibilityPlan(props.getProperty("api-target"), Comitas.getServerVersion());
+                if (compatibilityPlan == null)
+                    if (Main.props().ignoreApiTarget())
+                        logger.warn("Plugin '{}' ({}) only supports {}, current version is {}", metadata.name(), jar.getName(), props.getProperty("api-target"), Comitas.getServerVersion());
+                    else
+                        throw new PluginCompatibilityException(
+                                props.getProperty("api-target"), Comitas.getServerVersion()
+                        );
+            }
 
             if (uuidToPluginCache.containsKey(metadata.uuid()))
                 throw new RuntimeException("Another loaded plugin already uses the uuid " + metadata.uuid());
@@ -411,7 +422,9 @@ public class PluginLoaderManager {
                     logger.warn("Plugin {} bundles the libraries [{}], but wasn't granted the libraries permission, "
                             + "they aren't loaded", metadata.name(), String.join(", ", libraries));
             }
-            loader = new SandboxPluginClassLoader(jar, sandbox, libraries);
+            loader = new SandboxPluginClassLoader(jar, sandbox, libraries, compatibilityPlan);
+            if (compatibilityPlan != null)
+                logCompatibilityMode(metadata, compatibilityPlan, Objects.requireNonNull(loader.scanCompatibility()));
 
             // Before the plugin is created, its constructor may already use the data store
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Loading datastore (plugin data) for: {}", jar.getName());
@@ -677,6 +690,43 @@ public class PluginLoaderManager {
         } catch (IOException e) {
             logger.warn("Couldn't close plugin class loader", e);
         }
+    }
+
+    /**
+     * Finds the changes, which make a plugin built against an older API run on {@code currentVersion}.
+     *
+     * @param apiTarget The plugin's api-target
+     * @return The plan, or null if the compatibility layer is disabled or can't upgrade from that version
+     */
+    @Nullable
+    static CompatibilityPlan compatibilityPlan(@Nullable String apiTarget, @NotNull String currentVersion) {
+        if (!Main.conf().compatibilityLayer.get()) return null;
+        try {
+            ApiVersion.Target target = ApiVersion.Target.parse(apiTarget);
+            // The newest version the plugin supports is the one it was built against
+            return ChangelogRepository.bundled().plan(target.highest(), currentVersion);
+        } catch (IllegalArgumentException e) {
+            return null;
+        } catch (RuntimeException e) {
+            LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".PluginLoader").error("Couldn't load the API changelogs", e);
+            return null;
+        }
+    }
+
+    private void logCompatibilityMode(@NotNull Plugin.PluginMetadata metadata, @NotNull CompatibilityPlan plan,
+                                      @NotNull CompatibilityReport report) {
+        logger.warn("{}Plugin {} was built for API {}, it runs in compatibility mode on {}. "
+                        + "Ask its developer for an update, the compatibility layer can't fix every change.{}",
+                ConsoleColor.YELLOW, metadata.name(), plan.builtAgainst(), plan.current(), ConsoleColor.RESET);
+
+        for (Change change : report.changes(ChangeKind.Fix.SHIM))
+            logger.warn("  [emulated] {}", change.description());
+        for (Change change : report.changes(ChangeKind.Fix.MANUAL))
+            logger.warn("  {}[may misbehave]{} {}", ConsoleColor.YELLOW, ConsoleColor.RESET, change.description());
+
+        if (DebugLogging.isBasicEnabled())
+            for (Change change : report.changes())
+                debugLogger.debug("Compatibility change {} ({}) used by {}", change.id(), change.displayName(), report.classes(change));
     }
 
     private boolean isApiTargetCompatible(@NotNull String target) {

@@ -207,6 +207,7 @@ The `server.properties` file is automatically created on the first startup. It i
 | `allowed-plugins`           | string[] | `*`           | A comma-separated list of plugin names or UUIDs. Plugins that do not match any entry will not be loaded. Optionally, suffix the plugin name / uuid with `!sha256=FILE_HASH` |
 | `bot-activity-name`         | string   | `ComitasBotJ` | The activity name displayed by the bot.                                                                                                                                     |
 | `plugin-permission-default` | string   | `ask`         | What new plugins are granted without asking: `ask` (ask on the console), `all` (not recommended), `required` or `none`                                                      |
+| `compatibility-layer`       | boolean  | `true`        | Runs plugins built against an older API version in [compatibility mode](docs/COMPATIBILITY.md) instead of rejecting them                                                    |
 
 ### File Structure
 
@@ -252,6 +253,9 @@ Plugins can:
 - Extend bot functionality
 
 See the [API documentation](docs/API.md) for more information.
+
+Breaking API changes are recorded in a machine readable changelog, which lets the server run plugins built for older
+versions and upgrades plugin source code automatically, see [API Compatibility](docs/COMPATIBILITY.md).
 
 ## Contributing
 

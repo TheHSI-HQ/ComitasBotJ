@@ -67,13 +67,11 @@ public final class SandboxRuntime {
 
     // --- Console output: through the plugin's logger ---
 
-    @NotNull
-    public static PrintStream stdout(@NotNull Class<?> caller) {
+    public static @Nullable PrintStream stdout(@NotNull Class<?> caller) {
         return sandboxOf(caller).stdout();
     }
 
-    @NotNull
-    public static PrintStream stderr(@NotNull Class<?> caller) {
+    public static @Nullable PrintStream stderr(@NotNull Class<?> caller) {
         return sandboxOf(caller).stderr();
     }
 

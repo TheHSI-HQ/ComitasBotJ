@@ -33,6 +33,7 @@ public class PluginLister {
 
         record PluginInfo(
                 boolean compatible,
+                boolean compatibilityMode,
                 String name,
                 String version,
                 String fileName,
@@ -57,11 +58,17 @@ public class PluginLister {
                             Main.getServerVersion()
                     );
 
-                    if (!compatible)
+                    boolean compatibilityMode = !compatible
+                            && PluginLoaderManager.compatibilityPlan(metadata.targetAPI(), Main.getServerVersion()) != null;
+
+                    if (compatibilityMode)
+                        logger.warn("Plugin {} was built for {}, it runs in compatibility mode on {}", metadata.name(), metadata.targetAPI(), Main.getServerVersion());
+                    else if (!compatible)
                         logger.warn("Plugin {} only supports {}, current version is {}", metadata.name(), metadata.targetAPI(), Main.getServerVersion());
 
                     plugins.add(new PluginInfo(
                             compatible,
+                            compatibilityMode,
                             metadata.name(),
                             metadata.version(),
                             jar.getName(),
@@ -92,7 +99,7 @@ public class PluginLister {
 
         for (PluginInfo plugin : plugins) {
             rows.add(new String[]{
-                    plugin.compatible() ? "OK" : "BAD",
+                    plugin.compatible() ? "OK" : plugin.compatibilityMode() ? "COMPAT" : "BAD",
                     plugin.name(),
                     plugin.version(),
                     plugin.fileName(),
@@ -118,7 +125,7 @@ public class PluginLister {
 
         for (PluginInfo plugin : plugins) {
             String[] row = {
-                    plugin.compatible() ? "OK" : "BAD",
+                    plugin.compatible() ? "OK" : plugin.compatibilityMode() ? "COMPAT" : "BAD",
                     plugin.name(),
                     plugin.version(),
                     plugin.fileName(),
@@ -128,7 +135,7 @@ public class PluginLister {
             logger.info(createRow(
                     row,
                     widths,
-                    plugin.compatible()
+                    plugin.compatible() || plugin.compatibilityMode()
             ));
         }
 

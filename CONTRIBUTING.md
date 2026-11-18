@@ -24,6 +24,9 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 #### **Do you intend to add a new feature or change an existing one?**
 
 * Then you should **Fork** ComitasBotJ, implement your change and Open a Pull Request.
+* If you change or remove anything in `comitas-api`, which plugins use, add an entry to the API changelog
+  (and a shim, if the old behaviour can be emulated), see [API Compatibility](docs/COMPATIBILITY.md).
+  The build fails for breaking changes without one.
 
 #### **Do you have questions about the source code?**
 

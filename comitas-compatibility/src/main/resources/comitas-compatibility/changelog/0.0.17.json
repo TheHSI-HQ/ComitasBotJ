@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "from": "0.0.16",
+  "to": "0.0.17",
+  "changes": [
+    {
+      "id": "guild-default-channel-type",
+      "kind": "METHOD_REPLACED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Guild.Guild",
+      "name": "getDefaultChannel",
+      "descriptor": "()Lcloud/thehsi/ComitasBotJ/API/Discord/Channel/TextChannel;",
+      "shim": "V0_0_17#guildGetDefaultChannel",
+      "description": "Guild#getDefaultChannel() returns a GuildChannel instead of a TextChannel, the default channel can be a voice or forum channel.",
+      "migration": "Check the returned GuildChannel with instanceof TextChannel before using it as a text channel."
+    },
+    {
+      "id": "reaction-reactors-are-users",
+      "kind": "METHOD_REPLACED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction",
+      "name": "getReactors",
+      "descriptor": "()Ljava/util/List;",
+      "shim": "V0_0_17#reactionGetReactors",
+      "description": "Reaction#getReactors() returns a List<User> instead of a List<Member>, members are returned by Reaction#getReactorMembers() (named getReactorMemberss() in 0.0.17, null in DMs).",
+      "migration": "Use getReactorMembers() for members (handle null in DMs), or work with the users returned by getReactors().",
+      "rewrite": [
+        {
+          "org.openrewrite.java.ChangeMethodName": {
+            "methodPattern": "cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction getReactors()",
+            "newMethodName": "getReactorMemberss",
+            "matchOverrides": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "console-command-aliases-list-constructor",
+      "kind": "CONSTRUCTOR_REPLACED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry$ConsoleCommand",
+      "descriptor": "([Ljava/lang/String;Lcloud/thehsi/ComitasBotJ/API/Plugin/Plugin;Ljava/lang/String;Lcloud/thehsi/ComitasBotJ/API/Console/ConsoleCommandExecutor;)V",
+      "shim": "V0_0_17#newConsoleCommand",
+      "description": "ConsoleCommand stores its aliases as a List<String> instead of a String[].",
+      "migration": "Pass List.of(aliases) instead of the array."
+    },
+    {
+      "id": "console-command-aliases-list",
+      "kind": "METHOD_REPLACED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry$ConsoleCommand",
+      "name": "aliases",
+      "descriptor": "()[Ljava/lang/String;",
+      "shim": "V0_0_17#consoleCommandAliases",
+      "description": "ConsoleCommand#aliases() returns a List<String> instead of a String[].",
+      "migration": "Use the returned list, or convert it with aliases().toArray(String[]::new)."
+    },
+    {
+      "id": "command-argument-type-number-values",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType",
+      "name": "INTEGER",
+      "descriptor": "Lcloud/thehsi/ComitasBotJ/API/Discord/Commands/Dynamic/CommandArgumentType;",
+      "description": "Integer command arguments deliver Long values instead of Integer values, because Discord integers are 53 bit.",
+      "migration": "Read NUMBER arguments as Long (or Number) instead of Integer."
+    },
+    {
+      "id": "command-argument-type-integer-renamed",
+      "kind": "FIELD_RENAMED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Commands.Dynamic.CommandArgumentType",
+      "name": "INTEGER",
+      "descriptor": "Lcloud/thehsi/ComitasBotJ/API/Discord/Commands/Dynamic/CommandArgumentType;",
+      "static": true,
+      "newName": "NUMBER",
+      "description": "CommandArgumentType.INTEGER was renamed to CommandArgumentType.NUMBER."
+    },
+    {
+      "id": "invite-expiry-nullable",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Guild.Invite",
+      "name": "getExpiryTime",
+      "descriptor": "()Ljava/time/OffsetDateTime;",
+      "description": "Invite#getExpiryTime() returns null for invites, which never expire.",
+      "migration": "Handle a null expiry time."
+    },
+    {
+      "id": "permission-values-as-long",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Permission",
+      "name": "asLong",
+      "description": "The values of SET_VOICE_CHANNEL_STATUS, SEND_POLLS, USE_EXTERNAL_APPS, PIN_MESSAGES and BYPASS_SLOWMODE were wrong and now match Discord, permission numbers stored by older versions decode differently.",
+      "migration": "Store permissions by name (Permission#name()) instead of as a number, or convert stored numbers."
+    },
+    {
+      "id": "permission-values-from-long",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Permission",
+      "name": "fromLong",
+      "description": "The values of SET_VOICE_CHANNEL_STATUS, SEND_POLLS, USE_EXTERNAL_APPS, PIN_MESSAGES and BYPASS_SLOWMODE were wrong and now match Discord, permission numbers stored by older versions decode differently.",
+      "migration": "Store permissions by name (Permission#name()) instead of as a number, or convert stored numbers."
+    },
+    {
+      "id": "channel-type-voice-channel",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Channel.ChannelType",
+      "name": "VOICE",
+      "descriptor": "Lcloud/thehsi/ComitasBotJ/API/Discord/Channel/ChannelType;",
+      "description": "Voice channels are VoiceChannel instead of TextChannel, casting them to TextChannel fails.",
+      "migration": "Cast voice channels to VoiceChannel, which is a MessageChannel and GuildChannel as well."
+    },
+    {
+      "id": "channel-type-stage-channel",
+      "kind": "NOTE",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Channel.ChannelType",
+      "name": "STAGE",
+      "descriptor": "Lcloud/thehsi/ComitasBotJ/API/Discord/Channel/ChannelType;",
+      "description": "Stage channels are VoiceChannel instead of TextChannel, casting them to TextChannel fails.",
+      "migration": "Cast stage channels to VoiceChannel, which is a MessageChannel and GuildChannel as well."
+    }
+  ]
+}

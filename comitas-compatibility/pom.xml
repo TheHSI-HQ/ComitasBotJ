@@ -1,0 +1,282 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cloud.thehsi.ComitasBotJ</groupId>
+        <artifactId>ComitasBotJ</artifactId>
+        <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>comitas-compatibility</artifactId>
+    <version>${comitas.version}</version>
+
+    <name>ComitasBotJ Compatibility</name>
+    <description>
+        Machine readable API changelog of ComitasBotJ, the compatibility layer, which runs plugins built
+        against older API versions, and OpenRewrite recipes, which upgrade plugin source code to the newest API
+    </description>
+    <url>https://github.com/TheHSI-HQ/ComitasBotJ</url>
+
+    <developers>
+        <developer>
+            <id>thehsi</id>
+            <name>TheHSI</name>
+            <url>https://github.com/TheHSI-HQ</url>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>BSD 3-Clause License</name>
+            <url>https://raw.githubusercontent.com/TheHSI-HQ/ComitasBotJ/refs/heads/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>
+            scm:git:https://github.com/TheHSI-HQ/ComitasBotJ.git
+        </connection>
+        <developerConnection>
+            scm:git:ssh://git@github.com/TheHSI-HQ/ComitasBotJ.git
+        </developerConnection>
+        <url>https://github.com/TheHSI-HQ/ComitasBotJ</url>
+    </scm>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.deploy.skip>false</maven.deploy.skip>
+        <baseline.directory>${project.build.directory}/baseline</baseline.directory>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+
+            <!-- Generates the OpenRewrite recipes (META-INF/rewrite/comitas.yml) from the changelog -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-rewrite-recipes</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>cloud.thehsi.ComitasBotJ.Compatibility.Tools.ChangelogTool</mainClass>
+                            <arguments>
+                                <argument>rewrite</argument>
+                                <argument>${project.build.outputDirectory}/META-INF/rewrite/comitas.yml</argument>
+                            </arguments>
+                            <classpathScope>compile</classpathScope>
+                            <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- The last released API, the API compatibility test checks that every breaking change is in the changelog -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-baseline-api</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>cloud.thehsi.ComitasBotJ</groupId>
+                                    <artifactId>comitas-api</artifactId>
+                                    <version>${comitas.previous.version}</version>
+                                    <destFileName>comitas-api-baseline.jar</destFileName>
+                                </artifactItem>
+                                <!-- Plugin sources written against old versions are compiled against them in the end to end test -->
+                                <artifactItem>
+                                    <groupId>cloud.thehsi.ComitasBotJ</groupId>
+                                    <artifactId>comitas-api</artifactId>
+                                    <version>0.0.16</version>
+                                    <destFileName>comitas-api-0.0.16.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>cloud.thehsi.ComitasBotJ</groupId>
+                                    <artifactId>comitas-api</artifactId>
+                                    <version>0.0.17</version>
+                                    <destFileName>comitas-api-0.0.17.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${baseline.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <comitas.version>${comitas.version}</comitas.version>
+                        <comitas.previous.version>${comitas.previous.version}</comitas.previous.version>
+                        <comitas.baseline.jar>${baseline.directory}/comitas-api-baseline.jar</comitas.baseline.jar>
+                        <comitas.old.api.directory>${baseline.directory}</comitas.old.api.directory>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>cloud.thehsi.ComitasBotJ</groupId>
+            <artifactId>comitas-api</artifactId>
+            <version>${comitas.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.14.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.9.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+            <version>9.9.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>9.9.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>release-signing</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>flatten-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <configuration>
+                            <flattenMode>ossrh</flattenMode>
+                            <updatePomFile>true</updatePomFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>flatten</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>flatten</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>flatten-clean</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.12.0</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

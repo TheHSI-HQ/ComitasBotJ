@@ -1,0 +1,3 @@
+# Every published changelog, one file name per line (comitas-compatibility/changelog/<version>.json)
+0.0.17.json
+0.0.18.json

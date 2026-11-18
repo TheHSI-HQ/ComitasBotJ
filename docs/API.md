@@ -30,6 +30,7 @@ This guide walks you through creating your first ComitasBotJ plugin using Intell
 * [Persistent Data Storage](#persistent-data-storage)
 * [Sandbox & Permissions](#sandbox--permissions)
 * [Plugin Manager & Cross-Plugin Communication](#plugin-manager--cross-plugin-communication)
+* [Upgrading to a New API Version](#upgrading-to-a-new-api-version)
 
 ## Prerequisites
 
@@ -1001,6 +1002,20 @@ public void onBalanceRequest(PackageSentEvent<EconomyBalanceRequest> event) {
 ```
 
 Packages are mutable objects shared by reference across every listening plugin, so a plugin further down the call chain can read (and, if the package type exposes setters, modify) the same instance other plugins received — keep that in mind when designing a package's fields for multi-plugin integrations.
+
+## Upgrading to a New API Version
+
+Plugins built against an older API version keep working in most cases: the server runs them in compatibility mode
+and warns about changes it can't emulate. To move your plugin to the newest API, run the OpenRewrite upgrade
+recipe published with every release (replace `0.0.18` with the version you upgrade to):
+
+```bash
+mvn org.openrewrite.maven:rewrite-maven-plugin:run -Drewrite.recipeArtifactCoordinates=cloud.thehsi.ComitasBotJ:comitas-compatibility:0.0.18 -Drewrite.activeRecipes=cloud.thehsi.ComitasBotJ.UpgradeToLatest
+```
+
+It renames changed API usages, updates the `comitas-api` dependency and leaves `TODO Comitas` comments where your
+attention is needed. Afterwards update `api-target` in `plugin.properties`.
+See [API Compatibility](COMPATIBILITY.md) for Gradle and details.
 
 [^1]: We are not affiliated with JetBrains. We use IntelliJ IDEA because, in our opinion, it provides the easiest development experience for this project.
 <!-- @formatter:on -->

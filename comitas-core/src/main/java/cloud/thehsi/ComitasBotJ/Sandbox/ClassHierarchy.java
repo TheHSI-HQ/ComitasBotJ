@@ -120,9 +120,11 @@ final class ClassHierarchy {
             new ClassReader(bytes).accept(new ClassVisitor(Opcodes.ASM9) {
                 @Override
                 public void visit(int version, int access, String n, String signature, String superName, String[] interfaces) {
+                    // Old plugins may extend API classes, which were renamed since, the compatibility layer renames them
                     info.access = access;
-                    info.superName = superName;
-                    info.interfaces = interfaces == null ? List.of() : List.of(interfaces);
+                    info.superName = superName == null ? null : loader.mapClassName(superName);
+                    info.interfaces = interfaces == null ? List.of()
+                            : Arrays.stream(interfaces).map(loader::mapClassName).toList();
                 }
 
                 @Override
@@ -139,6 +141,38 @@ final class ClassHierarchy {
             }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             return Optional.of(info);
         }).orElse(null);
+    }
+
+    /**
+     * Used by the compatibility layer, e.g. to find calls through a subtype of a changed API class.
+     * Both names may be old (renamed since) API names.
+     *
+     * @return Whether {@code type} is a strict subtype of {@code supertype}
+     */
+    boolean isSubtypeOf(@NotNull String type, @NotNull String supertype) {
+        String target = loader.mapClassName(supertype);
+        Deque<String> queue = new ArrayDeque<>(List.of(loader.mapClassName(type)));
+        Set<String> seen = new HashSet<>();
+        boolean first = true;
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            if (!seen.add(current)) continue;
+            if (!first && current.equals(target)) return true;
+            first = false;
+
+            if (isOwn(current)) {
+                OwnClassInfo info = own(current);
+                if (info == null) continue;
+                if (info.superName != null) queue.add(info.superName);
+                queue.addAll(info.interfaces);
+                continue;
+            }
+
+            Class<?> host = hostClass(current);
+            Class<?> superHost = hostClass(target);
+            if (host != null && superHost != null && host != superHost && superHost.isAssignableFrom(host)) return true;
+        }
+        return false;
     }
 
     @Nullable

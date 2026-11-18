@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "from": "0.0.17",
+  "to": "0.0.18",
+  "changes": [
+    {
+      "id": "reaction-reactor-members-typo",
+      "kind": "METHOD_RENAMED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Message.Reaction.Reaction",
+      "name": "getReactorMemberss",
+      "descriptor": "()Ljava/util/List;",
+      "newName": "getReactorMembers",
+      "description": "Reaction#getReactorMemberss() was renamed to Reaction#getReactorMembers()."
+    },
+    {
+      "id": "user-console-loggable-name",
+      "kind": "METHOD_RENAMED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.User.User",
+      "name": "getLoggableName",
+      "descriptor": "()Ljava/lang/String;",
+      "newName": "getConsoleLoggableName",
+      "description": "User#getLoggableName() was renamed to User#getConsoleLoggableName()."
+    },
+    {
+      "id": "member-console-loggable-name",
+      "kind": "METHOD_RENAMED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.User.Member",
+      "name": "getLoggableName",
+      "descriptor": "()Ljava/lang/String;",
+      "newName": "getConsoleLoggableName",
+      "description": "Member#getLoggableName() was renamed to Member#getConsoleLoggableName()."
+    },
+    {
+      "id": "role-console-loggable-name",
+      "kind": "METHOD_RENAMED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Discord.Role.Role",
+      "name": "getLoggableName",
+      "descriptor": "()Ljava/lang/String;",
+      "newName": "getConsoleLoggableName",
+      "description": "Role#getLoggableName() was renamed to Role#getConsoleLoggableName()."
+    },
+    {
+      "id": "console-command-tab-completer",
+      "kind": "CONSTRUCTOR_REPLACED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandRegistry$ConsoleCommand",
+      "descriptor": "(Ljava/util/List;Lcloud/thehsi/ComitasBotJ/API/Plugin/Plugin;Ljava/lang/String;Lcloud/thehsi/ComitasBotJ/API/Console/ConsoleCommandExecutor;)V",
+      "shim": "V0_0_18#newConsoleCommand",
+      "description": "ConsoleCommand has a tab completer as fifth component.",
+      "migration": "Pass a ConsoleCommandTabCompleter, or null, as last argument."
+    },
+    {
+      "id": "console-command-executor-alias-and-command",
+      "kind": "ABSTRACT_METHOD_CHANGED",
+      "class": "cloud.thehsi.ComitasBotJ.API.Console.ConsoleCommandExecutor",
+      "name": "execute",
+      "descriptor": "([Ljava/lang/String;)V",
+      "newDescriptor": "([Ljava/lang/String;Ljava/lang/String;Lcloud/thehsi/ComitasBotJ/API/Console/ConsoleCommandRegistry$ConsoleCommand;)V",
+      "arguments": [0],
+      "description": "ConsoleCommandExecutor#execute receives the used alias and the ConsoleCommand as well.",
+      "migration": "Implement execute(String[] args, String alias, ConsoleCommand consoleCommand) instead of execute(String[] args)."
+    }
+  ]
+}

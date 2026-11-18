@@ -62,6 +62,7 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
             if (component.isPrimitive()) {
                 int length = Array.getLength(value);
                 Object copy = Array.newInstance(component, length);
+                //noinspection SuspiciousSystemArraycopy
                 System.arraycopy(value, 0, copy, 0, length);
                 return copy;
             }
@@ -104,7 +105,9 @@ public class InternalPersistentDataStorage implements PersistentDataStorage {
         }
 
         // A copy, so the plugin can't change the stored data without calling set
-        return type.deserialize(plainCopy(value.value, value.type == null ? "unknown" : value.type, 0));
+        return type.deserialize(Objects.requireNonNull(
+                plainCopy(value.value, value.type == null ? "unknown" : value.type, 0)
+        ));
     }
 
     @Override

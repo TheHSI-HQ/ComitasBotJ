@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Sandbox;
 
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
+import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
@@ -75,11 +76,21 @@ final class SandboxTransformer {
 
     private final @NotNull PluginSandbox sandbox;
     private final @NotNull ClassHierarchy hierarchy;
+    private final @Nullable CompatibilityTransformer compatibility;
     private final @NotNull Map<String, Optional<String>> memberCache = new ConcurrentHashMap<>();
 
     SandboxTransformer(@NotNull PluginSandbox sandbox, @NotNull ClassHierarchy hierarchy) {
+        this(sandbox, hierarchy, null);
+    }
+
+    /**
+     * @param compatibility Rewrites old API usages before the checks, null if the plugin targets the current API
+     */
+    SandboxTransformer(@NotNull PluginSandbox sandbox, @NotNull ClassHierarchy hierarchy,
+                       @Nullable CompatibilityTransformer compatibility) {
         this.sandbox = sandbox;
         this.hierarchy = hierarchy;
+        this.compatibility = compatibility;
     }
 
     byte[] transform(@NotNull String internalName, byte[] original) {
@@ -89,9 +100,14 @@ final class SandboxTransformer {
         if (!node.name.equals(internalName))
             throw new SandboxViolationException("Class file " + internalName + " declares a different class: " + node.name);
 
-        checkStructure(node);
-
         boolean modified = false;
+        if (compatibility != null) {
+            CompatibilityTransformer.Result result = compatibility.transform(node);
+            node = result.node();
+            modified = result.modified();
+        }
+
+        checkStructure(node);
         for (MethodNode method : node.methods)
             modified |= transformMethod(node, method);
 

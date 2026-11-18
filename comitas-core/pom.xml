@@ -79,6 +79,13 @@
                                         <include>**</include>
                                     </includes>
                                 </filter>
+                                <!-- Shims are only referenced by rewritten plugin code, minimizeJar would drop them -->
+                                <filter>
+                                    <artifact>cloud.thehsi.ComitasBotJ:comitas-compatibility</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
                                 <filter>
                                     <artifact>ch.qos.logback:*</artifact>
                                     <includes>
@@ -112,6 +119,12 @@
         <dependency>
             <groupId>cloud.thehsi.ComitasBotJ</groupId>
             <artifactId>comitas-api</artifactId>
+            <version>${comitas.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cloud.thehsi.ComitasBotJ</groupId>
+            <artifactId>comitas-compatibility</artifactId>
             <version>${comitas.version}</version>
         </dependency>
 
