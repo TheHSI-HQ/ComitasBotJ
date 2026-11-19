@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="comitas-api" pattern="src[comitas-api]:*..*" />
+</component>
