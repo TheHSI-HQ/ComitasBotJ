@@ -9,6 +9,7 @@ import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
 import cloud.thehsi.ComitasBotJ.Console.InternalConsoleCommandRegistry;
+import cloud.thehsi.ComitasBotJ.Discord.BotPermissionSnapshot;
 import cloud.thehsi.ComitasBotJ.Discord.Commands.InternalCommandRegistry;
 import cloud.thehsi.ComitasBotJ.Discord.DiscordAPI;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Actions.ButtonCallbackManager;
@@ -19,6 +20,7 @@ import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStor
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
+import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -579,6 +581,16 @@ public class InternalPluginManager implements PluginManager {
      * Enables all loaded plugins, called once the bot is connected.
      */
     public void enablePlugins() {
+        JDA jda = DiscordAPI.nullableApi();
+        if (jda != null) {
+            // The bot's permissions are only known once it is connected, so the declared ones are checked here
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking the Discord permissions of plugins");
+            pluginLoaderManager.refuseUnsatisfiedPlugins(BotPermissionSnapshot.capture(jda),
+                    permissions -> jda.getInviteUrl(net.dv8tion.jda.api.Permission.getPermissions(
+                            cloud.thehsi.ComitasBotJ.API.Discord.Permission.asLong(permissions))),
+                    this::removeRegistrations);
+        }
+
         if (DebugLogging.isBasicEnabled()) debugLogger.debug("Enabling Plugins");
         pluginLoaderManager.enablePlugins();
     }

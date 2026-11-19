@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.Discord.DiscordExceptions;
 import cloud.thehsi.ComitasBotJ.Main;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +41,17 @@ public final class SandboxRuntime {
         if (reported.size() < 10_000 && reported.add(message))
             logger.warn("Sandbox violation: {}", message);
         return new SandboxViolationException(message);
+    }
+
+    /**
+     * Called by the exception handler around every API call of a plugin, translates exceptions the plugin
+     * couldn't handle (like JDA's) into API exceptions.
+     *
+     * @return The exception to rethrow
+     */
+    @NotNull
+    public static Throwable apiException(@NotNull Throwable throwable) {
+        return DiscordExceptions.translate(throwable);
     }
 
     // --- Resources: only from the plugin's own jar ---

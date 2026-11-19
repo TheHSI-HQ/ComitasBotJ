@@ -1,5 +1,6 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginMount;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.Sandbox.Storage.SandboxFileSystem;
@@ -32,15 +33,41 @@ public final class PluginSandbox {
     private final @NotNull SandboxFileSystem fileSystem;
     private volatile @Nullable PrintStream stdout;
     private volatile @Nullable PrintStream stderr;
+    private final @Nullable Set<Permission> discordGranted;
+    private final @NotNull List<PluginDiscordPermissions.Request> discordRequests;
+
+    private static final @NotNull StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
 
     /**
+     * A sandbox, which doesn't limit the plugin's Discord permissions.
+     *
      * @param dataRoot The host directory, the plugin sees as {@code /}
      */
     public PluginSandbox(@NotNull String pluginName, @NotNull UUID uuid, @NotNull Set<PluginPermission> granted,
                          @NotNull Map<String, MountPoint> mounts, @NotNull Path dataRoot) {
+        this(pluginName, uuid, granted, mounts, dataRoot, null, List.of());
+    }
+
+    /**
+     * @param dataRoot        The host directory, the plugin sees as {@code /}
+     * @param discordGranted  The Discord permissions the plugin may use, null if it isn't limited
+     * @param discordRequests The Discord permissions the plugin declares, checked against the bot when it is enabled
+     */
+    public PluginSandbox(@NotNull String pluginName, @NotNull UUID uuid, @NotNull Set<PluginPermission> granted,
+                         @NotNull Map<String, MountPoint> mounts, @NotNull Path dataRoot,
+                         @Nullable Set<Permission> discordGranted,
+                         @NotNull List<PluginDiscordPermissions.Request> discordRequests) {
         this.pluginName = pluginName;
         this.uuid = uuid;
         this.granted = Set.copyOf(granted);
+        if (discordGranted == null) {
+            this.discordGranted = null;
+        } else {
+            Set<Permission> copy = EnumSet.noneOf(Permission.class);
+            copy.addAll(discordGranted);
+            this.discordGranted = Collections.unmodifiableSet(copy);
+        }
+        this.discordRequests = List.copyOf(discordRequests);
         this.mounts.putAll(mounts);
         this.fileSystem = new SandboxFileSystem(dataRoot.toAbsolutePath().normalize(),
                 has(PluginPermission.FILE_STORAGE), this.mounts, dataQuotaBytes());
@@ -69,6 +96,44 @@ public final class PluginSandbox {
     @NotNull
     public Set<PluginPermission> granted() {
         return granted;
+    }
+
+    /**
+     * @return The Discord permissions the plugin may use, or null if it isn't limited (it can use every permission the bot has)
+     */
+    @Nullable
+    @Unmodifiable
+    public Set<Permission> discordGranted() {
+        return discordGranted;
+    }
+
+    /**
+     * @return Is the plugin allowed to use the Discord permission (it still needs the bot to have it)
+     */
+    public boolean allowsDiscord(@NotNull Permission permission) {
+        return discordGranted == null || discordGranted.contains(Permission.ADMINISTRATOR) || discordGranted.contains(permission);
+    }
+
+    /**
+     * @return The Discord permissions the plugin declares in its plugin.properties
+     */
+    @NotNull
+    @Unmodifiable
+    public List<PluginDiscordPermissions.Request> discordRequests() {
+        return discordRequests;
+    }
+
+    /**
+     * @return The sandbox of the innermost plugin on the current call stack, or null if no sandboxed plugin is calling
+     */
+    @Nullable
+    public static PluginSandbox calling() {
+        return STACK_WALKER.walk(frames -> frames
+                .map(frame -> frame.getDeclaringClass().getClassLoader())
+                .filter(loader -> loader instanceof SandboxPluginClassLoader)
+                .map(loader -> ((SandboxPluginClassLoader) loader).sandbox())
+                .findFirst()
+                .orElse(null));
     }
 
     /**

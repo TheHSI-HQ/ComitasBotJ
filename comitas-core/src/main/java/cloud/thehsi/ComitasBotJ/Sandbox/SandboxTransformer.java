@@ -1,13 +1,16 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityTransformer;
+import cloud.thehsi.ComitasBotJ.Discord.BotPermissionRequirements;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +36,7 @@ final class SandboxTransformer {
     private static final String RUNTIME = "cloud/thehsi/ComitasBotJ/Sandbox/SandboxRuntime";
     private static final String CLASS = "java/lang/Class";
     private static final String URL = "java/net/URL";
+    private static final String API_PACKAGE = "cloud/thehsi/ComitasBotJ/API/";
 
     /**
      * {@code Class} methods (name + descriptor), which are redirected to {@link SandboxRuntime}.
@@ -108,8 +112,10 @@ final class SandboxTransformer {
         }
 
         checkStructure(node);
+        List<MethodNode> bridges = new ArrayList<>();
         for (MethodNode method : node.methods)
-            modified |= transformMethod(node, method);
+            modified |= transformMethod(node, method, bridges);
+        node.methods.addAll(bridges);
 
         if (!modified) return original;
 
@@ -140,10 +146,11 @@ final class SandboxTransformer {
         }
     }
 
-    private boolean transformMethod(@NotNull ClassNode owner, @NotNull MethodNode method) {
+    private boolean transformMethod(@NotNull ClassNode owner, @NotNull MethodNode method, @NotNull List<MethodNode> bridges) {
         InsnList instructions = method.instructions;
         boolean modified = false;
         Deque<AbstractInsnNode> pendingUrls = new ArrayDeque<>();
+        List<MethodInsnNode> apiCalls = new ArrayList<>();
 
         for (AbstractInsnNode insn : instructions.toArray()) {
             String reason = null;
@@ -188,6 +195,7 @@ final class SandboxTransformer {
                         }
                     } else {
                         reason = checkMember(call.owner, call.name, call.desc, false);
+                        if (reason == null && isApiMethod(call.owner, call.name)) apiCalls.add(call);
                     }
                 }
                 case FieldInsnNode field -> {
@@ -218,7 +226,10 @@ final class SandboxTransformer {
                 }
                 case MultiANewArrayInsnNode array -> reason = checkType(array.desc);
                 case LdcInsnNode ldc -> reason = checkConstant(ldc.cst);
-                case InvokeDynamicInsnNode indy -> reason = checkInvokeDynamic(indy);
+                case InvokeDynamicInsnNode indy -> {
+                    reason = checkInvokeDynamic(indy);
+                    if (reason == null && bridgeApiReferences(owner, indy, bridges)) modified = true;
+                }
                 default -> {
                 }
             }
@@ -235,7 +246,109 @@ final class SandboxTransformer {
             modified = true;
         }
 
+        // Before the super constructor call, "this" is uninitialized, an exception handler there would need special
+        // verification rules. API calls in constructors are rare, so they aren't translated.
+        if (!apiCalls.isEmpty() && !method.name.equals("<init>")) {
+            translateApiExceptions(method, apiCalls);
+            modified = true;
+        }
+
         return modified;
+    }
+
+    private static final String API_EXCEPTION_DESC = "(Ljava/lang/Throwable;)Ljava/lang/Throwable;";
+
+    /**
+     * @return Is the method part of the API (and not one of the plugin's own, e.g. inherited from {@code Plugin})
+     */
+    private boolean isApiMethod(@NotNull String owner, @NotNull String name) {
+        return owner.startsWith(API_PACKAGE) && !hierarchy.isOwn(owner) && !name.equals("<init>");
+    }
+
+    /**
+     * Wraps the API calls in an exception handler, which translates exceptions plugins can't handle,
+     * like JDA's {@code InsufficientPermissionException}, into API exceptions
+     * ({@link cloud.thehsi.ComitasBotJ.API.Discord.Exceptions.MissingBotPermissionException}), see {@link SandboxRuntime#apiException}.
+     */
+    private static void translateApiExceptions(@NotNull MethodNode method, @NotNull List<MethodInsnNode> calls) {
+        List<TryCatchBlockNode> blocks = new ArrayList<>();
+        for (MethodInsnNode call : calls) {
+            LabelNode start = new LabelNode();
+            LabelNode end = new LabelNode();
+            LabelNode handler = new LabelNode();
+            LabelNode after = new LabelNode();
+
+            // The handler is placed right after the call, so it is covered by the same try blocks of the plugin
+            // and the rethrown exception reaches them
+            InsnList tail = new InsnList();
+            tail.add(end);
+            tail.add(new JumpInsnNode(Opcodes.GOTO, after));
+            tail.add(handler);
+            tail.add(new MethodInsnNode(Opcodes.INVOKESTATIC, RUNTIME, "apiException", API_EXCEPTION_DESC, false));
+            tail.add(new InsnNode(Opcodes.ATHROW));
+            tail.add(after);
+
+            method.instructions.insertBefore(call, start);
+            method.instructions.insert(call, tail);
+            blocks.add(new TryCatchBlockNode(start, end, handler, "java/lang/RuntimeException"));
+        }
+        // Innermost first, so they are found before the plugin's own handlers
+        method.tryCatchBlocks.addAll(0, blocks);
+    }
+
+    /**
+     * Method references to API methods ({@code channel::sendMessage}) are called by the JDK, not by the plugin's code.
+     * They are redirected to a generated static method in the plugin's class, which calls the API method with the
+     * exception handler of {@link #translateApiExceptions}.
+     *
+     * @return Was a reference redirected
+     */
+    private boolean bridgeApiReferences(@NotNull ClassNode owner, @NotNull InvokeDynamicInsnNode indy,
+                                        @NotNull List<MethodNode> bridges) {
+        if (!indy.bsm.getOwner().equals("java/lang/invoke/LambdaMetafactory")) return false;
+        // Interfaces can only hold the (private static) bridge since Java 9
+        boolean itf = (owner.access & Opcodes.ACC_INTERFACE) != 0;
+        if (itf && (owner.version & 0xFFFF) < Opcodes.V9) return false;
+
+        boolean redirected = false;
+        for (int i = 0; i < indy.bsmArgs.length; i++) {
+            if (!(indy.bsmArgs[i] instanceof Handle handle) || !isApiMethod(handle.getOwner(), handle.getName())) continue;
+            int opcode = switch (handle.getTag()) {
+                case Opcodes.H_INVOKEINTERFACE -> Opcodes.INVOKEINTERFACE;
+                case Opcodes.H_INVOKEVIRTUAL -> Opcodes.INVOKEVIRTUAL;
+                case Opcodes.H_INVOKESTATIC -> Opcodes.INVOKESTATIC;
+                default -> -1;
+            };
+            if (opcode == -1) continue;
+
+            Type target = Type.getMethodType(handle.getDesc());
+            List<Type> parameters = new ArrayList<>();
+            if (opcode != Opcodes.INVOKESTATIC) parameters.add(Type.getObjectType(handle.getOwner()));
+            parameters.addAll(List.of(target.getArgumentTypes()));
+            // Captured values (like the receiver of channel::sendMessage, which javac types as the variable's type,
+            // e.g. TextChannel, while the handle names the declaring MessageChannel) must match a static target exactly
+            Type[] captured = Type.getArgumentTypes(indy.desc);
+            for (int c = 0; c < captured.length && c < parameters.size(); c++) parameters.set(c, captured[c]);
+            String descriptor = Type.getMethodDescriptor(target.getReturnType(), parameters.toArray(Type[]::new));
+
+            MethodNode bridge = new MethodNode(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
+                    "comitas$api$" + bridges.size(), descriptor, null, null);
+            int slot = 0;
+            for (Type parameter : parameters) {
+                bridge.instructions.add(new VarInsnNode(parameter.getOpcode(Opcodes.ILOAD), slot));
+                slot += parameter.getSize();
+            }
+            MethodInsnNode call = new MethodInsnNode(opcode, handle.getOwner(), handle.getName(), handle.getDesc(),
+                    handle.isInterface());
+            bridge.instructions.add(call);
+            bridge.instructions.add(new InsnNode(target.getReturnType().getOpcode(Opcodes.IRETURN)));
+            translateApiExceptions(bridge, List.of(call));
+            bridges.add(bridge);
+
+            indy.bsmArgs[i] = new Handle(Opcodes.H_INVOKESTATIC, owner.name, bridge.name, descriptor, itf);
+            redirected = true;
+        }
+        return redirected;
     }
 
     private void redirectClassMethod(@NotNull ClassNode owner, @NotNull InsnList instructions, @NotNull MethodInsnNode call) {
@@ -399,8 +512,33 @@ final class SandboxTransformer {
 
         if ((reason = SandboxPolicy.memberDenied(owner, name, descriptor)) != null) return reason;
         if ((reason = SandboxPolicy.memberDenied(declaringName, name, descriptor)) != null) return reason;
+        if (!field && (reason = discordPermissionMissing(declaring, name, descriptor)) != null) return reason;
 
         return checkDescriptorTypes(descriptor);
+    }
+
+    /**
+     * Checks the {@link cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission} of an API method against the
+     * Discord permissions the plugin was granted. Conditional permissions are checked at runtime.
+     *
+     * @return Null if the plugin may call the method, otherwise the reason why not
+     */
+    @Nullable
+    private String discordPermissionMissing(@NotNull Class<?> declaring, @NotNull String name, @NotNull String descriptor) {
+        Set<Permission> allowed = sandbox.discordGranted();
+        if (allowed == null || !ClassHierarchy.internalName(declaring).startsWith(API_PACKAGE)) return null;
+
+        for (Method method : declaring.getDeclaredMethods()) {
+            if (!method.getName().equals(name) || !Type.getMethodDescriptor(method).equals(descriptor)) continue;
+
+            Set<Permission> missing = EnumSet.noneOf(Permission.class);
+            for (BotPermissionRequirements.Requirement requirement : BotPermissionRequirements.of(method))
+                missing.addAll(requirement.missingFrom(allowed));
+            return missing.isEmpty() ? null : declaring.getSimpleName() + "#" + name + " requires the Discord permission(s) ["
+                    + String.join(", ", missing.stream().map(PluginDiscordPermissions::key).toList())
+                    + "], which weren't granted to the plugin";
+        }
+        return null;
     }
 
     @Nullable

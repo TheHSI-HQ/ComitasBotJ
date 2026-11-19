@@ -14,6 +14,7 @@ import cloud.thehsi.ComitasBotJ.App.DebugLogging;
 import cloud.thehsi.ComitasBotJ.Discord.Channel.Forum.InternalForumTag;
 import cloud.thehsi.ComitasBotJ.Discord.Guild.InternalGuild;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginDiscordPermissions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -154,6 +155,7 @@ public class InternalForumChannel extends InternalChannel implements ForumChanne
     @Override
     public @NotNull ForumPost createForumPost(@NotNull String title, @NotNull MessageData messageData) {
         DebugLogging.action(title, messageData);
+        PluginDiscordPermissions.requireForContent(messageData);
         AtomicReference<InternalForumPost> result = new AtomicReference<>();
         MessageDataParser.send(messageData, data -> {
             result.set(

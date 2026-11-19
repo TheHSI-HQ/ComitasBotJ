@@ -21,6 +21,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.Embeds.InternalEmbed;
 import cloud.thehsi.ComitasBotJ.Discord.Message.Reaction.InternalReaction;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalMember;
 import cloud.thehsi.ComitasBotJ.Discord.User.InternalUser;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginDiscordPermissions;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.MessageReference;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -236,6 +237,7 @@ public class InternalMessage implements Message {
     @Override
     public @NotNull MyMessage reply(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
+        if (message.isFromGuild()) PluginDiscordPermissions.requireForContent(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.message.reply(data).complete())
         );

@@ -117,6 +117,44 @@ public final class BotPermissionRequirements {
             return alternatives.isEmpty() || alternatives.stream().anyMatch(granted::contains);
         }
 
+        /**
+         * Is the call permitted for a plugin limited to the allowed permissions, without knowing the guild or channel.
+         * <p>
+         * {@link Permission#VIEW_CHANNEL} isn't checked, it is implied by every channel permission. As it isn't known
+         * whether the call targets a thread, {@link Permission#SEND_MESSAGES} and {@link Permission#SEND_MESSAGES_IN_THREADS}
+         * permit each other. {@link #conditional()} permissions are checked once they are needed, not here.
+         *
+         * @param allowed The permissions, the plugin was granted
+         * @return Are all required permissions and one of the alternatives allowed
+         */
+        public boolean permittedBy(@NotNull Set<Permission> allowed) {
+            return missingFrom(allowed).isEmpty();
+        }
+
+        /**
+         * @param allowed The permissions, the plugin was granted
+         * @return The permissions, which are needed but not allowed (all alternatives, if none of them is allowed),
+         * see {@link #permittedBy(Set)}
+         */
+        @NotNull
+        public Set<Permission> missingFrom(@NotNull Set<Permission> allowed) {
+            Set<Permission> missing = EnumSet.noneOf(Permission.class);
+            if (allowed.contains(Permission.ADMINISTRATOR))
+                return missing;
+
+            Set<Permission> effective = EnumSet.noneOf(Permission.class);
+            effective.addAll(allowed);
+            if (effective.contains(Permission.SEND_MESSAGES) || effective.contains(Permission.SEND_MESSAGES_IN_THREADS))
+                effective.addAll(List.of(Permission.SEND_MESSAGES, Permission.SEND_MESSAGES_IN_THREADS));
+
+            for (Permission permission : required)
+                if (!effective.contains(permission))
+                    missing.add(permission);
+            if (!anyOf.isEmpty() && anyOf.stream().noneMatch(effective::contains))
+                missing.addAll(anyOf);
+            return missing;
+        }
+
         @NotNull
         private static Set<Permission> effective(@NotNull Set<Permission> permissions, boolean thread) {
             Set<Permission> set = EnumSet.noneOf(Permission.class);

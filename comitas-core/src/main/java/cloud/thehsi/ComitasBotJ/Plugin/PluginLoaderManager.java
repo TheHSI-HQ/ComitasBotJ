@@ -2,6 +2,7 @@ package cloud.thehsi.ComitasBotJ.Plugin;
 
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -12,7 +13,9 @@ import cloud.thehsi.ComitasBotJ.Compatibility.ChangelogRepository;
 import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityPlan;
 import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityReport;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
+import cloud.thehsi.ComitasBotJ.Discord.BotPermissionSnapshot;
 import cloud.thehsi.ComitasBotJ.Main;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginDiscordPermissions;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSecurity;
@@ -32,6 +35,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -753,6 +757,45 @@ public class PluginLoaderManager {
         }
 
         return versionId(parts[0]) <= apiVersion && apiVersion <= versionId(parts[1]);
+    }
+
+    /**
+     * Checks the declared Discord permissions of all plugins, which aren't enabled yet, against the bot's permissions.
+     * Missing optional permissions and guilds lacking a permission are warned about. Plugins, whose required permissions
+     * the bot has in no guild, are unloaded and recorded as errored.
+     *
+     * @param bot        The bot's current permissions
+     * @param inviteLink Creates an invite link with the given permissions, shown to the server owner
+     * @param cleanup    Removes everything a refused plugin registered in onLoad
+     */
+    public void refuseUnsatisfiedPlugins(@NotNull BotPermissionSnapshot bot,
+                                         @NotNull Function<Permission[], String> inviteLink,
+                                         @NotNull BiConsumer<Plugin, ClassLoader> cleanup) {
+        for (LoadedPlugin loaded : plugins) {
+            //noinspection resource
+            if (loaded.loader() == null || enabledPlugins.contains(loaded.plugin())) continue;
+            Plugin.PluginMetadata metadata = loaded.metadata();
+            @SuppressWarnings("resource") PluginDiscordPermissions.BotCheck check = PluginDiscordPermissions.check(loaded.loader().sandbox().discordRequests(), bot);
+
+            check.lackingGuilds().forEach((permission, guilds) ->
+                    logger.warn("Plugin {} may not work in {}, the bot lacks the Discord permission {} there",
+                            metadata.name(), String.join(", ", guilds), PluginDiscordPermissions.key(permission)));
+            if (!check.missingOptional().isEmpty())
+                logger.warn("Plugin {} can't use some features, the bot lacks the optional Discord permission(s) [{}] in every guild",
+                        metadata.name(), keys(check.missingOptional()));
+            if (!check.refuses()) continue;
+
+            String reason = "the bot lacks the required Discord permission(s) [" + keys(check.missingRequired()) + "] in every guild";
+            logger.error("Plugin {} isn't loaded, {}. Grant them to the bot's role, or invite the bot with: {}",
+                    metadata.name(), reason, inviteLink.apply(check.missingRequired().toArray(Permission[]::new)));
+            unloadPlugin(metadata.uuid().toString(), false, cleanup);
+            record(metadata.jarName(), metadata, JarState.ERRORED, reason);
+        }
+    }
+
+    @NotNull
+    private static String keys(@NotNull List<Permission> permissions) {
+        return String.join(", ", permissions.stream().map(PluginDiscordPermissions::key).toList());
     }
 
     /**

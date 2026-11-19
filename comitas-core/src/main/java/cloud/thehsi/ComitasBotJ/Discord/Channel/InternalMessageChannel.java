@@ -13,6 +13,7 @@ import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMessageHistory;
 import cloud.thehsi.ComitasBotJ.Discord.Message.InternalMyMessage;
 import cloud.thehsi.ComitasBotJ.Discord.Message.MessageDataParser;
+import cloud.thehsi.ComitasBotJ.Sandbox.PluginDiscordPermissions;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,8 @@ public class InternalMessageChannel extends InternalChannel implements MessageCh
     @Override
     public @NotNull MyMessage sendMessage(@NotNull MessageData messageData) {
         DebugLogging.action(messageData);
+        if (channel instanceof net.dv8tion.jda.api.entities.channel.middleman.GuildChannel)
+            PluginDiscordPermissions.requireForContent(messageData);
         return MessageDataParser.send(messageData, data -> new InternalMyMessage(
                 this.channel.sendMessage(data).complete()
         ));

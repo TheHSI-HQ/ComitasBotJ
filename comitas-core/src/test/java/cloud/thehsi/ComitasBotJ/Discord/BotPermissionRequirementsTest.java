@@ -110,6 +110,21 @@ class BotPermissionRequirementsTest {
     }
 
     @Test
+    void pluginLimitsIgnoreChannelContext() throws Exception {
+        BotPermissionRequirements.Requirement send = BotPermissionRequirements.of(
+                MessageChannel.class.getMethod("sendMessage", Component.class)).getFirst();
+        // VIEW_CHANNEL is implied, threads are unknown without the receiver
+        assertTrue(send.permittedBy(Set.of(Permission.SEND_MESSAGES)));
+        assertTrue(send.permittedBy(Set.of(Permission.SEND_MESSAGES_IN_THREADS)));
+        assertEquals(Set.of(Permission.SEND_MESSAGES), send.missingFrom(Set.of(Permission.EMBED_LINKS)));
+
+        BotPermissionRequirements.Requirement delete = BotPermissionRequirements.of(Invite.class.getMethod("delete")).getFirst();
+        assertEquals(Set.of(Permission.MANAGE_CHANNEL, Permission.MANAGE_GUILD), delete.missingFrom(Set.of()));
+        assertTrue(delete.permittedBy(Set.of(Permission.MANAGE_CHANNEL)));
+        assertTrue(delete.permittedBy(Set.of(Permission.ADMINISTRATOR)));
+    }
+
+    @Test
     void unannotatedMethodsRequireNothing() throws Exception {
         assertTrue(BotPermissionRequirements.of(Guild.class.getMethod("getName")).isEmpty());
     }

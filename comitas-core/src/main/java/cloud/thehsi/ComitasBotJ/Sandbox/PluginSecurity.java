@@ -1,6 +1,7 @@
 package cloud.thehsi.ComitasBotJ.Sandbox;
 
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
@@ -36,6 +37,9 @@ import java.util.regex.Pattern;
  * </pre>
  * Every requested permission, which wasn't decided on yet, is asked for once, the answer is persisted.
  * A plugin isn't loaded, if one of its required permissions isn't granted.
+ * <p>
+ * The Discord permissions a plugin declares ({@link PluginDiscordPermissions}) are asked for the same way,
+ * in a separate prompt, and stored as {@code discord-permission.<name>}.
  */
 public final class PluginSecurity {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Sandbox");
@@ -109,7 +113,65 @@ public final class PluginSecurity {
         return requests;
     }
 
-    private static @NotNull String generateGrantMessage(@NotNull List<Request> undecided, boolean anyRequired) {
+    /**
+     * One requested item of a permission prompt, a sandbox or a Discord permission.
+     *
+     * @param key         The short key, like {@code network}
+     * @param settingKey  The key in the security file, like {@code permission.network}
+     * @param warning     Shown below the item, null for none
+     * @param manualOnly  Never granted by {@code plugin-permission-default}, only by the server owner
+     */
+    record Choice<T>(@NotNull T value, @NotNull String key, @NotNull String settingKey, @NotNull String displayName,
+                     @Nullable String reason, boolean required, @Nullable String warning, boolean manualOnly) {
+    }
+
+    /**
+     * The texts of a permission prompt.
+     *
+     * @param title The prompt's header
+     * @param what  What is requested, like {@code permissions}, used in log messages
+     * @param intro Shown after the plugin's name, before the requested items
+     */
+    record Prompt(@NotNull String title, @NotNull String what, @NotNull String intro) {
+    }
+
+    private static final Prompt SANDBOX_PROMPT = new Prompt("Permission Request", "permissions", "requested:");
+    private static final Prompt DISCORD_PROMPT = new Prompt("Discord Permission Request", "Discord permissions",
+            "requested these Discord permissions, it can only use the granted ones (and only if the bot has them too):");
+
+    @NotNull
+    private static Choice<PluginPermission> choice(@NotNull Request request) {
+        PluginPermission permission = request.permission();
+        return new Choice<>(permission, permission.getKey(), "permission." + permission.getKey(), permission.getDisplayName(),
+                request.reason(), request.required(),
+                permission == PluginPermission.LIBRARIES ? "Libraries aren't sandboxed, they have full access to the server, "
+                        + "including the bot token. Only grant this to plugins you trust." : null,
+                MANUAL_ONLY.contains(permission));
+    }
+
+    @NotNull
+    private static Choice<Permission> choice(@NotNull PluginDiscordPermissions.Request request) {
+        Permission permission = request.permission();
+        String key = PluginDiscordPermissions.key(permission);
+        return new Choice<>(permission, key, PluginDiscordPermissions.KEY_PREFIX + key, displayName(permission),
+                request.reason(), request.required(),
+                permission == Permission.ADMINISTRATOR ? "Administrator lets the plugin use every Discord permission the bot has."
+                        : null,
+                permission == Permission.ADMINISTRATOR);
+    }
+
+    /**
+     * @return The permission's name in title case, like {@code Send Messages}
+     */
+    @NotNull
+    static String displayName(@NotNull Permission permission) {
+        StringJoiner joiner = new StringJoiner(" ");
+        for (String word : permission.name().split("_"))
+            joiner.add(word.charAt(0) + word.substring(1).toLowerCase(Locale.ROOT));
+        return joiner.toString();
+    }
+
+    private static @NotNull String generateGrantMessage(@NotNull List<? extends Choice<?>> undecided, boolean anyRequired) {
         StringJoiner numbers = new StringJoiner(",");
         for (int i = 1; i <= undecided.size(); i++) numbers.add(String.valueOf(i));
         return question("What do you grant?") + "\n"
@@ -120,7 +182,7 @@ public final class PluginSecurity {
                 + globalOption("X", "None for Every Plugin");
     }
 
-    private static boolean parseBoolean(@NotNull String value) {
+    static boolean parseBoolean(@NotNull String value) {
         return switch (value.strip().toLowerCase(Locale.ROOT)) {
             case "true", "yes", "1" -> true;
             default -> false;
@@ -154,25 +216,26 @@ public final class PluginSecurity {
      * @return The granted permissions, or null if nobody could be asked
      */
     @Nullable
-    private Set<PluginPermission> decide(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Request> undecided) {
-        String keys = String.join(", ", undecided.stream().map(request -> request.permission().getKey()).toList());
+    private <T> Set<T> decide(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
+                              @NotNull Prompt prompt) {
+        String keys = String.join(", ", undecided.stream().map(Choice::key).toList());
         return switch (PermissionDefault.current()) {
             case ALL -> {
-                logger.warn("Granting {} the requested permissions [{}], because plugin-permission-default is all",
-                        metadata.name(), keys);
-                yield withoutManualOnly(metadata, grantAll(undecided));
+                logger.warn("Granting {} the requested {} [{}], because plugin-permission-default is all",
+                        metadata.name(), prompt.what(), keys);
+                yield withoutManualOnly(metadata, grantAll(undecided), undecided);
             }
             case REQUIRED -> {
-                logger.warn("Granting {} only the required permissions of [{}], because plugin-permission-default is required",
-                        metadata.name(), keys);
-                yield withoutManualOnly(metadata, grantRequired(undecided));
+                logger.warn("Granting {} only the required {} of [{}], because plugin-permission-default is required",
+                        metadata.name(), prompt.what(), keys);
+                yield withoutManualOnly(metadata, grantRequired(undecided), undecided);
             }
             case NONE -> {
-                logger.warn("Denying {} the requested permissions [{}], because plugin-permission-default is none",
-                        metadata.name(), keys);
-                yield EnumSet.noneOf(PluginPermission.class);
+                logger.warn("Denying {} the requested {} [{}], because plugin-permission-default is none",
+                        metadata.name(), prompt.what(), keys);
+                yield new LinkedHashSet<>();
             }
-            case ASK -> ask(metadata, undecided);
+            case ASK -> ask(metadata, undecided, prompt);
         };
     }
 
@@ -182,28 +245,28 @@ public final class PluginSecurity {
     private static final Set<PluginPermission> MANUAL_ONLY = EnumSet.of(PluginPermission.LIBRARIES);
 
     @NotNull
-    private static Set<PluginPermission> withoutManualOnly(@NotNull Plugin.PluginMetadata metadata,
-                                                           @NotNull Set<PluginPermission> granted) {
-        for (PluginPermission permission : MANUAL_ONLY) {
-            if (!granted.remove(permission)) continue;
+    private static <T> Set<T> withoutManualOnly(@NotNull Plugin.PluginMetadata metadata, @NotNull Set<T> granted,
+                                                @NotNull List<Choice<T>> choices) {
+        for (Choice<T> choice : choices) {
+            if (!choice.manualOnly() || !granted.remove(choice.value())) continue;
             logger.warn("Not granting {} the {} permission, it is never granted by plugin-permission-default. "
-                            + "Set permission.{}=true in {} and reload to grant it.",
-                    metadata.name(), permission.getKey(), permission.getKey(), securityFile(metadata.uuid()));
+                            + "Set {}=true in {} and reload to grant it.",
+                    metadata.name(), choice.key(), choice.settingKey(), securityFile(metadata.uuid()));
         }
         return granted;
     }
 
     @NotNull
-    private static Set<PluginPermission> grantAll(@NotNull List<Request> requests) {
-        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
-        requests.forEach(request -> granted.add(request.permission()));
+    private static <T> Set<T> grantAll(@NotNull List<Choice<T>> choices) {
+        Set<T> granted = new LinkedHashSet<>();
+        choices.forEach(choice -> granted.add(choice.value()));
         return granted;
     }
 
     @NotNull
-    private static Set<PluginPermission> grantRequired(@NotNull List<Request> requests) {
-        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
-        requests.stream().filter(Request::required).forEach(request -> granted.add(request.permission()));
+    private static <T> Set<T> grantRequired(@NotNull List<Choice<T>> choices) {
+        Set<T> granted = new LinkedHashSet<>();
+        choices.stream().filter(Choice::required).forEach(choice -> granted.add(choice.value()));
         return granted;
     }
 
@@ -295,35 +358,35 @@ public final class PluginSecurity {
                         + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
         }
 
-        Map<PluginPermission, Boolean> decisions = new EnumMap<>(PluginPermission.class);
-        for (PluginPermission permission : PluginPermission.values()) {
-            String value = config.getProperty("permission." + permission.getKey());
-            if (value != null) decisions.put(permission, parseBoolean(value));
-        }
-
-        List<Request> undecided = requests.values().stream()
+        Map<PluginPermission, Boolean> decisions = readPermissionDecisions(config);
+        Decided<PluginPermission> sandboxDecided = decideUndecided(metadata, requests.values().stream()
                 .filter(request -> !decisions.containsKey(request.permission()))
-                .toList();
+                .map(PluginSecurity::choice)
+                .toList(), SANDBOX_PROMPT);
+        decisions.putAll(sandboxDecided.decisions());
 
-        Map<PluginPermission, Boolean> newDecisions = new EnumMap<>(PluginPermission.class);
-        List<PluginPermission> pending = List.of();
-        if (!undecided.isEmpty()) {
-            Set<PluginPermission> granted = decide(metadata, undecided);
-            if (granted == null) {
-                // Nobody could be asked, deny for now and ask again next time
-                pending = undecided.stream().map(Request::permission).toList();
-            } else {
-                for (Request request : undecided)
-                    newDecisions.put(request.permission(), granted.contains(request.permission()));
-            }
-        }
-        decisions.putAll(newDecisions);
+        boolean declaresDiscord = PluginDiscordPermissions.declares(pluginProperties);
+        LinkedHashMap<Permission, PluginDiscordPermissions.Request> discordRequests =
+                PluginDiscordPermissions.parseRequests(pluginProperties, name);
+        Map<Permission, Boolean> discordDecisions = readDiscordDecisions(config);
+        // Owners can limit plugins, which don't declare their Discord permissions, by adding discord-permission lines
+        boolean ownerLimited = !discordDecisions.isEmpty();
+        Decided<Permission> discordDecided = decideUndecided(metadata, discordRequests.values().stream()
+                .filter(request -> !discordDecisions.containsKey(request.permission()))
+                .map(PluginSecurity::choice)
+                .toList(), DISCORD_PROMPT);
+        discordDecisions.putAll(discordDecided.decisions());
 
         synchronized (fileLock) {
             if (!exists) {
-                writeNewFile(file, metadata, decisions, pending);
-            } else if (!newDecisions.isEmpty()) {
-                appendDecisions(file, name, newDecisions);
+                writeNewFile(file, metadata, decisions, sandboxDecided.pending(),
+                        discordRequests.keySet(), discordDecisions, discordDecided.pending());
+            } else {
+                Map<String, Boolean> lines = new LinkedHashMap<>();
+                sandboxDecided.decisions().forEach((permission, value) -> lines.put("permission." + permission.getKey(), value));
+                discordDecided.decisions().forEach((permission, value) ->
+                        lines.put(PluginDiscordPermissions.KEY_PREFIX + PluginDiscordPermissions.key(permission), value));
+                if (!lines.isEmpty()) appendDecisions(file, name, lines);
             }
         }
 
@@ -341,14 +404,44 @@ public final class PluginSecurity {
                     + "], which weren't granted. Set " + String.join(", ", missing.stream().map(key -> "permission." + key + "=true").toList())
                     + " in " + file + " and reload to load it.");
 
+        Set<Permission> discordGranted = null;
+        if (declaresDiscord || ownerLimited) {
+            Set<Permission> grantedDiscord = EnumSet.noneOf(Permission.class);
+            discordDecisions.forEach((permission, value) -> {
+                // A permission the plugin doesn't declare anymore isn't granted, even if it was before
+                if (value && (!declaresDiscord || discordRequests.containsKey(permission))) grantedDiscord.add(permission);
+            });
+            discordGranted = grantedDiscord;
+
+            List<String> missingDiscord = discordRequests.values().stream()
+                    .filter(request -> request.required() && !grantedDiscord.contains(request.permission()))
+                    .map(request -> PluginDiscordPermissions.key(request.permission()))
+                    .toList();
+            if (!missingDiscord.isEmpty())
+                throw new PluginPermissionException("Plugin " + name + " requires the Discord permission(s) ["
+                        + String.join(", ", missingDiscord) + "], which weren't granted. Set "
+                        + String.join(", ", missingDiscord.stream().map(key -> PluginDiscordPermissions.KEY_PREFIX + key + "=true").toList())
+                        + " in " + file + " and reload to load it.");
+        } else {
+            // TODO Next release (0.0.19): remove this fallback, plugins which don't declare discord-permissions
+            //  get no Discord permissions anymore. Also update the warning, PluginDiscordPermissions and the docs.
+            logger.warn("Plugin {} doesn't declare the Discord permissions it uses ({} in its plugin.properties), "
+                            + "it can use every permission the bot has. This is deprecated and will be removed in the next "
+                            + "release, undeclared plugins will then get no Discord permissions.",
+                    name, PluginDiscordPermissions.LIST_KEY);
+        }
+
         Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
-        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()));
+        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()),
+                discordGranted, List.copyOf(discordRequests.values()));
         for (String key : config.stringPropertyNames())
             if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
                 sandbox.addNeverMount(key.substring("denied-mount.".length()));
 
-        if (DebugLogging.isBasicEnabled()) debugLogger.info("Plugin {} sandbox: granted [{}], mounts [{}]", name,
+        if (DebugLogging.isBasicEnabled()) debugLogger.info("Plugin {} sandbox: granted [{}], Discord [{}], mounts [{}]", name,
                 String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
+                discordGranted == null ? "unlimited"
+                        : String.join(", ", discordGranted.stream().map(PluginDiscordPermissions::key).toList()),
                 String.join(", ", mounts.values().stream()
                         .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
 
@@ -356,25 +449,68 @@ public final class PluginSecurity {
     }
 
     /**
+     * The outcome of asking for undecided items.
+     *
+     * @param decisions The new decisions, true if granted
+     * @param pending   Items nobody could be asked about, denied for now and asked for again next time
+     */
+    private record Decided<T>(@NotNull Map<T, Boolean> decisions, @NotNull List<T> pending) {
+    }
+
+    @NotNull
+    private <T> Decided<T> decideUndecided(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
+                                           @NotNull Prompt prompt) {
+        Map<T, Boolean> decisions = new LinkedHashMap<>();
+        if (undecided.isEmpty()) return new Decided<>(decisions, List.of());
+
+        Set<T> granted = decide(metadata, undecided, prompt);
+        if (granted == null)
+            return new Decided<>(decisions, undecided.stream().map(Choice::value).toList());
+        for (Choice<T> choice : undecided)
+            decisions.put(choice.value(), granted.contains(choice.value()));
+        return new Decided<>(decisions, List.of());
+    }
+
+    @NotNull
+    private static Map<PluginPermission, Boolean> readPermissionDecisions(@NotNull Properties config) {
+        Map<PluginPermission, Boolean> decisions = new EnumMap<>(PluginPermission.class);
+        for (PluginPermission permission : PluginPermission.values()) {
+            String value = config.getProperty("permission." + permission.getKey());
+            if (value != null) decisions.put(permission, parseBoolean(value));
+        }
+        return decisions;
+    }
+
+    @NotNull
+    private static Map<Permission, Boolean> readDiscordDecisions(@NotNull Properties config) {
+        Map<Permission, Boolean> decisions = new EnumMap<>(Permission.class);
+        for (Permission permission : Permission.values()) {
+            String value = config.getProperty(PluginDiscordPermissions.KEY_PREFIX + PluginDiscordPermissions.key(permission));
+            if (value != null) decisions.put(permission, parseBoolean(value));
+        }
+        return decisions;
+    }
+
+    /**
      * @return The granted permissions, or null if nobody could be asked
      */
     @Nullable
-    private Set<PluginPermission> ask(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Request> undecided) {
+    private <T> Set<T> ask(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
+                           @NotNull Prompt prompt) {
         String name = metadata.name();
-        boolean anyRequired = undecided.stream().anyMatch(Request::required);
+        boolean anyRequired = undecided.stream().anyMatch(Choice::required);
 
-        StringBuilder request = new StringBuilder(header("Permission Request"))
+        StringBuilder request = new StringBuilder(header(prompt.title()))
                 .append("Plugin ").append(highlight(ConsoleText.plain(name + " " + metadata.version())))
-                .append(dim(" (" + ConsoleText.plain(metadata.jarName()) + ")")).append(" requested:\n");
+                .append(dim(" (" + ConsoleText.plain(metadata.jarName()) + ")")).append(' ').append(prompt.intro()).append('\n');
         for (int i = 0; i < undecided.size(); i++) {
-            Request permission = undecided.get(i);
+            Choice<T> choice = undecided.get(i);
             request.append("  ").append(ConsoleColor.BOLD).append(ConsoleColor.BRIGHT_CYAN).append(i + 1).append('.')
-                    .append(ConsoleColor.RESET).append(' ').append(highlight(permission.permission().getDisplayName()))
-                    .append(permission.required() ? " " + error("(required)") : "")
-                    .append(": ").append(reason(permission.reason())).append('\n');
-            if (permission.permission() == PluginPermission.LIBRARIES)
-                request.append("     ").append(error("Libraries aren't sandboxed, they have full access to the server, "
-                        + "including the bot token. Only grant this to plugins you trust.")).append('\n');
+                    .append(ConsoleColor.RESET).append(' ').append(highlight(choice.displayName()))
+                    .append(choice.required() ? " " + error("(required)") : "")
+                    .append(": ").append(reason(choice.reason())).append('\n');
+            if (choice.warning() != null)
+                request.append("     ").append(error(choice.warning())).append('\n');
         }
 
         String options = generateGrantMessage(undecided, anyRequired);
@@ -383,14 +519,14 @@ public final class PluginSecurity {
         for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             String answer = prompter.ask(message, PROMPT).join();
             if (answer == null) {
-                logger.warn("Plugin {} requested the permissions [{}], but there is no interactive console to ask. "
+                logger.warn("Plugin {} requested the {} [{}], but there is no interactive console to ask. "
                                 + "They are denied, edit {} to grant them and reload.",
-                        name, String.join(", ", undecided.stream().map(r -> r.permission().getKey()).toList()),
+                        name, prompt.what(), String.join(", ", undecided.stream().map(Choice::key).toList()),
                         securityFile(metadata.uuid()));
                 return null;
             }
 
-            Answer parsed = parseAnswer(answer, undecided);
+            Answer<T> parsed = parseAnswer(answer, undecided);
             if (parsed != null) {
                 if (parsed.everyPlugin() != null) setDefault(parsed.everyPlugin());
                 return parsed.granted();
@@ -399,8 +535,8 @@ public final class PluginSecurity {
             message = error("Invalid answer '" + answer.strip() + "'.") + "\n" + options;
         }
 
-        logger.warn("No valid answer for {}, all requested permissions are denied", name);
-        return EnumSet.noneOf(PluginPermission.class);
+        logger.warn("No valid answer for {}, all requested {} are denied", name, prompt.what());
+        return new LinkedHashSet<>();
     }
 
     private static void setDefault(@NotNull PermissionDefault permissionDefault) {
@@ -423,44 +559,44 @@ public final class PluginSecurity {
      * @param granted     The permissions granted to this plugin
      * @param everyPlugin The new default for every plugin, or null if it isn't changed
      */
-    record Answer(@NotNull Set<PluginPermission> granted, @Nullable PermissionDefault everyPlugin) {
+    record Answer<T>(@NotNull Set<T> granted, @Nullable PermissionDefault everyPlugin) {
     }
 
     /**
      * @return The parsed answer, or null if it is invalid
      */
     @Nullable
-    static Answer parseAnswer(@NotNull String answer, @NotNull List<Request> undecided) {
+    static <T> Answer<T> parseAnswer(@NotNull String answer, @NotNull List<Choice<T>> undecided) {
         String normalized = answer.strip().toLowerCase(Locale.ROOT);
         switch (normalized) {
             case "":
                 return null;
             case "a", "all":
-                return new Answer(grantAll(undecided), null);
+                return new Answer<>(grantAll(undecided), null);
             case "o", "only", "required", "only required":
-                return new Answer(grantRequired(undecided), null);
+                return new Answer<>(grantRequired(undecided), null);
             case "n", "none", "no":
-                return new Answer(EnumSet.noneOf(PluginPermission.class), null);
+                return new Answer<>(new LinkedHashSet<>(), null);
             case "e", "every":
-                return new Answer(grantAll(undecided), PermissionDefault.ALL);
+                return new Answer<>(grantAll(undecided), PermissionDefault.ALL);
             case "r":
-                return new Answer(grantRequired(undecided), PermissionDefault.REQUIRED);
+                return new Answer<>(grantRequired(undecided), PermissionDefault.REQUIRED);
             case "x":
-                return new Answer(EnumSet.noneOf(PluginPermission.class), PermissionDefault.NONE);
+                return new Answer<>(new LinkedHashSet<>(), PermissionDefault.NONE);
         }
 
-        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
+        Set<T> granted = new LinkedHashSet<>();
         for (String part : normalized.split("[,\\s]+")) {
             if (part.isEmpty()) continue;
             try {
                 int index = Integer.parseInt(part);
                 if (index < 1 || index > undecided.size()) return null;
-                granted.add(undecided.get(index - 1).permission());
+                granted.add(undecided.get(index - 1).value());
             } catch (NumberFormatException e) {
                 return null;
             }
         }
-        return new Answer(granted, null);
+        return new Answer<>(granted, null);
     }
 
     // --- Mount requests at runtime ---
@@ -619,11 +755,14 @@ public final class PluginSecurity {
     /**
      * The settings stored in a security file.
      *
-     * @param permissions  The decided permissions, true if granted
-     * @param mounts       The configured mount points, sorted by name
-     * @param deniedMounts Mount points, the plugin may not request anymore
+     * @param permissions        The decided permissions, true if granted
+     * @param discordPermissions The decided Discord permissions, true if granted
+     * @param mounts             The configured mount points, sorted by name
+     * @param deniedMounts       Mount points, the plugin may not request anymore
      */
-    public record Settings(@NotNull Map<PluginPermission, Boolean> permissions, @NotNull List<ConfiguredMount> mounts,
+    public record Settings(@NotNull Map<PluginPermission, Boolean> permissions,
+                           @NotNull Map<Permission, Boolean> discordPermissions,
+                           @NotNull List<ConfiguredMount> mounts,
                            @NotNull SortedSet<String> deniedMounts) {
     }
 
@@ -649,11 +788,8 @@ public final class PluginSecurity {
             config.load(reader);
         }
 
-        Map<PluginPermission, Boolean> permissions = new EnumMap<>(PluginPermission.class);
-        for (PluginPermission permission : PluginPermission.values()) {
-            String value = config.getProperty("permission." + permission.getKey());
-            if (value != null) permissions.put(permission, parseBoolean(value));
-        }
+        Map<PluginPermission, Boolean> permissions = readPermissionDecisions(config);
+        Map<Permission, Boolean> discordPermissions = readDiscordDecisions(config);
 
         List<ConfiguredMount> mounts = new ArrayList<>();
         SortedSet<String> deniedMounts = new TreeSet<>();
@@ -669,7 +805,7 @@ public final class PluginSecurity {
             boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
             mounts.add(new ConfiguredMount(name, directory, readOnly, mountProblem(name, directory)));
         }
-        return new Settings(permissions, mounts, deniedMounts);
+        return new Settings(permissions, discordPermissions, mounts, deniedMounts);
     }
 
     @Nullable
@@ -754,7 +890,10 @@ public final class PluginSecurity {
 
     private static void writeNewFile(@NotNull Path file, @NotNull Plugin.PluginMetadata metadata,
                                      @NotNull Map<PluginPermission, Boolean> decisions,
-                                     @NotNull List<PluginPermission> pending) throws IOException {
+                                     @NotNull List<PluginPermission> pending,
+                                     @NotNull Set<Permission> discordRequested,
+                                     @NotNull Map<Permission, Boolean> discordDecisions,
+                                     @NotNull List<Permission> discordPending) throws IOException {
         StringBuilder content = new StringBuilder()
                 .append("# ComitasBotJ plugin security settings\n")
                 // Plugin controlled values, a line break would turn the comment into a setting
@@ -777,6 +916,11 @@ public final class PluginSecurity {
                 .append("# Directories overlapping data, server.properties, plugins, logs or the Comitas jar\n")
                 .append("# can't be mounted.\n")
                 .append("#\n")
+                .append("# Discord permissions (true = granted, false = denied), the plugin can only use the granted ones,\n")
+                .append("# and only where the bot has them too:\n")
+                .append("#   discord-permission.<name>=true    (e.g. discord-permission.send_messages=true)\n")
+                .append("# Adding them limits a plugin, which doesn't declare its Discord permissions, as well.\n")
+                .append("#\n")
                 .append("# Changes are applied on the next reload or restart.\n")
                 .append("uuid=").append(metadata.uuid()).append('\n');
         for (PluginPermission permission : PluginPermission.values()) {
@@ -785,18 +929,25 @@ public final class PluginSecurity {
             content.append("permission.").append(permission.getKey()).append('=')
                     .append(decisions.getOrDefault(permission, false)).append('\n');
         }
+        for (Permission permission : discordRequested) {
+            if (discordPending.contains(permission)) content.append("# Requested by the plugin, not decided yet:\n#");
+            content.append(PluginDiscordPermissions.KEY_PREFIX).append(PluginDiscordPermissions.key(permission)).append('=')
+                    .append(discordDecisions.getOrDefault(permission, false)).append('\n');
+        }
 
         Files.createDirectories(DataPaths.SECURITY);
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8);
     }
 
+    /**
+     * @param decisions The new decisions, keyed by their setting, like {@code permission.network}
+     */
     private static void appendDecisions(@NotNull Path file, @NotNull String pluginName,
-                                        @NotNull Map<PluginPermission, Boolean> decisions) throws IOException {
+                                        @NotNull Map<String, Boolean> decisions) throws IOException {
         StringBuilder content = new StringBuilder("\n# ")
                 .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                 .append(": ").append(ConsoleText.plain(pluginName)).append(" requested new permissions\n");
-        decisions.forEach((permission, granted) ->
-                content.append("permission.").append(permission.getKey()).append('=').append(granted).append('\n'));
+        decisions.forEach((setting, granted) -> content.append(setting).append('=').append(granted).append('\n'));
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
     }
 }

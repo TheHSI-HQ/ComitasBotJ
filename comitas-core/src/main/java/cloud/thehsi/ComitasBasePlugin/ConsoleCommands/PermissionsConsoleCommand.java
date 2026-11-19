@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -99,6 +100,13 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor implements
             getConsoleLogger().info("  {}{} ({}): {}{}", ConsoleColor.WHITE, permission.getDisplayName(),
                     permission.getKey(), state, ConsoleColor.RESET);
         }
+
+        getConsoleLogger().info("Discord permissions:");
+        if (settings.discordPermissions().isEmpty())
+            getConsoleLogger().info("  not limited, unless the plugin declares discord-permissions");
+        settings.discordPermissions().forEach((permission, granted) -> getConsoleLogger().info("  {}{}: {}{}",
+                ConsoleColor.WHITE, permission.name().toLowerCase(Locale.ROOT),
+                granted ? ConsoleColor.BRIGHT_GREEN + "granted" : ConsoleColor.BRIGHT_RED + "denied", ConsoleColor.RESET));
 
         getConsoleLogger().info("Mount points:");
         if (settings.mounts().isEmpty()) getConsoleLogger().info("  none");

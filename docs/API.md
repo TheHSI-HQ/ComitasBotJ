@@ -866,6 +866,41 @@ Mark a permission as `required`, if your plugin can't work without it, it is the
 granted. Check optional ones with `hasPermission(PluginPermission.FILE_STORAGE)` and degrade gracefully, the owner may
 deny them.
 
+### Discord Permissions
+
+Declare the Discord permissions your plugin uses (the [`Permission`](../comitas-api/src/main/java/cloud/thehsi/ComitasBotJ/API/Discord/Permission.java)
+names, case insensitive):
+
+```properties
+discord-permissions=send_messages,embed_links,manage_messages
+# Hard dependency: without it, the plugin isn't loaded
+discord-permission.send_messages.required=true
+discord-permission.manage_messages.reason=Deletes spam
+```
+
+* **Required** (hard) permissions must be granted by the server owner, and the bot must have them in at least one guild,
+  otherwise your plugin isn't loaded. Guilds lacking one are warned about.
+* **Optional** (soft) permissions only cause a warning, if the bot has them in no guild.
+* The server owner is asked which of them your plugin may use, like for the permissions above. Your plugin can then
+  only use the granted ones, even if the bot has more: calling a method, whose `@RequiresBotPermission` isn't satisfied,
+  throws a `SecurityException`, and so does sending embeds without `embed_links` or files without `attach_files`.
+  Every API method lists the permissions it needs with `@RequiresBotPermission`.
+* If the bot itself lacks a permission, API calls throw a `MissingBotPermissionException`, which names the missing
+  permission (`getPermission()`) and where it is missing:
+
+```java
+try {
+    channel.sendMessage(Component.text("Hello"));
+} catch (MissingBotPermissionException e) {
+    getConsoleLogger().warn("Can't greet: {}", e.getMessage()); // The bot is missing the SEND_MESSAGES permission in #general (...) of ...
+}
+```
+
+> [!WARNING]
+> Plugins, which don't declare `discord-permissions`, can currently use every permission the bot has, with a warning.
+> This will be removed in the next release, undeclared plugins will then get no Discord permissions.
+> Declare an empty `discord-permissions=`, if your plugin doesn't need any.
+
 ### Files
 
 Plugins can't access the host's file system, each plugin has its own, isolated one. Its root `/` is the folder

@@ -190,9 +190,29 @@ Mount points the plugin can't use (missing directory, protected location, ...) a
 
 Directories overlapping `data/`, `server.properties`, `plugins/`, `logs/` or the Comitas jar can't be mounted.
 
+Plugins declare the Discord permissions they use, and you're asked which of them a plugin may use:
+
+```text
+──── Discord Permission Request ────────────────────────
+Plugin Moderation 1.0 (moderation.jar) requested these Discord permissions, it can only use the granted ones (and only if the bot has them too):
+  1. Send Messages (required): (no reason given)
+  2. Manage Messages: Deletes spam
+  3. Ban Members: Bans spammers
+What do you grant?
+  [A] All / [O] Only Required / [N] None / [1,2,3] Selected
+  [E] All for Every Plugin / [R] Only Required for Every Plugin / [X] None for Every Plugin
+> 
+```
+
+A plugin can then only use the granted permissions, even if the bot runs as an administrator. They are stored as
+`discord-permission.<name>=true` in the security file, adding such lines limits a plugin, which doesn't declare its
+Discord permissions, as well. You're asked again, when an updated plugin declares new permissions.
+When the bot connects (and on every reload), the declared permissions are checked against the bot's roles: a plugin
+isn't loaded, if the bot lacks a required permission in every guild, otherwise missing ones are warned about.
+
 > [!WARNING]
-> The sandbox protects your token and files, but a plugin can still use the bot through the Comitas API
-> (e.g. send messages or kick members, if the bot is allowed to). Only install plugins you trust with that.
+> Plugins, which don't declare their Discord permissions, can use everything the bot is allowed to (e.g. kick members),
+> unless you limit them in the security file. Only install plugins you trust with that.
 
 ## Configuration
 
