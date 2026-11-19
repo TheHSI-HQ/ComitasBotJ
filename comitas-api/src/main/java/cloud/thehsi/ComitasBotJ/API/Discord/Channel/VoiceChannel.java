@@ -1,5 +1,7 @@
 package cloud.thehsi.ComitasBotJ.API.Discord.Channel;
 
+import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
+import cloud.thehsi.ComitasBotJ.API.Discord.RequiresBotPermission;
 import cloud.thehsi.ComitasBotJ.API.Discord.User.Member;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -27,6 +29,14 @@ public interface VoiceChannel extends MessageChannel, GuildChannel {
      * @return The user limit, 0 if there is none
      */
     int getUserLimit();
+
+    /**
+     * Set the maximum amount of connected members
+     *
+     * @param limit The new amount of max members
+     */
+    @RequiresBotPermission(value = Permission.MANAGE_CHANNEL)
+    void setUserLimit(int limit);
 
     /**
      * Is this a stage channel

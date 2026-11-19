@@ -48,6 +48,13 @@ public class InternalVoiceChannel extends InternalMessageChannel implements Voic
     }
 
     @Override
+    public void setUserLimit(int limit) {
+        DebugLogging.action(limit);
+
+        audioChannel.getManager().setUserLimit(limit).complete();
+    }
+
+    @Override
     public boolean isStage() {
         DebugLogging.action();
         return audioChannel instanceof StageChannel;
