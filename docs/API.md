@@ -1038,6 +1038,23 @@ public void onBalanceRequest(PackageSentEvent<EconomyBalanceRequest> event) {
 
 Packages are mutable objects shared by reference across every listening plugin, so a plugin further down the call chain can read (and, if the package type exposes setters, modify) the same instance other plugins received — keep that in mind when designing a package's fields for multi-plugin integrations.
 
+### Plugin Dependencies
+
+If your plugin needs another plugin to work, e.g. because it listens for its packages, declare it in `plugin.properties`:
+
+```properties
+# Uuids (preferred, names aren't unique) or names of plugins, separated by commas
+dependencies=3f1c0b6e-8f0a-4c1e-9a57-2b8c3c0d9e11, EconomyPlugin
+```
+
+* Dependencies are always loaded and enabled before your plugin, so their `onLoad()` and `onEnable()` already ran when yours run,
+  and they are disabled after yours.
+* Without all its dependencies, your plugin isn't loaded. `plugins -a` shows why (not installed, failed to load, circular dependency).
+* `plugins load <jar>` loads the dependencies of a jar first, if they aren't loaded yet.
+* Unloading a plugin also unloads the plugins depending on it, reloading it with `plugins reload` reloads them as well.
+
+Dependencies only control the load order, your plugin still can't use the classes of another plugin, talk to it with packages.
+
 ## Upgrading to a New API Version
 
 Plugins built against an older API version keep working in most cases: the server runs them in compatibility mode

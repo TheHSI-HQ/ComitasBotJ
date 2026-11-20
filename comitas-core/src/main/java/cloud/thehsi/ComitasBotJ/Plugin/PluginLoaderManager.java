@@ -6,20 +6,11 @@ import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
 import cloud.thehsi.ComitasBotJ.API.Plugin.Plugin;
 import cloud.thehsi.ComitasBotJ.API.Plugin.PluginPermission;
 import cloud.thehsi.ComitasBotJ.App.DebugLogging;
-import cloud.thehsi.ComitasBotJ.Compatibility.ApiVersion;
-import cloud.thehsi.ComitasBotJ.Compatibility.Change;
-import cloud.thehsi.ComitasBotJ.Compatibility.ChangeKind;
-import cloud.thehsi.ComitasBotJ.Compatibility.ChangelogRepository;
-import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityPlan;
-import cloud.thehsi.ComitasBotJ.Compatibility.CompatibilityReport;
+import cloud.thehsi.ComitasBotJ.Compatibility.*;
 import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Discord.BotPermissionSnapshot;
 import cloud.thehsi.ComitasBotJ.Main;
-import cloud.thehsi.ComitasBotJ.Sandbox.PluginDiscordPermissions;
-import cloud.thehsi.ComitasBotJ.Sandbox.PluginPermissionException;
-import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
-import cloud.thehsi.ComitasBotJ.Sandbox.PluginSecurity;
-import cloud.thehsi.ComitasBotJ.Sandbox.SandboxPluginClassLoader;
+import cloud.thehsi.ComitasBotJ.Sandbox.*;
 import cloud.thehsi.ComitasBotJ.Utility.ConsoleText;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
@@ -162,6 +153,29 @@ public class PluginLoaderManager {
                 .toList();
     }
 
+    @NotNull
+    private static PluginDependencies.Node<File> node(@NotNull File jar) {
+        Plugin.PluginMetadata metadata = null;
+        List<String> dependencies = List.of();
+        try {
+            Properties props = readPluginProperties(jar);
+            metadata = Plugin.PluginMetadata.fromProperties(props, jar.getName());
+            dependencies = PluginDependencies.parse(props);
+        } catch (Exception e) {
+            // Reported, when the jar is loaded
+        }
+        return new PluginDependencies.Node<>(jar, metadata, dependencies);
+    }
+
+    @Nullable
+    public Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin) {
+        for (LoadedPlugin p : plugins) {
+            if (p.plugin() == plugin) return p.metadata();
+        }
+
+        return null;
+    }
+
     public void loadBasePlugin() {
         if (basePlugin == null)
             try {
@@ -183,7 +197,8 @@ public class PluginLoaderManager {
                 ).getName();
 
                 basePlugin = new LoadedPlugin(plugin, null, new Plugin.PluginMetadata(
-                        "Comitas", Main.getServerVersion(), jarName, Comitas.getServerVersion(), new UUID(0, 0), "comitas")
+                        "Comitas", Main.getServerVersion(), jarName, Comitas.getServerVersion(), new UUID(0, 0), "comitas"),
+                        List.of()
                 );
 
                 plugins.add(basePlugin);
@@ -197,15 +212,6 @@ public class PluginLoaderManager {
 
         if (!plugins.contains(basePlugin))
             plugins.add(basePlugin);
-    }
-
-    @Nullable
-    public Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin) {
-        for (LoadedPlugin p : plugins) {
-            if (p.plugin() == plugin) return p.metadata();
-        }
-
-        return null;
     }
 
     public void loadPlugins() {
@@ -235,13 +241,74 @@ public class PluginLoaderManager {
             return;
         }
 
-        WhitelistWarning whitelistWarning = new WhitelistWarning();
+        List<PluginDependencies.Node<File>> nodes = new ArrayList<>();
         for (File jar : jars) {
             if (manuallyUnloaded.contains(jar.getName())) {
                 record(jar.getName(), readMetadataQuietly(jar), JarState.UNLOADED, UNLOADED_REASON);
                 continue;
             }
-            loadJar(jar, whitelistWarning);
+            nodes.add(node(jar));
+        }
+
+        // Dependencies are loaded before the plugins depending on them
+        loadInOrder(PluginDependencies.order(nodes, nodes), new WhitelistWarning());
+    }
+
+    private void loadInOrder(@NotNull PluginDependencies.Order<File> order, @NotNull WhitelistWarning whitelistWarning) {
+        for (PluginDependencies.Node<File> node : order.order()) {
+            String circular = order.circular().get(node);
+            if (circular != null) {
+                logger.error("Plugin not loaded: \"{}\": {}", node.value().getName(), circular);
+                record(node.value().getName(), node.metadata(), JarState.ERRORED, circular);
+                continue;
+            }
+            loadJar(node.value(), whitelistWarning);
+        }
+    }
+
+    /**
+     * Finds the loaded plugin (or the base plugin) a dependency refers to.
+     */
+    @Nullable
+    private LoadedPlugin findDependency(@NotNull String dependency) {
+        return PluginDependencies.find(dependency, plugins, LoadedPlugin::metadata);
+    }
+
+    /**
+     * @throws PluginDependencyException If a dependency isn't loaded
+     */
+    private void requireDependencies(@NotNull List<String> dependencies) {
+        for (String dependency : dependencies) {
+            if (findDependency(dependency) != null) continue;
+
+            // Tell apart a missing jar from one, which wasn't loaded
+            for (File jar : listJars()) {
+                JarStatus status = jarStatuses.get(jar.getName());
+                Plugin.PluginMetadata metadata = status == null ? readMetadataQuietly(jar) : status.metadata();
+                if (metadata == null || !PluginDependencies.matches(dependency, metadata)) continue;
+                throw new PluginDependencyException("its dependency " + metadata.name() + " (" + jar.getName() + ") isn't loaded"
+                        + (status == null || status.reason() == null ? "" : ": " + status.reason()));
+            }
+            throw new PluginDependencyException("its dependency '" + dependency + "' isn't installed");
+        }
+    }
+
+    /**
+     * @return The loaded plugins, which depend on the plugin directly or indirectly, the deepest dependents first
+     */
+    @NotNull
+    private List<LoadedPlugin> dependentsOf(@NotNull LoadedPlugin plugin) {
+        List<LoadedPlugin> dependents = new ArrayList<>();
+        collectDependents(plugin, dependents);
+        return dependents;
+    }
+
+    private void collectDependents(@NotNull LoadedPlugin plugin, @NotNull List<LoadedPlugin> dependents) {
+        for (LoadedPlugin loaded : plugins) {
+            if (loaded == plugin || dependents.contains(loaded)) continue;
+            if (loaded.dependencies().stream().noneMatch(dependency -> findDependency(dependency) == plugin)) continue;
+            collectDependents(loaded, dependents);
+            if (!dependents.contains(loaded)) dependents.add(loaded);
         }
     }
 
@@ -414,6 +481,11 @@ public class PluginLoaderManager {
             if (uuidToPluginCache.containsKey(metadata.uuid()))
                 throw new RuntimeException("Another loaded plugin already uses the uuid " + metadata.uuid());
 
+            // Before the sandbox is resolved, the server owner isn't asked for permissions of a plugin, which can't run
+            if (DebugLogging.isBasicEnabled()) debugLogger.debug("Checking dependencies for: {}", jar.getName());
+            List<String> dependencies = PluginDependencies.parse(props);
+            requireDependencies(dependencies);
+
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Resolving sandbox permissions for: {}", jar.getName());
             PluginSandbox sandbox = security.resolve(metadata, props);
 
@@ -445,7 +517,7 @@ public class PluginLoaderManager {
                     .newInstance();
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Adding {} as a loaded plugin", jar.getName());
-            plugins.add(new LoadedPlugin(plugin, loader, metadata));
+            plugins.add(new LoadedPlugin(plugin, loader, metadata, dependencies));
             SandboxPluginClassLoader loadedLoader = loader;
             loader = null; // owned by the loaded plugin now
 
@@ -479,7 +551,7 @@ public class PluginLoaderManager {
                     e.getLocalizedMessage()
             );
             record(jar.getName(), metadata, JarState.ERRORED, e.getLocalizedMessage());
-        } catch (PluginPermissionException e) {
+        } catch (PluginPermissionException | PluginDependencyException e) {
             closeQuietly(loader);
             logger.error("Plugin not loaded: \"{}\":", jar.getName());
             //noinspection DuplicateExpressions
@@ -585,18 +657,19 @@ public class PluginLoaderManager {
     }
 
     /**
-     * Disables and unloads one plugin.
+     * Disables and unloads one plugin. The plugins depending on it are unloaded before it,
+     * they are loaded again on the next reload, or with {@code plugins load}.
      *
      * @param id           The plugin's uuid, jar name or name
      * @param keepUnloaded If it should stay unloaded on reloads
      * @param cleanup      Removes everything the plugin registered (commands, listeners, tasks, ...),
      *                     called after onDisable, before its class loader is closed
-     * @return The metadata of the unloaded plugin
+     * @return The metadata of the unloaded plugins, the plugin itself last
      * @throws IllegalArgumentException If no (unloadable) plugin matches
      */
     @NotNull
-    public Plugin.PluginMetadata unloadPlugin(@NotNull String id, boolean keepUnloaded,
-                                              @NotNull BiConsumer<Plugin, ClassLoader> cleanup) {
+    public List<Plugin.PluginMetadata> unloadPlugin(@NotNull String id, boolean keepUnloaded,
+                                                    @NotNull BiConsumer<Plugin, ClassLoader> cleanup) {
         if (pluginManager == null)
             throw new IllegalStateException("Plugin Manager not initialized");
 
@@ -607,6 +680,22 @@ public class PluginLoaderManager {
                     ? "The Comitas base plugin can't be unloaded"
                     : "No loaded plugin matches '" + id.strip() + "', use its uuid or jar name");
 
+        List<Plugin.PluginMetadata> unloaded = new ArrayList<>();
+        for (LoadedPlugin dependent : dependentsOf(loaded)) {
+            logger.info("Unloading {}, it depends on {}", dependent.metadata().name(), loaded.metadata().name());
+            unload(dependent, false, cleanup);
+            record(dependent.metadata().jarName(), dependent.metadata(), JarState.UNLOADED,
+                    "its dependency " + loaded.metadata().name() + " was unloaded");
+            unloaded.add(dependent.metadata());
+        }
+        unload(loaded, keepUnloaded, cleanup);
+        unloaded.add(loaded.metadata());
+        return unloaded;
+    }
+
+    private void unload(@NotNull LoadedPlugin loaded, boolean keepUnloaded,
+                        @NotNull BiConsumer<Plugin, ClassLoader> cleanup) {
+        assert pluginManager != null;
         Plugin plugin = loaded.plugin();
         SandboxPluginClassLoader loader = loaded.loader();
         Plugin.PluginMetadata metadata = loaded.metadata();
@@ -642,7 +731,13 @@ public class PluginLoaderManager {
         }
 
         logger.info("Unloaded Plugin {} {} ({})", metadata.name(), metadata.version(), metadata.uuid());
-        return metadata;
+    }
+
+    /**
+     * @return True, if a plugin of the jar is loaded
+     */
+    public boolean isJarLoaded(@NotNull String jarName) {
+        return plugins.stream().anyMatch(loaded -> loaded.metadata().jarName().equalsIgnoreCase(jarName.strip()));
     }
 
     /**
@@ -668,8 +763,23 @@ public class PluginLoaderManager {
                 throw new IllegalArgumentException(jar.getName() + " is already loaded, use 'plugins reload "
                         + jar.getName() + "' to reload it");
 
-        manuallyUnloaded.remove(jar.getName());
-        if (!loadJar(jar, new WhitelistWarning())) return null;
+        // Dependencies, which aren't loaded yet, are loaded first
+        Set<String> loadedJars = new HashSet<>();
+        plugins.forEach(loaded -> loadedJars.add(loaded.metadata().jarName()));
+        List<PluginDependencies.Node<File>> nodes = new ArrayList<>();
+        for (File candidate : listJars())
+            if (!loadedJars.contains(candidate.getName())) nodes.add(node(candidate));
+        PluginDependencies.Node<File> target = nodes.stream()
+                .filter(node -> node.value().getName().equals(jar.getName()))
+                .findFirst().orElseThrow();
+        PluginDependencies.Order<File> order = PluginDependencies.order(nodes, List.of(target));
+
+        for (PluginDependencies.Node<File> node : order.order()) {
+            manuallyUnloaded.remove(node.value().getName());
+            if (node != target)
+                logger.info("Loading {}, a dependency of {}", node.value().getName(), jar.getName());
+        }
+        loadInOrder(order, new WhitelistWarning());
 
         for (LoadedPlugin loaded : plugins)
             if (loaded.metadata().jarName().equals(jar.getName())) return loaded.metadata();
@@ -772,8 +882,10 @@ public class PluginLoaderManager {
                                          @NotNull Function<Permission[], String> inviteLink,
                                          @NotNull BiConsumer<Plugin, ClassLoader> cleanup) {
         for (LoadedPlugin loaded : plugins) {
+            // Refusing a plugin also unloads the ones depending on it
             //noinspection resource
-            if (loaded.loader() == null || enabledPlugins.contains(loaded.plugin())) continue;
+            if (loaded.loader() == null || enabledPlugins.contains(loaded.plugin()) || !plugins.contains(loaded))
+                continue;
             Plugin.PluginMetadata metadata = loaded.metadata();
             @SuppressWarnings("resource") PluginDiscordPermissions.BotCheck check = PluginDiscordPermissions.check(loaded.loader().sandbox().discordRequests(), bot);
 
@@ -820,7 +932,8 @@ public class PluginLoaderManager {
         if (pluginManager == null)
             throw new IllegalStateException("Plugin Manager not initialized");
 
-        for (LoadedPlugin loaded : plugins) {
+        // Dependents are disabled before their dependencies, in reverse load order
+        for (LoadedPlugin loaded : plugins.reversed()) {
             try {
                 if (enabledPlugins.remove(loaded.plugin()))
                     loaded.plugin().onDisable();
@@ -868,6 +981,11 @@ public class PluginLoaderManager {
         return null;
     }
 
-    private record LoadedPlugin(Plugin plugin, @Nullable SandboxPluginClassLoader loader, Plugin.PluginMetadata metadata) {
+    /**
+     * @param dependencies The declared dependencies, uuids or names
+     */
+    private record LoadedPlugin(Plugin plugin, @Nullable SandboxPluginClassLoader loader,
+                                Plugin.PluginMetadata metadata,
+                                List<String> dependencies) {
     }
 }

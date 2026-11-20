@@ -521,6 +521,7 @@ public class InternalPluginManager implements PluginManager {
 
     /**
      * Unloads one plugin and loads its jar again, e.g. after it was replaced.
+     * The plugins depending on it are reloaded as well.
      *
      * @param id The plugin's uuid, jar name or name
      */
@@ -529,8 +530,13 @@ public class InternalPluginManager implements PluginManager {
         requireServerControl("reload plugins");
         reload("plugin", () -> runSinglePluginAction(() -> {
             long reloadTime = System.currentTimeMillis();
-            Plugin.PluginMetadata unloaded = pluginLoaderManager.unloadPlugin(id, false, this::removeRegistrations);
-            Plugin.PluginMetadata loaded = loadAndEnable(unloaded.jarName());
+            List<Plugin.PluginMetadata> unloaded = pluginLoaderManager.unloadPlugin(id, false, this::removeRegistrations);
+            // The plugin itself was unloaded last, it's loaded first, then its dependents
+            Plugin.PluginMetadata loaded = loadAndEnable(unloaded.getLast().jarName());
+            if (loaded != null)
+                for (Plugin.PluginMetadata dependent : unloaded.subList(0, unloaded.size() - 1).reversed())
+                    // Loading a dependent also loads the dependents it depends on
+                    if (!pluginLoaderManager.isJarLoaded(dependent.jarName())) loadAndEnable(dependent.jarName());
             // The plugin re-registered its commands in onEnable, drop the ones it doesn't register anymore
             pruneCommands();
             if (loaded != null)
