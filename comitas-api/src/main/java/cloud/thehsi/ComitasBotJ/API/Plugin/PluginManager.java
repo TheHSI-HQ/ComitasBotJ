@@ -89,6 +89,18 @@ public interface PluginManager {
     CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly);
 
     /**
+     * Asks the server owner for a new mount point, see {@link Plugin#requestMount(String, String, boolean, boolean)}.
+     *
+     * @param name     The name of the mount point, only {@code A-Z a-z 0-9 _ -}
+     * @param reason   Why the plugin needs the directory, shown to the server owner
+     * @param readOnly If the plugin only needs to read from the directory
+     * @param mapped   If the mount point is a shared directory managed by Comitas, instead of one the server owner chooses
+     * @return A future completing with the root of the mount point, or null if it was denied
+     */
+    @NotNull
+    CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly, boolean mapped);
+
+    /**
      * Gets the host location of a path in the current plugin's file system, see {@link Plugin#getHostPath(Path)}.
      *
      * @param path A path of the plugin's file system, like {@code getDataFolder().resolve("data.db")}
@@ -126,7 +138,7 @@ public interface PluginManager {
      * @return The Plugin's Metadata as a {@link cloud.thehsi.ComitasBotJ.API.Plugin.Plugin.PluginMetadata}
      */
     @Nullable
-    Plugin.PluginMetadata lookupPlugin(@NotNull Plugin plugin);
+    Plugin.@Nullable PluginMetadata lookupPlugin(@NotNull Plugin plugin);
 
     /**
      * Reloads all plugins, without reconnecting the bot.

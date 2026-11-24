@@ -1,6 +1,5 @@
 package cloud.thehsi.ComitasBotJ;
 
-import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.API.Bot.Comitas;
 import cloud.thehsi.ComitasBotJ.API.Console.ConsoleColor;
 import cloud.thehsi.ComitasBotJ.API.Discord.Permission;
@@ -9,6 +8,7 @@ import cloud.thehsi.ComitasBotJ.App.FirstTimeStartup;
 import cloud.thehsi.ComitasBotJ.App.StartupWarnings;
 import cloud.thehsi.ComitasBotJ.App.VersionProvider;
 import cloud.thehsi.ComitasBotJ.Bot.InternalComitas;
+import cloud.thehsi.ComitasBotJ.Configuration.DataPaths;
 import cloud.thehsi.ComitasBotJ.Configuration.ServerConfig;
 import cloud.thehsi.ComitasBotJ.Configuration.StartupProperties;
 import cloud.thehsi.ComitasBotJ.Console.ConsolePrompt;
@@ -87,6 +87,13 @@ public class Main implements Runnable {
             description = "Start even if another ComitasBotJ instance is already controlling this bot."
     )
     private boolean allowConcurrentInstances;
+
+    @CommandLine.Option(
+            names = {"-P", "--non-interactive-prompts"},
+            description = "Don't ask for plugin permissions and mount points on the console, list them in "
+                    + "outstanding-requests.txt instead. Exits after loading the plugins, while requests wait for an answer."
+    )
+    private boolean nonInteractivePrompts;
 
     @CommandLine.Option(
             names = {"--skip-fts"},
@@ -201,7 +208,7 @@ public class Main implements Runnable {
                 noCmd, ignoreApiTarget, safeMode,
                 strictSafeMode, quiet && !DebugLogging.isBasicEnabled(),
                 listPlugins, invitePermissions,
-                allowConcurrentInstances
+                allowConcurrentInstances, nonInteractivePrompts
         );
     }
 

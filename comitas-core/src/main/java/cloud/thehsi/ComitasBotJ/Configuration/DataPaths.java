@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -25,7 +25,8 @@ import java.util.stream.Stream;
  * │   └── libraries/&lt;sha256&gt;.jar        Libraries extracted from plugin jars
  * ├── persistent/&lt;uuid&gt;.dat             Persistent data storage of a plugin
  * ├── security/&lt;uuid&gt;.security.properties Granted permissions &amp; mount points of a plugin
- * └── volumes/&lt;uuid&gt;/                    Files of a plugin, its root directory
+ * ├── volumes/&lt;uuid&gt;/                    Files of a plugin, its root directory
+ * └── mapped/&lt;name&gt;/                     Shared directories, mounted by plugins as mapped mount points
  * </pre>
  */
 public final class DataPaths {
@@ -44,6 +45,10 @@ public final class DataPaths {
     public static final @NotNull Path PLUGIN_DATA = DATA.resolve("persistent");
     public static final @NotNull Path SECURITY = DATA.resolve("security");
     public static final @NotNull Path VOLUMES = DATA.resolve("volumes");
+    /**
+     * Shared directories, which plugins mount as mapped mount points, see {@link #mapped(String)}.
+     */
+    public static final @NotNull Path MAPPED = DATA.resolve("mapped");
 
     /**
      * The plugin jars.
@@ -71,6 +76,17 @@ public final class DataPaths {
     @NotNull
     public static Path volume(@NotNull UUID uuid) {
         return VOLUMES.resolve(uuid.toString());
+    }
+
+    /**
+     * The shared directory of a mapped mount point. Every plugin mounting the name gets the same directory,
+     * the name is lower-cased, so it is the same on case-sensitive and -insensitive file systems.
+     *
+     * @param name A valid mount point name ({@code A-Z a-z 0-9 _ -})
+     */
+    @NotNull
+    public static Path mapped(@NotNull String name) {
+        return MAPPED.resolve(name.toLowerCase(Locale.ROOT));
     }
 
     // --- Migration from the old layout ---

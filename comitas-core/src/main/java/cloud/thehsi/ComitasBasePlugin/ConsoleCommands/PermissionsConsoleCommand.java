@@ -33,7 +33,7 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor implements
     }
 
     @Override
-    public void execute(@NotNull String[] args, @NotNull String alias,
+    public void execute(@NotNull String @NotNull [] args, @NotNull String alias,
                         @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length == 0) {
             listKnownPlugins();
@@ -112,7 +112,7 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor implements
         if (settings.mounts().isEmpty()) getConsoleLogger().info("  none");
         for (PluginSecurity.ConfiguredMount mount : settings.mounts()) {
             getConsoleLogger().info("  /mnt/{} -> {}{}{}", mount.name(), mount.directory(),
-                    mount.readOnly() ? " (read-only)" : "",
+                    (mount.mapped() ? " (mapped, shared)" : "") + (mount.readOnly() ? " (read-only)" : ""),
                     mount.problem() == null ? "" : ConsoleColor.BRIGHT_RED + " - unavailable: " + mount.problem() + ConsoleColor.RESET);
         }
         if (!settings.deniedMounts().isEmpty())
@@ -156,7 +156,7 @@ public class PermissionsConsoleCommand extends ConsoleCommandExecutor implements
      * Suggests the uuids of plugins with security settings and the names of loaded plugins.
      */
     @Override
-    public @NotNull String[] complete(@NotNull String[] args, @NotNull String alias,
+    public @NotNull String[] complete(@NotNull String @NotNull [] args, @NotNull String alias,
                                       @NotNull ConsoleCommandRegistry.ConsoleCommand consoleCommand) {
         if (args.length != 1) return new String[0];
 

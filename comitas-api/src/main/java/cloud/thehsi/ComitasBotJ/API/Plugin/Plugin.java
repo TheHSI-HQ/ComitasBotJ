@@ -97,6 +97,31 @@ public abstract class Plugin {
     }
 
     /**
+     * Asks the server owner for a mount point, like {@link #requestMount(String, String, boolean)}.
+     * <p>
+     * A <b>mapped</b> mount point is a shared directory, which Comitas creates and manages ({@code data/mapped/<name>/}
+     * on the host), the server owner only decides whether to grant it, without choosing a directory.
+     * Every plugin granted a mapped mount point with the same name (case-insensitive) sees the same directory,
+     * so plugins can use it to exchange files:
+     * <pre>
+     * requestMount("shared-cache", "Shares rendered images with the gallery plugin", false, true)
+     *         .thenAccept(shared -> { if (shared != null) ... });
+     * </pre>
+     * Mapped mount points don't count towards the plugin's data quota.
+     *
+     * @param name     The name of the mount point (and its shared directory), only {@code A-Z a-z 0-9 _ -}
+     * @param reason   Why the plugin needs the directory, shown to the server owner
+     * @param readOnly If the plugin only needs to read from the directory
+     * @param mapped   If the mount point is a shared directory managed by Comitas, instead of one the server owner chooses
+     * @return A future completing with the root of the mount point, or null if it was denied
+     */
+    @NotNull
+    public CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason, boolean readOnly,
+                                                          boolean mapped) {
+        return Comitas.getPluginManager().requestMount(name, reason, readOnly, mapped);
+    }
+
+    /**
      * Gets the location of a file of this plugin's file system on the host, to hand it to a library loaded with
      * {@link PluginPermission#RISKY_LIBRARIES}, e.g. a database driver:
      * <pre>

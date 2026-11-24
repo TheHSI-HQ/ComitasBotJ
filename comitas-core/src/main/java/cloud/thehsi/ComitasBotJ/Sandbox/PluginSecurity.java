@@ -45,6 +45,10 @@ public final class PluginSecurity {
     private static final Logger logger = LoggerFactory.getLogger(Main.LOGGER_ROOT_PATH + ".Sandbox");
     private static final Logger debugLogger = DebugLogging.getLogger();
     private static final Pattern MOUNT_NAME = Pattern.compile("[A-Za-z0-9_-]+");
+    /**
+     * Names Windows reserves for devices, they can't be the directory of a mapped mount point.
+     */
+    private static final Pattern WINDOWS_DEVICE = Pattern.compile("(?i)con|prn|aux|nul|com[0-9]|lpt[0-9]");
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_DIRECTORY_ATTEMPTS = 3;
     private static final int MAX_REASON_LENGTH = 300;
@@ -55,9 +59,45 @@ public final class PluginSecurity {
 
     private final @NotNull Object fileLock = new Object();
     private @NotNull PermissionPrompter prompter = PermissionPrompter.NON_INTERACTIVE;
+    private static final String MAPPED_PREFIX = "mapped-mount.";
 
     public void setPrompter(@NotNull PermissionPrompter prompter) {
         this.prompter = prompter;
+    }
+    /**
+     * Replaces the prompts, if ComitasBotJ runs with {@code --non-interactive-prompts}, otherwise null.
+     */
+    private volatile @Nullable OutstandingRequests outstanding;
+
+    /**
+     * {@code --non-interactive-prompts}: takes the answers from the outstanding requests file,
+     * unanswered requests are listed in it and stay undecided (denied for now).
+     */
+    @NotNull
+    private static <T> Decided<T> decideFromFile(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
+                                                 @NotNull OutstandingRequests file) {
+        Map<T, Boolean> decisions = new LinkedHashMap<>();
+        List<T> pending = new ArrayList<>();
+        for (Choice<T> choice : undecided) {
+            Boolean decision = file.decision(metadata.uuid(), choice.settingKey(), choice.manualOnly());
+            if (decision != null) {
+                decisions.put(choice.value(), decision);
+                file.resolved(metadata.uuid(), choice.settingKey());
+                logger.info("{} {} the {} {} ({})", decision ? "Granted" : "Denied", metadata.name(), choice.key(),
+                        choice.value() instanceof Permission ? "Discord permission" : "permission", file.file());
+                continue;
+            }
+            pending.add(choice.value());
+            file.add(metadata.uuid(), new OutstandingRequests.Entry(
+                    choice.value() instanceof Permission ? OutstandingRequests.Kind.DISCORD_PERMISSION
+                            : OutstandingRequests.Kind.PERMISSION,
+                    choice.settingKey(), choice.displayName() + " (" + choice.key() + ")", choice.reason(),
+                    choice.required(), choice.manualOnly(), choice.warning(), "?", null));
+        }
+        if (!pending.isEmpty())
+            logger.warn("Plugin {} has {} request(s) waiting for an answer in {}", metadata.name(), pending.size(),
+                    file.file().toAbsolutePath());
+        return new Decided<>(decisions, pending);
     }
 
     @NotNull
@@ -335,117 +375,52 @@ public final class PluginSecurity {
     }
 
     /**
-     * Determines the permissions of a plugin, asking the server owner for undecided ones.
+     * Reads the security file of a plugin, without changing anything.
      *
-     * @throws PluginPermissionException If the plugin must not be loaded, e.g. a required permission wasn't granted
+     * @return The settings, or null if the plugin has no security file
      */
-    @NotNull
-    public PluginSandbox resolve(@NotNull Plugin.PluginMetadata metadata, @NotNull Properties pluginProperties) throws IOException {
-        String name = metadata.name();
-        Path file = securityFile(metadata.uuid());
-        LinkedHashMap<PluginPermission, Request> requests = parseRequests(pluginProperties, name);
+    @Nullable
+    public static Settings readSettings(@NotNull UUID uuid) throws IOException {
+        Path file = securityFile(uuid);
+        if (!Files.exists(file)) return null;
 
         Properties config = new Properties();
-        boolean exists = Files.exists(file);
-        if (exists) {
-            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                config.load(reader);
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            config.load(reader);
+        }
+
+        Map<PluginPermission, Boolean> permissions = readPermissionDecisions(config);
+        Map<Permission, Boolean> discordPermissions = readDiscordDecisions(config);
+
+        List<ConfiguredMount> mounts = new ArrayList<>();
+        SortedSet<String> deniedMounts = new TreeSet<>();
+        for (String key : new TreeSet<>(config.stringPropertyNames())) {
+            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key))) {
+                deniedMounts.add(key.substring("denied-mount.".length()));
+                continue;
             }
+            if (key.endsWith(".read-only")) continue;
+            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
 
-            String configuredUuid = config.getProperty("uuid", "").strip();
-            if (!configuredUuid.isEmpty() && !configuredUuid.equalsIgnoreCase(metadata.uuid().toString()))
-                throw new PluginPermissionException(file + " contains the uuid " + configuredUuid + ", but belongs to "
-                        + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
-        }
-
-        Map<PluginPermission, Boolean> decisions = readPermissionDecisions(config);
-        Decided<PluginPermission> sandboxDecided = decideUndecided(metadata, requests.values().stream()
-                .filter(request -> !decisions.containsKey(request.permission()))
-                .map(PluginSecurity::choice)
-                .toList(), SANDBOX_PROMPT);
-        decisions.putAll(sandboxDecided.decisions());
-
-        boolean declaresDiscord = PluginDiscordPermissions.declares(pluginProperties);
-        LinkedHashMap<Permission, PluginDiscordPermissions.Request> discordRequests =
-                PluginDiscordPermissions.parseRequests(pluginProperties, name);
-        Map<Permission, Boolean> discordDecisions = readDiscordDecisions(config);
-        // Owners can limit plugins, which don't declare their Discord permissions, by adding discord-permission lines
-        boolean ownerLimited = !discordDecisions.isEmpty();
-        Decided<Permission> discordDecided = decideUndecided(metadata, discordRequests.values().stream()
-                .filter(request -> !discordDecisions.containsKey(request.permission()))
-                .map(PluginSecurity::choice)
-                .toList(), DISCORD_PROMPT);
-        discordDecisions.putAll(discordDecided.decisions());
-
-        synchronized (fileLock) {
-            if (!exists) {
-                writeNewFile(file, metadata, decisions, sandboxDecided.pending(),
-                        discordRequests.keySet(), discordDecisions, discordDecided.pending());
-            } else {
-                Map<String, Boolean> lines = new LinkedHashMap<>();
-                sandboxDecided.decisions().forEach((permission, value) -> lines.put("permission." + permission.getKey(), value));
-                discordDecided.decisions().forEach((permission, value) ->
-                        lines.put(PluginDiscordPermissions.KEY_PREFIX + PluginDiscordPermissions.key(permission), value));
-                if (!lines.isEmpty()) appendDecisions(file, name, lines);
+            if (key.startsWith(MAPPED_PREFIX)) {
+                if (!parseBoolean(config.getProperty(key))) continue;
+                String name = key.substring(MAPPED_PREFIX.length());
+                String problem = !MOUNT_NAME.matcher(name).matches() ? "invalid name, only A-Z, a-z, 0-9, _ and - are allowed"
+                        : WINDOWS_DEVICE.matcher(name).matches() ? "reserved name"
+                        : config.containsKey("mount." + name) ? "mount." + name + " is configured as well" : null;
+                String directory = problem != null && problem.startsWith("invalid") ? ""
+                        : DataPaths.mapped(name).toString().replace('\\', '/');
+                mounts.add(new ConfiguredMount(name, directory, readOnly, true, problem));
+                continue;
             }
+            if (!key.startsWith("mount.")) continue;
+
+            String name = key.substring("mount.".length());
+            String directory = config.getProperty(key).strip();
+            mounts.add(new ConfiguredMount(name, directory, readOnly, false, mountProblem(name, directory)));
         }
-
-        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
-        decisions.forEach((permission, value) -> {
-            if (value) granted.add(permission);
-        });
-
-        List<String> missing = requests.values().stream()
-                .filter(request -> request.required() && !granted.contains(request.permission()))
-                .map(request -> request.permission().getKey())
-                .toList();
-        if (!missing.isEmpty())
-            throw new PluginPermissionException("Plugin " + name + " requires the permission(s) [" + String.join(", ", missing)
-                    + "], which weren't granted. Set " + String.join(", ", missing.stream().map(key -> "permission." + key + "=true").toList())
-                    + " in " + file + " and reload to load it.");
-
-        Set<Permission> discordGranted = null;
-        if (declaresDiscord || ownerLimited) {
-            Set<Permission> grantedDiscord = EnumSet.noneOf(Permission.class);
-            discordDecisions.forEach((permission, value) -> {
-                // A permission the plugin doesn't declare anymore isn't granted, even if it was before
-                if (value && (!declaresDiscord || discordRequests.containsKey(permission))) grantedDiscord.add(permission);
-            });
-            discordGranted = grantedDiscord;
-
-            List<String> missingDiscord = discordRequests.values().stream()
-                    .filter(request -> request.required() && !grantedDiscord.contains(request.permission()))
-                    .map(request -> PluginDiscordPermissions.key(request.permission()))
-                    .toList();
-            if (!missingDiscord.isEmpty())
-                throw new PluginPermissionException("Plugin " + name + " requires the Discord permission(s) ["
-                        + String.join(", ", missingDiscord) + "], which weren't granted. Set "
-                        + String.join(", ", missingDiscord.stream().map(key -> PluginDiscordPermissions.KEY_PREFIX + key + "=true").toList())
-                        + " in " + file + " and reload to load it.");
-        } else {
-            // TODO Next release (0.0.19): remove this fallback, plugins which don't declare discord-permissions
-            //  get no Discord permissions anymore. Also update the warning, PluginDiscordPermissions and the docs.
-            logger.warn("Plugin {} doesn't declare the Discord permissions it uses ({} in its plugin.properties), "
-                            + "it can use every permission the bot has. This is deprecated and will be removed in the next "
-                            + "release, undeclared plugins will then get no Discord permissions.",
-                    name, PluginDiscordPermissions.LIST_KEY);
-        }
-
-        Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
-        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()),
-                discordGranted, List.copyOf(discordRequests.values()));
-        for (String key : config.stringPropertyNames())
-            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
-                sandbox.addNeverMount(key.substring("denied-mount.".length()));
-
-        if (DebugLogging.isBasicEnabled()) debugLogger.info("Plugin {} sandbox: granted [{}], Discord [{}], mounts [{}]", name,
-                String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
-                discordGranted == null ? "unlimited"
-                        : String.join(", ", discordGranted.stream().map(PluginDiscordPermissions::key).toList()),
-                String.join(", ", mounts.values().stream()
-                        .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
-
-        return sandbox;
+        mounts.sort(Comparator.comparing(ConfiguredMount::name));
+        return new Settings(permissions, discordPermissions, mounts, deniedMounts);
     }
 
     /**
@@ -458,17 +433,87 @@ public final class PluginSecurity {
     }
 
     @NotNull
-    private <T> Decided<T> decideUndecided(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
-                                           @NotNull Prompt prompt) {
-        Map<T, Boolean> decisions = new LinkedHashMap<>();
-        if (undecided.isEmpty()) return new Decided<>(decisions, List.of());
+    private static Map<String, PluginSandbox.MountPoint> parseMounts(@NotNull Properties config, @NotNull String pluginName) {
+        Map<String, PluginSandbox.MountPoint> mounts = new TreeMap<>();
+        for (String key : config.stringPropertyNames()) {
+            if (!key.startsWith("mount.") || key.endsWith(".read-only")) continue;
+            String name = key.substring("mount.".length());
+            if (!MOUNT_NAME.matcher(name).matches()) {
+                logger.warn("Ignoring mount point '{}' of {}, names may only contain A-Z, a-z, 0-9, _ and -", name, pluginName);
+                continue;
+            }
 
-        Set<T> granted = decide(metadata, undecided, prompt);
-        if (granted == null)
-            return new Decided<>(decisions, undecided.stream().map(Choice::value).toList());
-        for (Choice<T> choice : undecided)
-            decisions.put(choice.value(), granted.contains(choice.value()));
-        return new Decided<>(decisions, List.of());
+            Path hostRoot;
+            try {
+                hostRoot = Path.of(config.getProperty(key).strip()).toRealPath();
+            } catch (Exception e) {
+                logger.warn("Ignoring mount point '{}' of {}, the directory {} doesn't exist", name, pluginName, config.getProperty(key));
+                continue;
+            }
+
+            if (!Files.isDirectory(hostRoot)) {
+                logger.warn("Ignoring mount point '{}' of {}, {} is not a directory", name, pluginName, hostRoot);
+                continue;
+            }
+
+            String conflict = protectedConflict(hostRoot);
+            if (conflict != null) {
+                logger.error("Refusing mount point '{}' of {}: {} overlaps with {}, which must never be accessible to plugins",
+                        name, pluginName, hostRoot, conflict);
+                continue;
+            }
+
+            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
+            mounts.put(name, new PluginSandbox.MountPoint(name, hostRoot, readOnly));
+        }
+
+        for (String key : config.stringPropertyNames()) {
+            if (!key.startsWith(MAPPED_PREFIX) || key.endsWith(".read-only")) continue;
+            if (!parseBoolean(config.getProperty(key))) continue;
+            String name = key.substring(MAPPED_PREFIX.length());
+            if (mounts.containsKey(name)) {
+                logger.warn("Ignoring the mapped mount point '{}' of {}, mount.{} is configured as well", name, pluginName, name);
+                continue;
+            }
+
+            Path hostRoot;
+            try {
+                hostRoot = mappedRoot(DataPaths.MAPPED, name);
+            } catch (IOException e) {
+                logger.warn("Ignoring the mapped mount point '{}' of {}: {}", name, pluginName, e.getMessage());
+                continue;
+            }
+            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
+            mounts.put(name, new PluginSandbox.MountPoint(name, hostRoot, readOnly));
+        }
+        return mounts;
+    }
+
+    /**
+     * Creates (if needed) and resolves the shared directory of a mapped mount point, {@code <mappedDirectory>/<name>}.
+     * <p>
+     * It is inside the data directory, which normal mount points can't overlap with, so this is the only way
+     * plugins get to {@code data/mapped/}.
+     *
+     * @param mappedDirectory The directory of all shared directories, {@link DataPaths#MAPPED}
+     * @return The real (absolute, symlink free) directory
+     * @throws IOException If the name is invalid, the directory can't be created, or it isn't inside
+     *                     {@code mappedDirectory} (e.g. it was replaced by a link)
+     */
+    @NotNull
+    static Path mappedRoot(@NotNull Path mappedDirectory, @NotNull String name) throws IOException {
+        if (!MOUNT_NAME.matcher(name).matches())
+            throw new IOException("invalid name, only A-Z, a-z, 0-9, _ and - are allowed");
+        if (WINDOWS_DEVICE.matcher(name).matches())
+            throw new IOException(name + " is a reserved name");
+
+        Path directory = mappedDirectory.resolve(name.toLowerCase(Locale.ROOT));
+        Files.createDirectories(directory);
+        Path root = mappedDirectory.toRealPath();
+        Path real = directory.toRealPath();
+        if (!real.startsWith(root) || real.equals(root) || !Files.isDirectory(real))
+            throw new IOException(directory + " doesn't resolve to a directory inside " + root);
+        return real;
     }
 
     @NotNull
@@ -604,271 +649,15 @@ public final class PluginSecurity {
     private enum MountDecision {YES, NO, NEVER}
 
     /**
-     * Asks the server owner for a new mount point, see {@link cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager#requestMount}.
-     */
-    @NotNull
-    public CompletableFuture<@Nullable Path> requestMount(@NotNull PluginSandbox sandbox, @NotNull String name,
-                                                          @NotNull String reason, boolean readOnly) {
-        if (!MOUNT_NAME.matcher(name).matches())
-            return CompletableFuture.failedFuture(
-                    new IllegalArgumentException("Mount point names may only contain A-Z, a-z, 0-9, _ and -, not " + name));
-
-        Path existing = sandbox.getMount(name);
-        if (existing != null) return CompletableFuture.completedFuture(existing);
-        if (sandbox.isNeverMount(name) || PermissionDefault.current() == PermissionDefault.NONE)
-            return CompletableFuture.completedFuture(null);
-
-        CompletableFuture<@Nullable Path> result = new CompletableFuture<>();
-        CompletableFuture<@Nullable Path> running;
-        synchronized (sandbox.pendingMountRequests()) {
-            running = sandbox.pendingMountRequests().get(name);
-            if (running == null) {
-                // One question at a time per plugin, and only a few per load, so a plugin can't flood the console
-                if (!sandbox.pendingMountRequests().isEmpty())
-                    return CompletableFuture.failedFuture(new IllegalStateException(
-                            "Another mount request of this plugin is still waiting for an answer"));
-                if (sandbox.countMountRequest() > MAX_MOUNT_REQUESTS) {
-                    logger.warn("Plugin {} requested more than {} mount points, further requests are ignored until it is reloaded",
-                            ConsoleText.plain(sandbox.pluginName()), MAX_MOUNT_REQUESTS);
-                    return CompletableFuture.completedFuture(null);
-                }
-                sandbox.pendingMountRequests().put(name, result);
-            }
-        }
-        if (running != null) return running.copy();
-
-        askMount(sandbox, name, reason, readOnly).whenComplete((path, error) -> {
-            sandbox.pendingMountRequests().remove(name, result);
-            // Plugin callbacks must not run on the console thread
-            if (error != null) {
-                logger.warn("Mount request /mnt/{} of {} failed", name, sandbox.pluginName(), error);
-                CompletableFuture.runAsync(() -> result.complete(null));
-            } else {
-                CompletableFuture.runAsync(() -> result.complete(path));
-            }
-        });
-        return result.copy();
-    }
-
-    @NotNull
-    private CompletableFuture<@Nullable Path> askMount(@NotNull PluginSandbox sandbox, @NotNull String name,
-                                                       @NotNull String reason, boolean readOnly) {
-        String message = header("Mount Request")
-                + "Plugin " + highlight(ConsoleText.plain(sandbox.pluginName())) + " requested a directory as " + mountPath(name)
-                + (readOnly ? dim(" (read-only)") : "") + ":\n"
-                + "  " + reason(reason) + "\n"
-                + question("Do you grant it?") + "\n"
-                + "  " + option("Y", "Yes") + separator() + option("N", "No") + separator() + option("I", "Never");
-
-        return askMountDecision(sandbox, name, message, message, 0).thenCompose(decision -> switch (decision) {
-            case YES -> askMountDirectory(sandbox, name, readOnly,
-                    question("Enter the directory for ") + mountPath(name) + question(" of " + ConsoleText.plain(sandbox.pluginName()))
-                            + dim(" (empty to cancel)") + ":", 0);
-            case NEVER -> {
-                sandbox.addNeverMount(name);
-                append(sandbox, "denied-mount." + name + "=true\n", "was denied the mount point /mnt/" + name);
-                logger.info("Plugin {} will never be given /mnt/{}, remove denied-mount.{} from {} to undo this",
-                        sandbox.pluginName(), name, name, securityFile(sandbox.uuid()));
-                yield CompletableFuture.completedFuture(null);
-            }
-            case NO -> CompletableFuture.completedFuture(null);
-        });
-    }
-
-    @NotNull
-    private CompletableFuture<MountDecision> askMountDecision(@NotNull PluginSandbox sandbox, @NotNull String name,
-                                                              @NotNull String question, @NotNull String message, int attempt) {
-        return prompter.ask(message, PROMPT).thenCompose(answer -> {
-            if (answer == null) {
-                logger.warn("Plugin {} requested a directory as /mnt/{}, but there is no interactive console to ask. "
-                        + "Add mount.{}=<directory> to {} and reload to grant it.", sandbox.pluginName(), name, name,
-                        securityFile(sandbox.uuid()));
-                return CompletableFuture.completedFuture(MountDecision.NO);
-            }
-
-            MountDecision decision = switch (answer.strip().toLowerCase(Locale.ROOT)) {
-                case "y", "yes" -> MountDecision.YES;
-                case "n", "no" -> MountDecision.NO;
-                case "i", "never" -> MountDecision.NEVER;
-                default -> null;
-            };
-            if (decision != null) return CompletableFuture.completedFuture(decision);
-            if (attempt + 1 >= MAX_ATTEMPTS) return CompletableFuture.completedFuture(MountDecision.NO);
-            return askMountDecision(sandbox, name, question, "\n" + error("Invalid answer '" + answer.strip() + "'.") + question,
-                    attempt + 1);
-        });
-    }
-
-    @NotNull
-    private CompletableFuture<@Nullable Path> askMountDirectory(@NotNull PluginSandbox sandbox, @NotNull String name,
-                                                                boolean readOnly, @NotNull String message, int attempt) {
-        return prompter.ask(message, PROMPT).thenCompose(answer -> {
-            if (answer == null || answer.isBlank()) return CompletableFuture.completedFuture(null);
-
-            String error;
-            try {
-                Path hostRoot = Path.of(answer.strip()).toRealPath();
-                String conflict = protectedConflict(hostRoot);
-                if (!ConsoleText.plain(hostRoot.toString()).equals(hostRoot.toString())) {
-                    error = "Directories containing control characters can't be mounted.";
-                } else if (!Files.isDirectory(hostRoot)) {
-                    error = hostRoot + " is not a directory.";
-                } else if (conflict != null) {
-                    error = hostRoot + " overlaps with " + conflict + ", which must never be accessible to plugins.";
-                } else {
-                    sandbox.addMount(new PluginSandbox.MountPoint(name, hostRoot, readOnly));
-                    append(sandbox, "mount." + name + "=" + hostRoot.toString().replace('\\', '/') + "\n"
-                            + "mount." + name + ".read-only=" + readOnly + "\n", "was given the mount point /mnt/" + name);
-                    logger.info("Mounted {} as /mnt/{}{} for {}", hostRoot, name, readOnly ? " (read-only)" : "",
-                            sandbox.pluginName());
-                    return CompletableFuture.completedFuture(sandbox.getMount(name));
-                }
-            } catch (Exception e) {
-                error = answer.strip() + " doesn't exist.";
-            }
-
-            if (attempt + 1 >= MAX_DIRECTORY_ATTEMPTS) {
-                logger.warn("{} The mount point /mnt/{} of {} is not created.", error, name, sandbox.pluginName());
-                return CompletableFuture.completedFuture(null);
-            }
-            return askMountDirectory(sandbox, name, readOnly, error(error) + " " + question("Enter another directory")
-                    + dim(" (empty to cancel)") + ":", attempt + 1);
-        });
-    }
-
-    private void append(@NotNull PluginSandbox sandbox, @NotNull String lines, @NotNull String what) {
-        String content = "\n# " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                + ": " + ConsoleText.plain(sandbox.pluginName()) + " " + what + "\n" + lines;
-        synchronized (fileLock) {
-            try {
-                Files.createDirectories(DataPaths.SECURITY);
-                Files.writeString(securityFile(sandbox.uuid()), content, StandardCharsets.UTF_8,
-                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                logger.warn("Couldn't save the decision to {}", securityFile(sandbox.uuid()), e);
-            }
-        }
-    }
-
-    // --- Inspection ---
-
-    /**
-     * The settings stored in a security file.
-     *
-     * @param permissions        The decided permissions, true if granted
-     * @param discordPermissions The decided Discord permissions, true if granted
-     * @param mounts             The configured mount points, sorted by name
-     * @param deniedMounts       Mount points, the plugin may not request anymore
-     */
-    public record Settings(@NotNull Map<PluginPermission, Boolean> permissions,
-                           @NotNull Map<Permission, Boolean> discordPermissions,
-                           @NotNull List<ConfiguredMount> mounts,
-                           @NotNull SortedSet<String> deniedMounts) {
-    }
-
-    /**
-     * @param directory The directory, as configured
-     * @param problem   Why the mount point isn't available to the plugin, null if it is
-     */
-    public record ConfiguredMount(@NotNull String name, @NotNull String directory, boolean readOnly, @Nullable String problem) {
-    }
-
-    /**
-     * Reads the security file of a plugin, without changing anything.
-     *
-     * @return The settings, or null if the plugin has no security file
-     */
-    @Nullable
-    public static Settings readSettings(@NotNull UUID uuid) throws IOException {
-        Path file = securityFile(uuid);
-        if (!Files.exists(file)) return null;
-
-        Properties config = new Properties();
-        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            config.load(reader);
-        }
-
-        Map<PluginPermission, Boolean> permissions = readPermissionDecisions(config);
-        Map<Permission, Boolean> discordPermissions = readDiscordDecisions(config);
-
-        List<ConfiguredMount> mounts = new ArrayList<>();
-        SortedSet<String> deniedMounts = new TreeSet<>();
-        for (String key : new TreeSet<>(config.stringPropertyNames())) {
-            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key))) {
-                deniedMounts.add(key.substring("denied-mount.".length()));
-                continue;
-            }
-            if (!key.startsWith("mount.") || key.endsWith(".read-only")) continue;
-
-            String name = key.substring("mount.".length());
-            String directory = config.getProperty(key).strip();
-            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
-            mounts.add(new ConfiguredMount(name, directory, readOnly, mountProblem(name, directory)));
-        }
-        return new Settings(permissions, discordPermissions, mounts, deniedMounts);
-    }
-
-    @Nullable
-    private static String mountProblem(@NotNull String name, @NotNull String directory) {
-        if (!MOUNT_NAME.matcher(name).matches()) return "invalid name, only A-Z, a-z, 0-9, _ and - are allowed";
-        Path hostRoot;
-        try {
-            hostRoot = Path.of(directory).toRealPath();
-        } catch (Exception e) {
-            return "the directory doesn't exist";
-        }
-        if (!Files.isDirectory(hostRoot)) return "not a directory";
-        String conflict = protectedConflict(hostRoot);
-        return conflict == null ? null : "overlaps with " + conflict;
-    }
-
-    // --- Mount points ---
-
-    @NotNull
-    private static Map<String, PluginSandbox.MountPoint> parseMounts(@NotNull Properties config, @NotNull String pluginName) {
-        Map<String, PluginSandbox.MountPoint> mounts = new TreeMap<>();
-        for (String key : config.stringPropertyNames()) {
-            if (!key.startsWith("mount.") || key.endsWith(".read-only")) continue;
-            String name = key.substring("mount.".length());
-            if (!MOUNT_NAME.matcher(name).matches()) {
-                logger.warn("Ignoring mount point '{}' of {}, names may only contain A-Z, a-z, 0-9, _ and -", name, pluginName);
-                continue;
-            }
-
-            Path hostRoot;
-            try {
-                hostRoot = Path.of(config.getProperty(key).strip()).toRealPath();
-            } catch (Exception e) {
-                logger.warn("Ignoring mount point '{}' of {}, the directory {} doesn't exist", name, pluginName, config.getProperty(key));
-                continue;
-            }
-
-            if (!Files.isDirectory(hostRoot)) {
-                logger.warn("Ignoring mount point '{}' of {}, {} is not a directory", name, pluginName, hostRoot);
-                continue;
-            }
-
-            String conflict = protectedConflict(hostRoot);
-            if (conflict != null) {
-                logger.error("Refusing mount point '{}' of {}: {} overlaps with {}, which must never be accessible to plugins",
-                        name, pluginName, hostRoot, conflict);
-                continue;
-            }
-
-            boolean readOnly = parseBoolean(config.getProperty(key + ".read-only", "false"));
-            mounts.put(name, new PluginSandbox.MountPoint(name, hostRoot, readOnly));
-        }
-        return mounts;
-    }
-
-    /**
      * Mounts must neither contain nor be inside the data directory (bot token, plugin data, security settings and
-     * plugin files), the configuration, the plugin jars, the logs or the Comitas jar.
+     * plugin files), the configuration, the plugin jars, the logs, the outstanding requests or the Comitas jar.
      */
     @Nullable
     static String protectedConflict(@NotNull Path mountRoot) {
         List<Path> protectedPaths = new ArrayList<>(List.of(
-                DataPaths.DATA, DataPaths.SERVER_PROPERTIES, DataPaths.PLUGINS, DataPaths.LOGS
+                DataPaths.DATA, DataPaths.SERVER_PROPERTIES, DataPaths.PLUGINS, DataPaths.LOGS,
+                // A plugin answering its own requests
+                OutstandingRequests.DEFAULT_FILE
         ));
         try {
             protectedPaths.add(Path.of(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
@@ -916,6 +705,11 @@ public final class PluginSecurity {
                 .append("# Directories overlapping data, server.properties, plugins, logs or the Comitas jar\n")
                 .append("# can't be mounted.\n")
                 .append("#\n")
+                .append("# Mapped mount points are shared directories managed by Comitas, data/mapped/<name>/,\n")
+                .append("# every plugin with the same mapped mount point sees the same directory as /mnt/<name>:\n")
+                .append("#   mapped-mount.<name>=true\n")
+                .append("#   mapped-mount.<name>.read-only=true\n")
+                .append("#\n")
                 .append("# Discord permissions (true = granted, false = denied), the plugin can only use the granted ones,\n")
                 .append("# and only where the bot has them too:\n")
                 .append("#   discord-permission.<name>=true    (e.g. discord-permission.send_messages=true)\n")
@@ -937,6 +731,468 @@ public final class PluginSecurity {
 
         Files.createDirectories(DataPaths.SECURITY);
         Files.writeString(file, content.toString(), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Writes undecided requests to the file instead of asking on the console ({@code --non-interactive-prompts}).
+     */
+    public void setOutstandingRequests(@Nullable OutstandingRequests outstanding) {
+        this.outstanding = outstanding;
+    }
+
+    @Nullable
+    public OutstandingRequests outstandingRequests() {
+        return outstanding;
+    }
+
+    /**
+     * Determines the permissions of a plugin, asking the server owner for undecided ones.
+     *
+     * @throws PluginPermissionException If the plugin must not be loaded, e.g. a required permission wasn't granted
+     */
+    @NotNull
+    public PluginSandbox resolve(@NotNull Plugin.PluginMetadata metadata, @NotNull Properties pluginProperties) throws IOException {
+        String name = metadata.name();
+        Path file = securityFile(metadata.uuid());
+        LinkedHashMap<PluginPermission, Request> requests = parseRequests(pluginProperties, name);
+        OutstandingRequests outstandingFile = outstanding;
+        if (outstandingFile != null)
+            outstandingFile.plugin(metadata.uuid(), name, metadata.version(), metadata.jarName());
+
+        Properties config = new Properties();
+        boolean exists = Files.exists(file);
+        if (exists) {
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                config.load(reader);
+            }
+
+            String configuredUuid = config.getProperty("uuid", "").strip();
+            if (!configuredUuid.isEmpty() && !configuredUuid.equalsIgnoreCase(metadata.uuid().toString()))
+                throw new PluginPermissionException(file + " contains the uuid " + configuredUuid + ", but belongs to "
+                        + name + " (" + metadata.uuid() + "). Fix or remove the uuid line in the file.");
+        }
+
+        Map<PluginPermission, Boolean> decisions = readPermissionDecisions(config);
+        Decided<PluginPermission> sandboxDecided = decideUndecided(metadata, requests.values().stream()
+                .filter(request -> !decisions.containsKey(request.permission()))
+                .map(PluginSecurity::choice)
+                .toList(), SANDBOX_PROMPT);
+        decisions.putAll(sandboxDecided.decisions());
+
+        boolean declaresDiscord = PluginDiscordPermissions.declares(pluginProperties);
+        LinkedHashMap<Permission, PluginDiscordPermissions.Request> discordRequests =
+                PluginDiscordPermissions.parseRequests(pluginProperties, name);
+        Map<Permission, Boolean> discordDecisions = readDiscordDecisions(config);
+        // Owners can limit plugins, which don't declare their Discord permissions, by adding discord-permission lines
+        boolean ownerLimited = !discordDecisions.isEmpty();
+        Decided<Permission> discordDecided = decideUndecided(metadata, discordRequests.values().stream()
+                .filter(request -> !discordDecisions.containsKey(request.permission()))
+                .map(PluginSecurity::choice)
+                .toList(), DISCORD_PROMPT);
+        discordDecisions.putAll(discordDecided.decisions());
+
+        synchronized (fileLock) {
+            if (!exists) {
+                writeNewFile(file, metadata, decisions, sandboxDecided.pending(),
+                        discordRequests.keySet(), discordDecisions, discordDecided.pending());
+            } else {
+                Map<String, Boolean> lines = new LinkedHashMap<>();
+                sandboxDecided.decisions().forEach((permission, value) -> lines.put("permission." + permission.getKey(), value));
+                discordDecided.decisions().forEach((permission, value) ->
+                        lines.put(PluginDiscordPermissions.KEY_PREFIX + PluginDiscordPermissions.key(permission), value));
+                if (!lines.isEmpty()) appendDecisions(file, name, lines);
+            }
+        }
+
+        Set<PluginPermission> granted = EnumSet.noneOf(PluginPermission.class);
+        decisions.forEach((permission, value) -> {
+            if (value) granted.add(permission);
+        });
+
+        List<String> missing = requests.values().stream()
+                .filter(request -> request.required() && !granted.contains(request.permission()))
+                .map(request -> request.permission().getKey())
+                .toList();
+        if (!missing.isEmpty() && outstandingFile != null && outstandingFile.isPending(metadata.uuid()))
+            throw new PluginPermissionException("Plugin " + name + " requires the permission(s) [" + String.join(", ", missing)
+                    + "], which wait for an answer in " + outstandingFile.file().toAbsolutePath());
+        if (!missing.isEmpty())
+            throw new PluginPermissionException("Plugin " + name + " requires the permission(s) [" + String.join(", ", missing)
+                    + "], which weren't granted. Set " + String.join(", ", missing.stream().map(key -> "permission." + key + "=true").toList())
+                    + " in " + file + " and reload to load it.");
+
+        Set<Permission> discordGranted = null;
+        if (declaresDiscord || ownerLimited) {
+            Set<Permission> grantedDiscord = EnumSet.noneOf(Permission.class);
+            discordDecisions.forEach((permission, value) -> {
+                // A permission the plugin doesn't declare anymore isn't granted, even if it was before
+                if (value && (!declaresDiscord || discordRequests.containsKey(permission))) grantedDiscord.add(permission);
+            });
+            discordGranted = grantedDiscord;
+
+            List<String> missingDiscord = discordRequests.values().stream()
+                    .filter(request -> request.required() && !grantedDiscord.contains(request.permission()))
+                    .map(request -> PluginDiscordPermissions.key(request.permission()))
+                    .toList();
+            if (!missingDiscord.isEmpty() && outstandingFile != null && outstandingFile.isPending(metadata.uuid()))
+                throw new PluginPermissionException("Plugin " + name + " requires the Discord permission(s) ["
+                        + String.join(", ", missingDiscord) + "], which wait for an answer in "
+                        + outstandingFile.file().toAbsolutePath());
+            if (!missingDiscord.isEmpty())
+                throw new PluginPermissionException("Plugin " + name + " requires the Discord permission(s) ["
+                        + String.join(", ", missingDiscord) + "], which weren't granted. Set "
+                        + String.join(", ", missingDiscord.stream().map(key -> PluginDiscordPermissions.KEY_PREFIX + key + "=true").toList())
+                        + " in " + file + " and reload to load it.");
+        } else {
+            // TODO Next release (0.0.19): remove this fallback, plugins which don't declare discord-permissions
+            //  get no Discord permissions anymore. Also update the warning, PluginDiscordPermissions and the docs.
+            logger.warn("Plugin {} doesn't declare the Discord permissions it uses ({} in its plugin.properties), "
+                            + "it can use every permission the bot has. This is deprecated and will be removed in the next "
+                            + "release, undeclared plugins will then get no Discord permissions.",
+                    name, PluginDiscordPermissions.LIST_KEY);
+        }
+
+        Map<String, PluginSandbox.MountPoint> mounts = parseMounts(config, name);
+        PluginSandbox sandbox = new PluginSandbox(name, metadata.uuid(), granted, mounts, dataFolder(metadata.uuid()),
+                discordGranted, List.copyOf(discordRequests.values()));
+        for (String key : config.stringPropertyNames())
+            if (key.startsWith("denied-mount.") && parseBoolean(config.getProperty(key)))
+                sandbox.addNeverMount(key.substring("denied-mount.".length()));
+
+        if (DebugLogging.isBasicEnabled()) debugLogger.info("Plugin {} sandbox: granted [{}], Discord [{}], mounts [{}]", name,
+                String.join(", ", granted.stream().map(PluginPermission::getKey).toList()),
+                discordGranted == null ? "unlimited"
+                        : String.join(", ", discordGranted.stream().map(PluginDiscordPermissions::key).toList()),
+                String.join(", ", mounts.values().stream()
+                        .map(m -> m.name() + (m.readOnly() ? " (read-only)" : "")).toList()));
+
+        return sandbox;
+    }
+
+    @NotNull
+    private <T> Decided<T> decideUndecided(@NotNull Plugin.PluginMetadata metadata, @NotNull List<Choice<T>> undecided,
+                                           @NotNull Prompt prompt) {
+        Map<T, Boolean> decisions = new LinkedHashMap<>();
+        if (undecided.isEmpty()) return new Decided<>(decisions, List.of());
+
+        OutstandingRequests file = outstanding;
+        if (file != null && PermissionDefault.current() == PermissionDefault.ASK)
+            return decideFromFile(metadata, undecided, file);
+
+        Set<T> granted = decide(metadata, undecided, prompt);
+        if (granted == null)
+            return new Decided<>(decisions, undecided.stream().map(Choice::value).toList());
+        for (Choice<T> choice : undecided)
+            decisions.put(choice.value(), granted.contains(choice.value()));
+        return new Decided<>(decisions, List.of());
+    }
+
+    /**
+     * Asks the server owner for a new mount point, see {@link cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager#requestMount}.
+     */
+    @NotNull
+    public CompletableFuture<@Nullable Path> requestMount(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                          @NotNull String reason, boolean readOnly) {
+        return requestMount(sandbox, name, reason, readOnly, false);
+    }
+
+    /**
+     * Asks the server owner for a new mount point, see {@link cloud.thehsi.ComitasBotJ.API.Plugin.PluginManager#requestMount}.
+     *
+     * @param mapped If the mount point is the shared directory {@code data/mapped/<name>/}, instead of a directory
+     *               the server owner chooses
+     */
+    @NotNull
+    public CompletableFuture<@Nullable Path> requestMount(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                          @NotNull String reason, boolean readOnly, boolean mapped) {
+        if (!MOUNT_NAME.matcher(name).matches())
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Mount point names may only contain A-Z, a-z, 0-9, _ and -, not " + name));
+        if (mapped && WINDOWS_DEVICE.matcher(name).matches())
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException(name + " is a reserved name, it can't be used for a mapped mount point"));
+
+        Path existing = sandbox.getMount(name);
+        if (existing != null) return CompletableFuture.completedFuture(existing);
+        if (sandbox.isNeverMount(name) || PermissionDefault.current() == PermissionDefault.NONE)
+            return CompletableFuture.completedFuture(null);
+
+        CompletableFuture<@Nullable Path> result = new CompletableFuture<>();
+        CompletableFuture<@Nullable Path> running;
+        synchronized (sandbox.pendingMountRequests()) {
+            running = sandbox.pendingMountRequests().get(name);
+            if (running == null) {
+                // One question at a time per plugin, and only a few per load, so a plugin can't flood the console
+                if (!sandbox.pendingMountRequests().isEmpty())
+                    return CompletableFuture.failedFuture(new IllegalStateException(
+                            "Another mount request of this plugin is still waiting for an answer"));
+                if (sandbox.countMountRequest() > MAX_MOUNT_REQUESTS) {
+                    logger.warn("Plugin {} requested more than {} mount points, further requests are ignored until it is reloaded",
+                            ConsoleText.plain(sandbox.pluginName()), MAX_MOUNT_REQUESTS);
+                    return CompletableFuture.completedFuture(null);
+                }
+                sandbox.pendingMountRequests().put(name, result);
+            }
+        }
+        if (running != null) return running.copy();
+
+        OutstandingRequests file = outstanding;
+        CompletableFuture<@Nullable Path> asked = file != null ? mountFromFile(sandbox, name, reason, readOnly, mapped, file)
+                : mapped ? askMappedMount(sandbox, name, reason, readOnly) : askMount(sandbox, name, reason, readOnly);
+        asked.whenComplete((path, error) -> {
+            sandbox.pendingMountRequests().remove(name, result);
+            // Plugin callbacks must not run on the console thread
+            if (error != null) {
+                logger.warn("Mount request /mnt/{} of {} failed", name, sandbox.pluginName(), error);
+                CompletableFuture.runAsync(() -> result.complete(null));
+            } else {
+                CompletableFuture.runAsync(() -> result.complete(path));
+            }
+        });
+        return result.copy();
+    }
+
+    @NotNull
+    private CompletableFuture<@Nullable Path> askMount(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                       @NotNull String reason, boolean readOnly) {
+        String message = header("Mount Request")
+                + "Plugin " + highlight(ConsoleText.plain(sandbox.pluginName())) + " requested a directory as " + mountPath(name)
+                + (readOnly ? dim(" (read-only)") : "") + ":\n"
+                + "  " + reason(reason) + "\n"
+                + question("Do you grant it?") + "\n"
+                + "  " + option("Y", "Yes") + separator() + option("N", "No") + separator() + option("I", "Never");
+
+        return askMountDecision(sandbox, name, false, message, message, 0).thenCompose(decision -> switch (decision) {
+            case YES -> askMountDirectory(sandbox, name, readOnly,
+                    question("Enter the directory for ") + mountPath(name) + question(" of " + ConsoleText.plain(sandbox.pluginName()))
+                            + dim(" (empty to cancel)") + ":", 0);
+            case NEVER -> deny(sandbox, name);
+            case NO -> CompletableFuture.completedFuture(null);
+        });
+    }
+
+    /**
+     * Asks for a mapped mount point, the directory is {@code data/mapped/<name>/}, so the owner only decides.
+     */
+    @NotNull
+    private CompletableFuture<@Nullable Path> askMappedMount(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                             @NotNull String reason, boolean readOnly) {
+        String directory = DataPaths.mapped(name).toString().replace('\\', '/') + "/";
+        String message = header("Mapped Mount Request")
+                + "Plugin " + highlight(ConsoleText.plain(sandbox.pluginName())) + " requested the shared directory "
+                + highlight(directory) + " as " + mountPath(name) + (readOnly ? dim(" (read-only)") : "") + ":\n"
+                + "  " + reason(reason) + "\n"
+                + dim("  Every plugin granted the mapped mount point " + name + " shares this directory.") + "\n"
+                + question("Do you grant it?") + "\n"
+                + "  " + option("Y", "Yes") + separator() + option("N", "No") + separator() + option("I", "Never");
+
+        return askMountDecision(sandbox, name, true, message, message, 0).thenCompose(decision -> switch (decision) {
+            case YES -> CompletableFuture.completedFuture(grantMapped(sandbox, name, readOnly));
+            case NEVER -> deny(sandbox, name);
+            case NO -> CompletableFuture.completedFuture(null);
+        });
+    }
+
+    private void append(@NotNull PluginSandbox sandbox, @NotNull String lines, @NotNull String what) {
+        String content = "\n# " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                + ": " + ConsoleText.plain(sandbox.pluginName()) + " " + what + "\n" + lines;
+        synchronized (fileLock) {
+            try {
+                Files.createDirectories(DataPaths.SECURITY);
+                Files.writeString(securityFile(sandbox.uuid()), content, StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                logger.warn("Couldn't save the decision to {}", securityFile(sandbox.uuid()), e);
+            }
+        }
+    }
+
+    // --- Inspection ---
+
+    /**
+     * The settings stored in a security file.
+     *
+     * @param permissions        The decided permissions, true if granted
+     * @param discordPermissions The decided Discord permissions, true if granted
+     * @param mounts             The configured mount points, sorted by name
+     * @param deniedMounts       Mount points, the plugin may not request anymore
+     */
+    public record Settings(@NotNull Map<PluginPermission, Boolean> permissions,
+                           @NotNull Map<Permission, Boolean> discordPermissions,
+                           @NotNull List<ConfiguredMount> mounts,
+                           @NotNull SortedSet<String> deniedMounts) {
+    }
+
+    @Nullable
+    private Path grantMapped(@NotNull PluginSandbox sandbox, @NotNull String name, boolean readOnly) {
+        Path hostRoot;
+        try {
+            hostRoot = mappedRoot(DataPaths.MAPPED, name);
+        } catch (IOException e) {
+            logger.warn("The mapped mount point /mnt/{} of {} is not created: {}", name, sandbox.pluginName(), e.getMessage());
+            return null;
+        }
+        sandbox.addMount(new PluginSandbox.MountPoint(name, hostRoot, readOnly));
+        append(sandbox, "mapped-mount." + name + "=true\n"
+                + "mapped-mount." + name + ".read-only=" + readOnly + "\n", "was given the mapped mount point /mnt/" + name);
+        logger.info("Mounted the shared directory {} as /mnt/{}{} for {}", hostRoot, name, readOnly ? " (read-only)" : "",
+                sandbox.pluginName());
+        return sandbox.getMount(name);
+    }
+
+    @NotNull
+    private CompletableFuture<@Nullable Path> deny(@NotNull PluginSandbox sandbox, @NotNull String name) {
+        sandbox.addNeverMount(name);
+        append(sandbox, "denied-mount." + name + "=true\n", "was denied the mount point /mnt/" + name);
+        logger.info("Plugin {} will never be given /mnt/{}, remove denied-mount.{} from {} to undo this",
+                sandbox.pluginName(), name, name, securityFile(sandbox.uuid()));
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Nullable
+    private static String mountProblem(@NotNull String name, @NotNull String directory) {
+        if (!MOUNT_NAME.matcher(name).matches()) return "invalid name, only A-Z, a-z, 0-9, _ and - are allowed";
+        Path hostRoot;
+        try {
+            hostRoot = Path.of(directory).toRealPath();
+        } catch (Exception e) {
+            return "the directory doesn't exist";
+        }
+        if (!Files.isDirectory(hostRoot)) return "not a directory";
+        String conflict = protectedConflict(hostRoot);
+        return conflict == null ? null : "overlaps with " + conflict;
+    }
+
+    // --- Mount points ---
+
+    @NotNull
+    private CompletableFuture<MountDecision> askMountDecision(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                              boolean mapped, @NotNull String question,
+                                                              @NotNull String message, int attempt) {
+        return prompter.ask(message, PROMPT).thenCompose(answer -> {
+            if (answer == null) {
+                logger.warn("Plugin {} requested {} as /mnt/{}, but there is no interactive console to ask. "
+                                + "Add {} to {} and reload to grant it.", sandbox.pluginName(),
+                        mapped ? "a shared directory" : "a directory", name,
+                        mapped ? "mapped-mount." + name + "=true" : "mount." + name + "=<directory>",
+                        securityFile(sandbox.uuid()));
+                return CompletableFuture.completedFuture(MountDecision.NO);
+            }
+
+            MountDecision decision = switch (answer.strip().toLowerCase(Locale.ROOT)) {
+                case "y", "yes" -> MountDecision.YES;
+                case "n", "no" -> MountDecision.NO;
+                case "i", "never" -> MountDecision.NEVER;
+                default -> null;
+            };
+            if (decision != null) return CompletableFuture.completedFuture(decision);
+            if (attempt + 1 >= MAX_ATTEMPTS) return CompletableFuture.completedFuture(MountDecision.NO);
+            return askMountDecision(sandbox, name, mapped, question,
+                    "\n" + error("Invalid answer '" + answer.strip() + "'.") + question, attempt + 1);
+        });
+    }
+
+    @NotNull
+    private CompletableFuture<@Nullable Path> askMountDirectory(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                                boolean readOnly, @NotNull String message, int attempt) {
+        return prompter.ask(message, PROMPT).thenCompose(answer -> {
+            if (answer == null || answer.isBlank()) return CompletableFuture.completedFuture(null);
+
+            String error = mountDirectory(sandbox, name, readOnly, answer);
+            if (error == null) return CompletableFuture.completedFuture(sandbox.getMount(name));
+
+            if (attempt + 1 >= MAX_DIRECTORY_ATTEMPTS) {
+                logger.warn("{} The mount point /mnt/{} of {} is not created.", error, name, sandbox.pluginName());
+                return CompletableFuture.completedFuture(null);
+            }
+            return askMountDirectory(sandbox, name, readOnly, error(error) + " " + question("Enter another directory")
+                    + dim(" (empty to cancel)") + ":", attempt + 1);
+        });
+    }
+
+    /**
+     * Mounts the directory, the server owner entered, and saves it to the security file.
+     *
+     * @return Null if it was mounted, otherwise why not
+     */
+    @Nullable
+    private String mountDirectory(@NotNull PluginSandbox sandbox, @NotNull String name, boolean readOnly,
+                                  @NotNull String answer) {
+        Path hostRoot;
+        try {
+            hostRoot = Path.of(answer.strip()).toRealPath();
+        } catch (Exception e) {
+            return answer.strip() + " doesn't exist.";
+        }
+        String conflict = protectedConflict(hostRoot);
+        if (!ConsoleText.plain(hostRoot.toString()).equals(hostRoot.toString()))
+            return "Directories containing control characters can't be mounted.";
+        if (!Files.isDirectory(hostRoot)) return hostRoot + " is not a directory.";
+        if (conflict != null)
+            return hostRoot + " overlaps with " + conflict + ", which must never be accessible to plugins.";
+
+        sandbox.addMount(new PluginSandbox.MountPoint(name, hostRoot, readOnly));
+        append(sandbox, "mount." + name + "=" + hostRoot.toString().replace('\\', '/') + "\n"
+                + "mount." + name + ".read-only=" + readOnly + "\n", "was given the mount point /mnt/" + name);
+        logger.info("Mounted {} as /mnt/{}{} for {}", hostRoot, name, readOnly ? " (read-only)" : "", sandbox.pluginName());
+        return null;
+    }
+
+    /**
+     * {@code --non-interactive-prompts}: takes the answer to a mount request from the outstanding requests file,
+     * or lists the request in it. The plugin isn't stopped, an unanswered request completes with null.
+     */
+    @NotNull
+    private CompletableFuture<@Nullable Path> mountFromFile(@NotNull PluginSandbox sandbox, @NotNull String name,
+                                                            @NotNull String reason, boolean readOnly, boolean mapped,
+                                                            @NotNull OutstandingRequests file) {
+        String settingKey = (mapped ? MAPPED_PREFIX : "mount.") + name;
+        String answer = file.answer(sandbox.uuid(), settingKey);
+        if (answer == null && mapped && file.allowAll(sandbox.uuid(), settingKey)) answer = "Y";
+
+        String problem = null;
+        if (answer != null && OutstandingRequests.isNo(answer)) {
+            file.resolved(sandbox.uuid(), settingKey);
+            return deny(sandbox, name);
+        }
+        if (answer != null && mapped) {
+            if (OutstandingRequests.isYes(answer)) {
+                Path path = grantMapped(sandbox, name, readOnly);
+                if (path != null) {
+                    file.resolved(sandbox.uuid(), settingKey);
+                    return CompletableFuture.completedFuture(path);
+                }
+                problem = "data/mapped/" + name.toLowerCase(Locale.ROOT) + "/ couldn't be created, see the log";
+            } else {
+                problem = "Invalid answer '" + answer + "', use Y or N";
+            }
+        } else if (answer != null) {
+            problem = OutstandingRequests.isYes(answer) ? "Enter the directory to mount instead of Y"
+                    : mountDirectory(sandbox, name, readOnly, answer);
+            if (problem == null) {
+                file.resolved(sandbox.uuid(), settingKey);
+                return CompletableFuture.completedFuture(sandbox.getMount(name));
+            }
+        }
+
+        String title = "/mnt/" + name + (mapped ? " -> data/mapped/" + name.toLowerCase(Locale.ROOT) + "/" : "")
+                + (readOnly ? " (read-only)" : "");
+        file.add(sandbox.uuid(), new OutstandingRequests.Entry(
+                mapped ? OutstandingRequests.Kind.MAPPED_MOUNT : OutstandingRequests.Kind.MOUNT, settingKey, title,
+                reason, false, !mapped, mapped ? "Every plugin granted this mapped mount point shares the directory" : null,
+                "?", problem));
+        logger.warn("Plugin {} requested /mnt/{}, the request waits for an answer in {}", sandbox.pluginName(), name,
+                file.file().toAbsolutePath());
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * @param directory The directory, as configured, or the shared directory of a mapped mount point
+     * @param mapped    If it is a mapped mount point, the shared directory {@code data/mapped/<name>/}
+     * @param problem   Why the mount point isn't available to the plugin, null if it is
+     */
+    public record ConfiguredMount(@NotNull String name, @NotNull String directory, boolean readOnly, boolean mapped,
+                                  @Nullable String problem) {
     }
 
     /**

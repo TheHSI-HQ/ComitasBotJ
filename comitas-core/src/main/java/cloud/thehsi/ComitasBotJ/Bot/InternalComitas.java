@@ -21,6 +21,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.InternalPluginManager;
 import cloud.thehsi.ComitasBotJ.Plugin.PluginLoaderManager;
 import cloud.thehsi.ComitasBotJ.Sandbox.ConsolePermissionPrompter;
+import cloud.thehsi.ComitasBotJ.Sandbox.OutstandingRequests;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,19 +63,10 @@ public class InternalComitas implements InternalComitasImpl {
     final InstanceLock instanceLock = new InstanceLock();
     private @Nullable InternalBot bot;
 
-    public InternalComitas(@NotNull InternalConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
-        this.consoleCommandRegistry = consoleCommandRegistry;
-        this.consolePrompt = consolePrompt;
-        if (!Main.props().noCmd())
-            pluginLoaderManager.security().setPrompter(new ConsolePermissionPrompter(consolePrompt));
-        this.pluginManager = new InternalPluginManager(
-                pluginLoaderManager,
-                eventManager,
-                scheduler,
-                commandRegistry,
-                consoleCommandRegistry
-        );
-    }
+    /**
+     * The exit code, if {@code --non-interactive-prompts} stops the start, because requests wait for an answer.
+     */
+    public static final int EXIT_OUTSTANDING_REQUESTS = 2;
 
     @NotNull
     public static String minimalStartupAndFetchBotID() {
@@ -95,6 +87,27 @@ public class InternalComitas implements InternalComitasImpl {
         if (!Main.props().quiet()) logger.info(message, args);
     }
 
+    public InternalComitas(@NotNull InternalConsoleCommandRegistry consoleCommandRegistry, @NotNull ConsolePrompt consolePrompt) {
+        this.consoleCommandRegistry = consoleCommandRegistry;
+        this.consolePrompt = consolePrompt;
+        if (!Main.props().noCmd())
+            pluginLoaderManager.security().setPrompter(new ConsolePermissionPrompter(consolePrompt));
+        if (Main.props().nonInteractivePrompts()) {
+            try {
+                pluginLoaderManager.security().setOutstandingRequests(OutstandingRequests.load(OutstandingRequests.DEFAULT_FILE));
+            } catch (IOException e) {
+                throw new RuntimeException("Couldn't read " + OutstandingRequests.DEFAULT_FILE.toAbsolutePath(), e);
+            }
+        }
+        this.pluginManager = new InternalPluginManager(
+                pluginLoaderManager,
+                eventManager,
+                scheduler,
+                commandRegistry,
+                consoleCommandRegistry
+        );
+    }
+
     @Override
     public void init() {
         DebugLogging.basic("Initializing Comitas API");
@@ -103,7 +116,22 @@ public class InternalComitas implements InternalComitasImpl {
 
         String token = Secrets.requireBotToken();
         loadPlugins();
+        exitOnOutstandingRequests();
         connect(token);
+    }
+
+    /**
+     * {@code --non-interactive-prompts}: writes the requests, which wait for an answer, and exits if there are any.
+     */
+    private void exitOnOutstandingRequests() {
+        OutstandingRequests outstanding = pluginLoaderManager.security().outstandingRequests();
+        if (outstanding == null) return;
+
+        int count = outstanding.finishStartup();
+        if (count == 0) return;
+        logger.warn("{} plugin request(s) wait for an answer. Answer them in {} (or set ALLOW_ALL=Y at its end), "
+                + "then start ComitasBotJ again.", count, outstanding.file().toAbsolutePath());
+        System.exit(EXIT_OUTSTANDING_REQUESTS);
     }
 
     private void createLogsDirectory() {

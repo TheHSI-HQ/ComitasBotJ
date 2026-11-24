@@ -2,5 +2,5 @@ package cloud.thehsi.ComitasBotJ.Configuration;
 
 public record StartupProperties(boolean noCmd, boolean ignoreApiTarget, boolean safeMode, boolean strictSafeMode,
                                 boolean quiet, boolean listPlugins, long invitePermissions,
-                                boolean allowConcurrentInstances) {
+                                boolean allowConcurrentInstances, boolean nonInteractivePrompts) {
 }

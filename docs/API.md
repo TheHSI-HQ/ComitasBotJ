@@ -934,6 +934,20 @@ The owner is asked `[Y] Yes / [N] No / [I] Never` and enters the directory. A gr
 available right away and after restarts. After `Never`, requests for that name complete with `null` without asking.
 Mount points may be read-only, writing to them throws an `AccessDeniedException`.
 
+A **mapped** mount point is a shared directory Comitas creates and manages itself (`data/mapped/<name>/` on the host),
+the owner only answers `Y / N / I`, without entering a directory. Every plugin granted a mapped mount point with the
+same name (case-insensitive) sees the same directory, so plugins can exchange files through it:
+
+```java
+requestMount("shared-cache", "Shares rendered images with the gallery plugin", false, true).thenAccept(shared -> {
+    if (shared == null) return; // denied, or no console to ask
+    Files.write(shared.resolve("latest.png"), image);
+});
+```
+
+Owners can also grant one in the plugin's security file with `mapped-mount.<name>=true` (and
+`mapped-mount.<name>.read-only=true`). Mapped directories don't count towards `plugin-data-quota-mb`.
+
 Resources from your own jar can be read with `getClass().getResourceAsStream("/config.yml")`.
 
 ### Libraries

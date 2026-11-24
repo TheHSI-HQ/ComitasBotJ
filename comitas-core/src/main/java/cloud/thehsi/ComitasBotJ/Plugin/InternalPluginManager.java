@@ -241,6 +241,13 @@ public class InternalPluginManager implements PluginManager {
     }
 
     @Override
+    public @NotNull CompletableFuture<@Nullable Path> requestMount(@NotNull String name, @NotNull String reason,
+                                                                   boolean readOnly, boolean mapped) {
+        DebugLogging.action(name, reason, readOnly, mapped);
+        return pluginLoaderManager.security().requestMount(requireSandbox(), name, reason, readOnly, mapped);
+    }
+
+    @Override
     public @NotNull String getHostPath(@NotNull Path path) throws IOException {
         DebugLogging.action(path);
         return requireSandbox().hostPath(path);

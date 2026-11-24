@@ -115,9 +115,6 @@ public class DebugLogging {
         logger.debug(message, args);
     }
 
-    interface UnknownClass {
-    }
-
     public static boolean isAPIEnabled() {
         return getVerbosityLevel() >= 4;
     }
