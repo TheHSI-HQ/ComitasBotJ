@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * (only the plugin's own jar), URL creation (only http/https) and {@code Path.of} / {@code Paths.get} /
  * {@code FileSystems.getDefault()} (the plugin's own file system).
  * <p>
- * Classes of the plugin's libraries ({@link PluginLibraryClassLoader}) may be used like allowed host classes,
- * they only exist if the plugin was granted {@link PluginPermission#LIBRARIES}.
+ * Classes of the plugin's risky libraries ({@link RiskyLibraryClassLoader}) may be used like allowed host classes,
+ * they only exist if the plugin was granted {@link PluginPermission#RISKY_LIBRARIES}.
  * <p>
  * The checks run on the original bytecode, the injected calls are not visible to plugins.
  */
@@ -81,6 +81,7 @@ final class SandboxTransformer {
     private final @NotNull PluginSandbox sandbox;
     private final @NotNull ClassHierarchy hierarchy;
     private final @Nullable CompatibilityTransformer compatibility;
+    private final boolean application;
     private final @NotNull Map<String, Optional<String>> memberCache = new ConcurrentHashMap<>();
 
     SandboxTransformer(@NotNull PluginSandbox sandbox, @NotNull ClassHierarchy hierarchy) {
@@ -92,9 +93,33 @@ final class SandboxTransformer {
      */
     SandboxTransformer(@NotNull PluginSandbox sandbox, @NotNull ClassHierarchy hierarchy,
                        @Nullable CompatibilityTransformer compatibility) {
+        this(sandbox, hierarchy, compatibility, false);
+    }
+
+    /**
+     * @param application If the classes belong to a {@link SandboxJavaApplication}: {@code System.exit} then ends
+     *                    the application's main method ({@link ApplicationExitError}) instead of being denied
+     */
+    SandboxTransformer(@NotNull PluginSandbox sandbox, @NotNull ClassHierarchy hierarchy,
+                       @Nullable CompatibilityTransformer compatibility, boolean application) {
         this.sandbox = sandbox;
         this.hierarchy = hierarchy;
         this.compatibility = compatibility;
+        this.application = application;
+    }
+
+    /**
+     * @return The descriptor of the {@link SandboxRuntime#exit} variant, if the call exits the JVM, otherwise null
+     */
+    @Nullable
+    private static String exitRedirect(@NotNull MethodInsnNode call) {
+        if (!call.desc.equals("(I)V")) return null;
+        if (call.getOpcode() == Opcodes.INVOKESTATIC && call.owner.equals("java/lang/System") && call.name.equals("exit"))
+            return "(I)V";
+        if (call.getOpcode() == Opcodes.INVOKEVIRTUAL && call.owner.equals("java/lang/Runtime")
+                && (call.name.equals("exit") || call.name.equals("halt")))
+            return "(Ljava/lang/Runtime;I)V";
+        return null;
     }
 
     byte[] transform(@NotNull String internalName, byte[] original) {
@@ -157,6 +182,13 @@ final class SandboxTransformer {
 
             switch (insn) {
                 case MethodInsnNode call -> {
+                    String exit = application ? exitRedirect(call) : null;
+                    if (exit != null) {
+                        instructions.set(call, new MethodInsnNode(Opcodes.INVOKESTATIC, RUNTIME, "exit", exit, false));
+                        modified = true;
+                        continue;
+                    }
+
                     if (call.owner.equals(CLASS) && call.getOpcode() == Opcodes.INVOKEVIRTUAL
                             && CLASS_REDIRECTS.contains(call.name + call.desc)) {
                         redirectClassMethod(owner, instructions, call);
@@ -416,8 +448,8 @@ final class SandboxTransformer {
             case ALLOW -> null;
             case NETWORK -> permissionMissing(PluginPermission.NETWORK) == null
                     ? null : type.replace('/', '.') + " " + permissionMissing(PluginPermission.NETWORK);
-            case JDBC -> sandbox.has(PluginPermission.NETWORK) || sandbox.has(PluginPermission.LIBRARIES)
-                    ? null : type.replace('/', '.') + " requires the network or libraries permission, neither was granted";
+            case JDBC -> sandbox.has(PluginPermission.NETWORK) || sandbox.has(PluginPermission.RISKY_LIBRARIES)
+                    ? null : type.replace('/', '.') + " requires the network or risky_libraries permission, neither was granted";
             case DENY -> type.replace('/', '.') + " is not available to plugins";
         };
     }

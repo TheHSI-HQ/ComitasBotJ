@@ -98,21 +98,54 @@ public abstract class Plugin {
 
     /**
      * Gets the location of a file of this plugin's file system on the host, to hand it to a library loaded with
-     * {@link PluginPermission#LIBRARIES}, e.g. a database driver:
+     * {@link PluginPermission#RISKY_LIBRARIES}, e.g. a database driver:
      * <pre>
      * DriverManager.getConnection("jdbc:sqlite:" + getHostPath(getDataFolder().resolve("data.db")));
      * </pre>
-     * Libraries aren't sandboxed, so the path isn't restricted to what the plugin itself could do with it
+     * Risky libraries aren't sandboxed, so the path isn't restricted to what the plugin itself could do with it
      * (read-only data folder or mount points, data quota).
      *
      * @param path A path of the plugin's file system
      * @return The absolute path on the host, as a string. It can't be used with {@code Path.of} in the plugin itself.
-     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#RISKY_LIBRARIES}
      * @throws IOException       If the path can't be mapped onto the host, e.g. it leaves the file system
      */
     @NotNull
     public String getHostPath(@NotNull Path path) throws IOException {
         return Comitas.getPluginManager().getHostPath(path);
+    }
+
+    /**
+     * Loads a jar of this plugin's file system as a {@link JavaApplication}, which runs inside this plugin's sandbox:
+     * <pre>
+     * try (JavaApplication tool = loadJavaApplication(getDataFolder().resolve("tools/converter.jar"))) {
+     *     int status = tool.run("--input", "/in.txt", "--output", "/out.txt");
+     * }
+     * </pre>
+     * The main class is read from the jar's manifest ({@code Main-Class}).
+     *
+     * @param jar A jar in this plugin's file system
+     * @return The loaded application
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#JAVA_APPLICATIONS}
+     * @throws IOException       If the jar can't be read
+     */
+    @NotNull
+    public JavaApplication loadJavaApplication(@NotNull Path jar) throws IOException {
+        return Comitas.getPluginManager().loadJavaApplication(jar, null);
+    }
+
+    /**
+     * Loads a jar of this plugin's file system as a {@link JavaApplication}, see {@link #loadJavaApplication(Path)}.
+     *
+     * @param jar       A jar in this plugin's file system
+     * @param mainClass The binary name of the class, whose {@code main} method is run, null for the manifest's {@code Main-Class}
+     * @return The loaded application
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#JAVA_APPLICATIONS}
+     * @throws IOException       If the jar can't be read
+     */
+    @NotNull
+    public JavaApplication loadJavaApplication(@NotNull Path jar, @Nullable String mainClass) throws IOException {
+        return Comitas.getPluginManager().loadJavaApplication(jar, mainClass);
     }
 
     /**

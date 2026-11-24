@@ -855,12 +855,14 @@ permission.network.required=true
 permission.file_storage.reason=Caches downloaded radar images
 ```
 
-| Permission       | `PluginPermission` | Allows                                                                              |
-|------------------|--------------------|-------------------------------------------------------------------------------------|
-| `network`        | `NETWORK`          | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC |
-| `file_storage`   | `FILE_STORAGE`     | Writing to your own folder, see below                                               |
-| `server_control` | `SERVER_CONTROL`   | `Comitas.shutdown()`, `reloadSoft()` and `reloadHard()` of the plugin manager       |
-| `libraries`      | `LIBRARIES`        | Unsandboxed libraries like database drivers, and JDBC, see [Libraries](#libraries)  |
+| Permission            | `PluginPermission`    | Allows                                                                                                |
+|-----------------------|-----------------------|-------------------------------------------------------------------------------------------------------|
+| `network`             | `NETWORK`             | `java.net.http.HttpClient`, sockets, `java.net.URL` (only `http` and `https`), JDBC, the JDK's HTTP server |
+| `file_storage`        | `FILE_STORAGE`        | Writing to your own folder, see below                                                                 |
+| `server_control`      | `SERVER_CONTROL`      | `Comitas.shutdown()`, `reloadSoft()` and `reloadHard()` of the plugin manager                         |
+| `libraries`           | `LIBRARIES`           | Bundled library jars, sandboxed like your code, see [Libraries](#libraries)                           |
+| `risky_libraries`     | `RISKY_LIBRARIES`     | Unsandboxed libraries like database drivers, and JDBC, see [Risky Libraries](#risky-libraries)        |
+| `java_applications`   | `JAVA_APPLICATIONS`   | Running jars of your file system, see [Java Applications](#java-applications)                         |
 
 Mark a permission as `required`, if your plugin can't work without it, it is then only loaded if the permission was
 granted. Check optional ones with `hasPermission(PluginPermission.FILE_STORAGE)` and degrade gracefully, the owner may
@@ -936,17 +938,51 @@ Resources from your own jar can be read with `getClass().getResourceAsStream("/c
 
 ### Libraries
 
-Pure Java libraries can simply be shaded into your jar, they are sandboxed like your own code. Libraries that need more
-than the sandbox allows, like JDBC drivers with native code (`sqlite-jdbc`, H2, ...), can be bundled as jars inside
-your jar instead. List them in `plugin.properties` and request the `libraries` permission:
+Pure Java libraries can simply be shaded into your jar, they are sandboxed like your own code. If you don't want to
+shade them (e.g. an HTTP server like NanoHTTPD, or a signed / multi-release jar), bundle them as jars inside your jar
+and list them as `libraries`:
 
 ```properties
-permissions=libraries,file_storage
-permission.libraries.reason=Stores levels in an SQLite database
-permission.libraries.required=true
+permissions=libraries,network
+permission.libraries.reason=Serves the dashboard
+permission.network.reason=Listens on port 8080
+# Paths inside your jar, separated by commas
+libraries=META-INF/libs/nanohttpd-2.3.1.jar
+```
+
+Their classes are verified and rewritten like your own classes: they only have the permissions your plugin was granted,
+use your file system and log through your logger. A server socket still needs `network`, writing files still needs
+`file_storage`. Code paths that need more than the sandbox allows (e.g. `ServiceLoader`, `java.io.File`, native code)
+throw a `SecurityException` when they are reached, such libraries need [Risky Libraries](#risky-libraries).
+Without the permission, the libraries aren't loaded.
+
+The JDK's own HTTP server (`com.sun.net.httpserver`) is available with just the `network` permission, except
+`SimpleFileServer`, which serves host directories:
+
+```java
+HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+server.createContext("/", exchange -> {
+    byte[] body = "Hello".getBytes(StandardCharsets.UTF_8);
+    exchange.sendResponseHeaders(200, body.length);
+    try (OutputStream out = exchange.getResponseBody()) {
+        out.write(body);
+    }
+});
+server.start(); // stop it in onDisable()
+```
+
+### Risky Libraries
+
+Libraries that need more than the sandbox allows, like JDBC drivers with native code (`sqlite-jdbc`, H2, ...), can be
+bundled as risky libraries instead. List them in `plugin.properties` and request the `risky_libraries` permission:
+
+```properties
+permissions=risky_libraries,file_storage
+permission.risky_libraries.reason=Stores levels in an SQLite database
+permission.risky_libraries.required=true
 permission.file_storage.reason=The database file
 # Paths inside your jar, separated by commas
-libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
+risky-libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
 ```
 
 With Maven, `maven-dependency-plugin` can copy the driver into your jar (don't also shade it):
@@ -974,9 +1010,9 @@ With Maven, `maven-dependency-plugin` can copy the driver into your jar (don't a
 </plugin>
 ```
 
-Library classes are **not sandboxed**, they can do anything the server can, so the owner should only grant this to
+Risky library classes are **not sandboxed**, they can do anything the server can, so the owner should only grant this to
 plugins they trust. It is never granted automatically through `plugin-permission-default`, the owner has to accept it in
-the prompt or set `permission.libraries=true` in the plugin's security file. Your own classes stay sandboxed, but may use
+the prompt or set `permission.risky_libraries=true` in the plugin's security file. Your own classes stay sandboxed, but may use
 the library classes and `java.sql`:
 
 ```java
@@ -987,12 +1023,34 @@ try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databa
 }
 ```
 
-Libraries see the host's real file system, not your plugin's. `getHostPath(path)` translates a path of your file
-system into the host path (as a `String`, it only works with the `libraries` permission). What a library does with it
+Risky libraries see the host's real file system, not your plugin's. `getHostPath(path)` translates a path of your file
+system into the host path (as a `String`, it only works with the `risky_libraries` permission). What a library does with it
 isn't restricted by `file_storage`, read-only mount points or the data quota. Libraries only see the JDK and the Comitas API, not the core's own
 dependencies or other plugins. Library methods taking or returning classes the sandbox denies (like `java.io.File`)
 can't be called from your code. Without the permission, the libraries aren't loaded and using them throws a
 `SecurityException`.
+
+### Java Applications
+
+With `java_applications`, your plugin can run jars of its file system (e.g. a tool it downloaded or bundles as a
+resource) as Java applications:
+
+```java
+Path jar = getDataFolder().resolve("tools/converter.jar");
+try (JavaApplication converter = loadJavaApplication(jar)) { // Main-Class from the manifest
+    int status = converter.run("--input", "/in.txt", "--output", "/out.txt"); // blocks
+}
+
+JavaApplication worker = loadJavaApplication(jar, "com.example.Worker"); // explicit main class
+worker.start("--daemon").thenAccept(status -> getLogger().info("Worker exited with {}", status));
+```
+
+Applications run inside your plugin's sandbox, with your permissions, file system (`Path.of` resolves in it) and
+logger. Each application has its own class loader: it can't see your classes and you can't see its classes.
+Jars listed in the `Class-Path` of its manifest are loaded too, if they exist next to it in your file system.
+`System.exit(status)` ends the application's `main` method with that status (returned by `run`), not the server.
+Threads it starts keep running after `main` returned; `close()` (or unloading your plugin) only stops new classes from
+being loaded.
 
 ## Plugin Manager & Cross-Plugin Communication
 

@@ -140,7 +140,7 @@ class PluginLibrariesTest {
 
     @Test
     void grantedLibrariesRunUnsandboxed() throws Throwable {
-        try (SandboxPluginClassLoader loader = loader(sandbox(PluginPermission.LIBRARIES), List.of(LIBRARY_PATH))) {
+        try (SandboxPluginClassLoader loader = loader(sandbox(PluginPermission.RISKY_LIBRARIES), List.of(LIBRARY_PATH))) {
             assertEquals(System.getProperty("java.version"), call(loader, "viaLibrary"));
             assertEquals("java.sql.Types", call(loader, "sql"));
             // The plugin's own code stays sandboxed
@@ -167,7 +167,7 @@ class PluginLibrariesTest {
 
     @Test
     void extractedLibrariesAreReused() throws Throwable {
-        PluginSandbox sandbox = sandbox(PluginPermission.LIBRARIES);
+        PluginSandbox sandbox = sandbox(PluginPermission.RISKY_LIBRARIES);
         try (SandboxPluginClassLoader first = loader(sandbox, List.of(LIBRARY_PATH));
              SandboxPluginClassLoader second = loader(sandbox, List.of(LIBRARY_PATH))) {
             assertEquals(call(first, "viaLibrary"), call(second, "viaLibrary"));
@@ -182,20 +182,20 @@ class PluginLibrariesTest {
     @Test
     void librariesMustNotBundleJda() throws IOException {
         File plugin = pluginJar(jar(Map.of("net/dv8tion/jda/api/JDA.class", libraryClass())));
-        PluginSandbox sandbox = sandbox(PluginPermission.LIBRARIES);
+        PluginSandbox sandbox = sandbox(PluginPermission.RISKY_LIBRARIES);
         assertThrows(SandboxViolationException.class, () -> new SandboxPluginClassLoader(plugin, sandbox,
                 List.of(LIBRARY_PATH), temp.resolve("cache")).close());
     }
 
     @Test
     void missingLibrariesFailLoading() throws IOException {
-        PluginSandbox sandbox = sandbox(PluginPermission.LIBRARIES);
+        PluginSandbox sandbox = sandbox(PluginPermission.RISKY_LIBRARIES);
         assertThrows(IOException.class, () -> loader(sandbox, List.of("META-INF/libs/missing.jar")).close());
     }
 
     @Test
-    void hostPathsNeedTheLibrariesPermission() throws IOException {
-        PluginSandbox granted = sandbox(PluginPermission.LIBRARIES);
+    void hostPathsNeedTheRiskyLibrariesPermission() throws IOException {
+        PluginSandbox granted = sandbox(PluginPermission.RISKY_LIBRARIES);
         assertEquals(temp.resolve("volume").resolve("data.db").toAbsolutePath().toString(),
                 granted.hostPath(granted.getDataFolder().resolve("../data.db")));
 
@@ -204,10 +204,10 @@ class PluginLibrariesTest {
     }
 
     @Test
-    void librariesAreParsedFromPluginProperties() {
+    void riskyLibrariesAreParsedFromPluginProperties() {
         Properties props = new Properties();
-        props.setProperty("libraries", " /META-INF/libs/a.jar, libs/b.jar  libs/b.jar ");
-        assertEquals(List.of("META-INF/libs/a.jar", "libs/b.jar"), SandboxPluginClassLoader.parseLibraries(props));
-        assertEquals(List.of(), SandboxPluginClassLoader.parseLibraries(new Properties()));
+        props.setProperty("risky-libraries", " /META-INF/libs/a.jar, libs/b.jar  libs/b.jar ");
+        assertEquals(List.of("META-INF/libs/a.jar", "libs/b.jar"), SandboxPluginClassLoader.parseRiskyLibraries(props));
+        assertEquals(List.of(), SandboxPluginClassLoader.parseRiskyLibraries(new Properties()));
     }
 }

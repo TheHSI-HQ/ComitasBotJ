@@ -23,16 +23,16 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
 /**
- * Loads the libraries a plugin bundles, if it was granted {@link PluginPermission#LIBRARIES}.
+ * Loads the risky (unsandboxed) libraries a plugin bundles, if it was granted {@link PluginPermission#RISKY_LIBRARIES}.
  * <p>
- * Library jars are nested in the plugin jar and listed in its {@code plugin.properties} ({@code libraries=...}).
+ * Library jars are nested in the plugin jar and listed in its {@code plugin.properties} ({@code risky-libraries=...}).
  * They are extracted to {@link DataPaths#LIBRARIES} and loaded <b>without</b> being verified or rewritten by the sandbox,
  * so they can use native code, files, {@code ServiceLoader} & co. They are trusted code.
  * <p>
  * Like plugins, they only see the JDK and the Comitas API ({@link SandboxParentClassLoader}), so they
  * don't clash with the core's own dependencies and can't name core classes or other plugins' classes.
  */
-final class PluginLibraryClassLoader extends URLClassLoader {
+final class RiskyLibraryClassLoader extends URLClassLoader {
     static {
         registerAsParallelCapable();
     }
@@ -42,7 +42,7 @@ final class PluginLibraryClassLoader extends URLClassLoader {
      */
     private final @NotNull @Unmodifiable Set<String> classes;
 
-    private PluginLibraryClassLoader(@NotNull String pluginName, @NotNull URL[] jars, @NotNull Set<String> classes) {
+    private RiskyLibraryClassLoader(@NotNull String pluginName, @NotNull URL[] jars, @NotNull Set<String> classes) {
         super("libraries-" + pluginName, jars, SandboxParentClassLoader.INSTANCE);
         this.classes = Set.copyOf(classes);
     }
@@ -55,30 +55,42 @@ final class PluginLibraryClassLoader extends URLClassLoader {
      * @throws SandboxViolationException If a library bundles JDA
      */
     @NotNull
-    static PluginLibraryClassLoader create(@NotNull File pluginJar, @NotNull List<String> libraries,
-                                           @NotNull String pluginName, @NotNull Path cacheDirectory) throws IOException {
+    static RiskyLibraryClassLoader create(@NotNull File pluginJar, @NotNull List<String> libraries,
+                                          @NotNull String pluginName, @NotNull Path cacheDirectory) throws IOException {
         List<URL> urls = new ArrayList<>();
         Set<String> classes = new HashSet<>();
 
         try (JarFile jarFile = new JarFile(pluginJar)) {
             for (String library : libraries) {
-                JarEntry entry = jarFile.getJarEntry(library);
-                if (entry == null || entry.isDirectory())
-                    throw new IOException("Plugin " + pluginName + " lists the library " + library
-                            + ", which doesn't exist in its jar");
-
-                byte[] bytes;
-                try (InputStream in = jarFile.getInputStream(entry)) {
-                    bytes = in.readAllBytes();
-                }
-
-                Path extracted = extract(bytes, cacheDirectory);
+                Path extracted = extract(jarFile, library, pluginName, cacheDirectory);
                 classes.addAll(scan(extracted, library, pluginName));
                 urls.add(toUrl(extracted));
             }
         }
 
-        return new PluginLibraryClassLoader(pluginName, urls.toArray(URL[]::new), classes);
+        return new RiskyLibraryClassLoader(pluginName, urls.toArray(URL[]::new), classes);
+    }
+
+    /**
+     * Extracts a jar nested in the plugin jar to the cache, also used for (sandboxed) libraries.
+     *
+     * @param library The path of the library jar inside the plugin jar
+     * @return The extracted jar
+     * @throws IOException If the plugin jar doesn't contain the library
+     */
+    @NotNull
+    static Path extract(@NotNull JarFile pluginJar, @NotNull String library, @NotNull String pluginName,
+                        @NotNull Path cacheDirectory) throws IOException {
+        JarEntry entry = pluginJar.getJarEntry(library);
+        if (entry == null || entry.isDirectory())
+            throw new IOException("Plugin " + pluginName + " lists the library " + library
+                    + ", which doesn't exist in its jar");
+
+        byte[] bytes;
+        try (InputStream in = pluginJar.getInputStream(entry)) {
+            bytes = in.readAllBytes();
+        }
+        return extract(bytes, cacheDirectory);
     }
 
     /**

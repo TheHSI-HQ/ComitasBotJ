@@ -190,16 +190,16 @@ public final class PluginSandbox {
     }
 
     /**
-     * The host location of a path in the plugin's file system, for unsandboxed libraries.
+     * The host location of a path in the plugin's file system, for risky (unsandboxed) libraries.
      * A string, so that the plugin's own (sandboxed) code can't use it as a host {@link Path}.
      *
-     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#RISKY_LIBRARIES}
      */
     @NotNull
     public String hostPath(@NotNull Path path) throws IOException {
-        if (!has(PluginPermission.LIBRARIES))
+        if (!has(PluginPermission.RISKY_LIBRARIES))
             throw new SecurityException("Plugin " + pluginName + " may not get host paths, it requires the "
-                    + PluginPermission.LIBRARIES.getKey() + " permission");
+                    + PluginPermission.RISKY_LIBRARIES.getKey() + " permission");
         return fileSystem.hostPath(path).toString();
     }
 

@@ -93,11 +93,23 @@ public interface PluginManager {
      *
      * @param path A path of the plugin's file system, like {@code getDataFolder().resolve("data.db")}
      * @return The absolute path on the host
-     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#LIBRARIES}
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#RISKY_LIBRARIES}
      * @throws IOException       If the path can't be mapped onto the host, e.g. it leaves the file system
      */
     @NotNull
     String getHostPath(@NotNull Path path) throws IOException;
+
+    /**
+     * Loads a jar of the current plugin's file system as a {@link JavaApplication}, see {@link Plugin#loadJavaApplication(Path, String)}.
+     *
+     * @param jar       A jar in the plugin's file system
+     * @param mainClass The binary name of the class, whose {@code main} method is run, null for the manifest's {@code Main-Class}
+     * @return The loaded application
+     * @throws SecurityException If the plugin wasn't granted {@link PluginPermission#JAVA_APPLICATIONS}
+     * @throws IOException       If the jar can't be read
+     */
+    @NotNull
+    JavaApplication loadJavaApplication(@NotNull Path jar, @Nullable String mainClass) throws IOException;
 
     /**
      * Checks if the current plugin was granted a {@link PluginPermission}.

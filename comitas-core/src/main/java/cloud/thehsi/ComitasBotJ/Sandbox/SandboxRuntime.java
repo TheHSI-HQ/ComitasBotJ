@@ -10,7 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -52,6 +55,16 @@ public final class SandboxRuntime {
     @NotNull
     public static Throwable apiException(@NotNull Throwable throwable) {
         return DiscordExceptions.translate(throwable);
+    }
+
+    // --- System.exit in applications: ends the application, not the server ---
+
+    public static void exit(int status) {
+        throw new ApplicationExitError(status);
+    }
+
+    public static void exit(@Nullable Runtime runtime, int status) {
+        throw new ApplicationExitError(status);
     }
 
     // --- Resources: only from the plugin's own jar ---

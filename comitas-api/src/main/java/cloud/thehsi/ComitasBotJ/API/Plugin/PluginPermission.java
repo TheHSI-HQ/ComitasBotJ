@@ -38,19 +38,42 @@ public enum PluginPermission {
     SERVER_CONTROL("server_control", "Server Control (shutdown, reload)"),
 
     /**
+     * Allows loading library jars, which the plugin bundles inside its own jar, <b>without</b> shading them
+     * (e.g. an HTTP server). The plugin lists them in its {@code plugin.properties}:
+     * <pre>
+     * permissions=libraries,network
+     * permission.libraries.reason=Serves the dashboard with NanoHTTPD
+     * libraries=META-INF/libs/nanohttpd-2.3.1.jar
+     * </pre>
+     * The library classes are sandboxed like the plugin's own classes: they are verified and only get the
+     * permissions the plugin was granted (e.g. a server socket needs {@link #NETWORK}).
+     * Libraries that need more than the sandbox permits need {@link #RISKY_LIBRARIES}.
+     */
+    LIBRARIES("libraries", "Libraries (sandboxed, e.g. HTTP servers)"),
+
+    /**
      * Allows loading libraries, that need more than the sandbox permits, like JDBC drivers with native code
      * (e.g. {@code sqlite-jdbc}). The plugin bundles them as jars inside its own jar and lists them in its
      * {@code plugin.properties}:
      * <pre>
-     * permissions=libraries
-     * permission.libraries.reason=Stores its data in an SQLite database
-     * libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
+     * permissions=risky_libraries
+     * permission.risky_libraries.reason=Stores its data in an SQLite database
+     * risky-libraries=META-INF/libs/sqlite-jdbc-3.50.3.0.jar
      * </pre>
      * Library classes are <b>not sandboxed</b>, they have full access to the server (including the bot token).
      * The plugin's own classes stay sandboxed, but may use the library classes and {@code java.sql}.
      * Because of that, this permission is never granted automatically by {@code plugin-permission-default}.
      */
-    LIBRARIES("libraries", "Unsandboxed Libraries (e.g. database drivers)");
+    RISKY_LIBRARIES("risky_libraries", "Risky Libraries (unsandboxed, e.g. database drivers)"),
+
+    /**
+     * Allows loading jars from the plugin's file system and running them as Java applications
+     * ({@link Plugin#loadJavaApplication(java.nio.file.Path)}), e.g. a packaged tool the plugin downloaded.
+     * <p>
+     * Applications run inside the plugin's sandbox, with the permissions the plugin was granted. Each application gets
+     * its own class loader, so it can't see the plugin's classes and the plugin can't see the application's classes.
+     */
+    JAVA_APPLICATIONS("java_applications", "Run Java Applications (sandboxed jars)");
 
     private final @NotNull String key;
     private final @NotNull String displayName;

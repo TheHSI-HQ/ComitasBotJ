@@ -19,6 +19,7 @@ import cloud.thehsi.ComitasBotJ.Main;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.InternalPersistentDataStorage;
 import cloud.thehsi.ComitasBotJ.Plugin.PersistentData.PersistentDataSerializer;
 import cloud.thehsi.ComitasBotJ.Sandbox.PluginSandbox;
+import cloud.thehsi.ComitasBotJ.Sandbox.SandboxPluginClassLoader;
 import cloud.thehsi.ComitasBotJ.Scheduler.InternalScheduler;
 import net.dv8tion.jda.api.JDA;
 import org.jetbrains.annotations.NotNull;
@@ -243,6 +244,15 @@ public class InternalPluginManager implements PluginManager {
     public @NotNull String getHostPath(@NotNull Path path) throws IOException {
         DebugLogging.action(path);
         return requireSandbox().hostPath(path);
+    }
+
+    @Override
+    public @NotNull JavaApplication loadJavaApplication(@NotNull Path jar, @Nullable String mainClass) throws IOException {
+        DebugLogging.action(jar, mainClass);
+        SandboxPluginClassLoader loader = pluginLoaderManager.getLoader(getPlugin());
+        if (loader == null)
+            throw new IllegalStateException("Only sandboxed plugins can load Java applications");
+        return loader.loadApplication(jar, mainClass);
     }
 
     @Override

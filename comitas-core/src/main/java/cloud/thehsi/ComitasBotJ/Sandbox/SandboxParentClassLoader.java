@@ -29,7 +29,7 @@ final class SandboxParentClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> loadClass(@NotNull String name, boolean resolve) throws ClassNotFoundException {
-        if (name.startsWith("java.") || name.startsWith("javax."))
+        if (name.startsWith("java.") || name.startsWith("javax.") || name.startsWith("com.sun.net.httpserver."))
             return ClassLoader.getPlatformClassLoader().loadClass(name);
         if (SandboxPolicy.isExposedHostClass(name))
             return core.loadClass(name);

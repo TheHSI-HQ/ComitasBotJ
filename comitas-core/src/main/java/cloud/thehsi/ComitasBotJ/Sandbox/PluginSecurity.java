@@ -139,15 +139,10 @@ public final class PluginSecurity {
     private static final Prompt DISCORD_PROMPT = new Prompt("Discord Permission Request", "Discord permissions",
             "requested these Discord permissions, it can only use the granted ones (and only if the bot has them too):");
 
-    @NotNull
-    private static Choice<PluginPermission> choice(@NotNull Request request) {
-        PluginPermission permission = request.permission();
-        return new Choice<>(permission, permission.getKey(), "permission." + permission.getKey(), permission.getDisplayName(),
-                request.reason(), request.required(),
-                permission == PluginPermission.LIBRARIES ? "Libraries aren't sandboxed, they have full access to the server, "
-                        + "including the bot token. Only grant this to plugins you trust." : null,
-                MANUAL_ONLY.contains(permission));
-    }
+    /**
+     * Permissions, which are never granted by {@code plugin-permission-default}, only by the server owner.
+     */
+    private static final Set<PluginPermission> MANUAL_ONLY = EnumSet.of(PluginPermission.RISKY_LIBRARIES);
 
     @NotNull
     private static Choice<Permission> choice(@NotNull PluginDiscordPermissions.Request request) {
@@ -239,10 +234,15 @@ public final class PluginSecurity {
         };
     }
 
-    /**
-     * Permissions, which are never granted by {@code plugin-permission-default}, only by the server owner.
-     */
-    private static final Set<PluginPermission> MANUAL_ONLY = EnumSet.of(PluginPermission.LIBRARIES);
+    @NotNull
+    private static Choice<PluginPermission> choice(@NotNull Request request) {
+        PluginPermission permission = request.permission();
+        return new Choice<>(permission, permission.getKey(), "permission." + permission.getKey(), permission.getDisplayName(),
+                request.reason(), request.required(),
+                permission == PluginPermission.RISKY_LIBRARIES ? "Risky libraries aren't sandboxed, they have full access to the server, "
+                        + "including the bot token. Only grant this to plugins you trust." : null,
+                MANUAL_ONLY.contains(permission));
+    }
 
     @NotNull
     private static <T> Set<T> withoutManualOnly(@NotNull Plugin.PluginMetadata metadata, @NotNull Set<T> granted,

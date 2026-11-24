@@ -490,15 +490,27 @@ public class PluginLoaderManager {
             PluginSandbox sandbox = security.resolve(metadata, props);
 
             if (DebugLogging.isBasicEnabled()) debugLogger.debug("Creating sandboxed class loader for: {}", jar.getName());
+            List<String> riskyLibraries = SandboxPluginClassLoader.parseRiskyLibraries(props);
+            if (!riskyLibraries.isEmpty()) {
+                if (sandbox.has(PluginPermission.RISKY_LIBRARIES))
+                    logger.warn("Plugin {} loads the unsandboxed libraries [{}]", metadata.name(), String.join(", ", riskyLibraries));
+                else
+                    logger.warn("Plugin {} bundles the risky libraries [{}], but wasn't granted the {} permission, "
+                                    + "they aren't loaded", metadata.name(), String.join(", ", riskyLibraries),
+                            PluginPermission.RISKY_LIBRARIES.getKey());
+            }
             List<String> libraries = SandboxPluginClassLoader.parseLibraries(props);
             if (!libraries.isEmpty()) {
-                if (sandbox.has(PluginPermission.LIBRARIES))
-                    logger.warn("Plugin {} loads the unsandboxed libraries [{}]", metadata.name(), String.join(", ", libraries));
-                else
-                    logger.warn("Plugin {} bundles the libraries [{}], but wasn't granted the libraries permission, "
-                            + "they aren't loaded", metadata.name(), String.join(", ", libraries));
+                if (sandbox.has(PluginPermission.LIBRARIES)) {
+                    if (DebugLogging.isBasicEnabled())
+                        debugLogger.debug("Plugin {} loads the libraries [{}]", metadata.name(), String.join(", ", libraries));
+                } else {
+                    logger.warn("Plugin {} bundles the libraries [{}], but wasn't granted the {} permission, "
+                                    + "they aren't loaded", metadata.name(), String.join(", ", libraries),
+                            PluginPermission.LIBRARIES.getKey());
+                }
             }
-            loader = new SandboxPluginClassLoader(jar, sandbox, libraries, compatibilityPlan);
+            loader = new SandboxPluginClassLoader(jar, sandbox, riskyLibraries, libraries, compatibilityPlan);
             if (compatibilityPlan != null)
                 logCompatibilityMode(metadata, compatibilityPlan, Objects.requireNonNull(loader.scanCompatibility()));
 
@@ -966,7 +978,19 @@ public class PluginLoaderManager {
             return null;
         }
 
+        // Applications of a plugin act on behalf of the plugin, they must never fall back to the (trusted) base plugin
+        if (classLoader instanceof SandboxPluginClassLoader sandboxed) classLoader = sandboxed.pluginLoader();
         return loaderToPluginCache.get(classLoader);
+    }
+
+    /**
+     * @return The class loader of the plugin, or null for the (trusted) base plugin
+     */
+    @Nullable
+    public SandboxPluginClassLoader getLoader(@NotNull Plugin plugin) {
+        for (LoadedPlugin loaded : plugins)
+            if (loaded.plugin() == plugin) return loaded.loader();
+        return null;
     }
 
     /**

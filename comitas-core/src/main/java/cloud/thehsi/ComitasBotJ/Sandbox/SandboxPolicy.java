@@ -21,29 +21,26 @@ import java.util.Set;
  * serialization, native code, processes, JMX or the file system.
  */
 final class SandboxPolicy {
-    /**
-     * {@code NETWORK} needs the network permission, {@code JDBC} the network or libraries permission.
-     */
-    enum Access {ALLOW, DENY, NETWORK, JDBC}
-
     private static final String SHIM_PACKAGE_BINARY = Change.SHIM_PACKAGE.replace('/', '.');
-
     /**
      * Class name prefixes, which are never loaded from a plugin jar.
      */
-    private @NotNull static final List<String> RESERVED_PREFIXES = List.of(
+    private @NotNull
+    static final List<String> RESERVED_PREFIXES = List.of(
             "java/", "javax/", "jdk/", "sun/", "com/sun/",
             "cloud/thehsi/ComitasBotJ/", "cloud/thehsi/ComitasBasePlugin/",
             "net/dv8tion/", "org/slf4j/", "org/jetbrains/annotations/"
     );
-
     /**
      * Keys ending in '/' are packages (including sub packages), all others classes (including nested classes).
      * The most specific rule wins.
      */
-    private @NotNull static final Map<String, Access> CLASS_RULES = new HashMap<>();
-    private @NotNull static final Map<String, MemberRule> MEMBER_RULES = new HashMap<>();
-    private @NotNull static final Set<String> ALLOWED_BOOTSTRAPS = Set.of(
+    private @NotNull
+    static final Map<String, Access> CLASS_RULES = new HashMap<>();
+    private @NotNull
+    static final Map<String, MemberRule> MEMBER_RULES = new HashMap<>();
+    private @NotNull
+    static final Set<String> ALLOWED_BOOTSTRAPS = Set.of(
             "java/lang/invoke/LambdaMetafactory.metafactory",
             "java/lang/invoke/LambdaMetafactory.altMetafactory",
             "java/lang/invoke/StringConcatFactory.makeConcatWithConstants",
@@ -199,6 +196,10 @@ final class SandboxPolicy {
         denyMembers("java/net/DatagramSocket", "setDatagramSocketImplFactory");
         denyMembers("javax/net/ssl/SSLContext", "setDefault");
         denyMembers("javax/net/ssl/HttpsURLConnection", "setDefaultSSLSocketFactory", "setDefaultHostnameVerifier");
+        // The JDK's HTTP server (jdk.httpserver), it only listens with the network permission.
+        // SimpleFileServer serves host directories, providers are JVM wide.
+        network("com/sun/net/httpserver/");
+        deny("com/sun/net/httpserver/SimpleFileServer", "com/sun/net/httpserver/spi/");
 
         // --- logging & annotations ---
         allow("org/jetbrains/annotations/", "org/slf4j/Logger", "org/slf4j/Marker", "org/slf4j/MarkerFactory",
@@ -216,6 +217,11 @@ final class SandboxPolicy {
         // --- Compatibility layer: calls of old plugins are redirected to these shims, which only use the API ---
         allow(Change.SHIM_PACKAGE);
     }
+
+    /**
+     * {@code NETWORK} needs the network permission, {@code JDBC} the network or risky_libraries permission.
+     */
+    enum Access {ALLOW, DENY, NETWORK, JDBC}
 
     private SandboxPolicy() {
     }
